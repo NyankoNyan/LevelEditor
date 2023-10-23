@@ -1,0 +1,45 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f04ad3cb0e593b5438e6469d59697ae9, type: 3}
+  m_Name: DemoObjectSetupListManifest
+  m_EditorClassIdentifier: 
+  Objects:
+  - id: stone_block_rte_demo
+    version: 0
+    refId: stone_block
+    prefab: {fileID: 2319810484223604727, guid: 8d0741f88188a4b47b8ae6215cc53b23,
+      type: 3}
+    mesh: {fileID: 0}
+    material: {fileID: 0}
+    mainTexture: {fileID: 0}
+    offset: {x: 0, y: 0, z: 0}
+    rotation: {x: 0, y: 0, z: 0}
+    scale: {x: 0, y: 0, z: 0}
+    useTransformWrapper: 0
+    previewOffset: {x: 0, y: 0, z: 0}
+    previewRotation: {x: 0, y: 0, z: 0}
+    previewScale: {x: 0, y: 0, z: 0}
+  - id: dirt_block_rte_demo
+    version: 0
+    refId: dirt_block
+    prefab: {fileID: 2319810484223604727, guid: ec203f8487a4d8147ad58d1d9b38d3ff,
+      type: 3}
+    mesh: {fileID: 0}
+    material: {fileID: 0}
+    mainTexture: {fileID: 0}
+    offset: {x: 0, y: 0, z: 0}
+    rotation: {x: 0, y: 0, z: 0}
+    scale: {x: 0, y: 0, z: 0}
+    useTransformWrapper: 0
+    previewOffset: {x: 0, y: 0, z: 0}
+    previewRotation: {x: 0, y: 0, z: 0}
+    previewScale: {x: 0, y: 0, z: 0}
