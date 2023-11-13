@@ -23,7 +23,7 @@ namespace Level
         void Destroy();
     }
 
-    public class Registry<TKey, TValue>
+    public class Registry<TKey, TValue> 
         where TValue : IHasKey<TKey>, IDestroy
     {
         public UnityAction<TValue> onAdd;

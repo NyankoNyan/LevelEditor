@@ -11,20 +11,10 @@ namespace Level.API
         public LevelAPIException(string msg) : base( msg ) { }
     }
 
-    public interface ILevelAPI
-    {
-        IGridSettingsAPI GridSettings { get; }
-        IBlockProtoAPI BlockProto { get; }
-        IGridStatesAPI GridStates { get; }
-
-        void TODORefactorSaveLevel(Level.IO.ILevelSave levelSaver);
-        void TODORefactorLoadLevel(Level.IO.ILevelLoader levelLoader);
-    }
-
 
     public class LevelAPIFabric
     {
-        public ILevelAPI Create()
+        public LevelAPI Create()
         {
             var gridSettingsEnv = new TypeEnv<GridSettings, uint, GridSettingsCore, GridSettingsFabric, GridSettingsRegistry>();
             var blockProtoEnv = new TypeEnv<BlockProto, uint, BlockProtoCreateParams, BlockProtoFabric, BlockProtoRegistry>();
@@ -43,7 +33,10 @@ namespace Level.API
         }
     }
 
-    public class LevelAPI : ILevelAPI
+    /// <summary>
+    /// РџСЂРµРґРѕСЃС‚Р°РІР»СЏРµС‚ РґРѕСЃС‚СѓРї Рє API СѓСЂРѕРІРЅСЏ РІ С†РµР»РѕРј Рё РѕС‚РґРµР»СЊРЅС‹Рј РµРіРѕ РєРѕРјРїРѕРЅРµРЅС‚Р°Рј.
+    /// </summary>
+    public class LevelAPI
     {
         private GridSettingsAPI _gridSettingsAPI;
         private BlockProtoAPI _blockProtoAPI;
@@ -52,6 +45,8 @@ namespace Level.API
         private BlockProtoRegistry TODORefactor_blockProtoRegistry;
         private GridSettingsRegistry TODORefactor_gridSettingsRegistry;
         private GridStateRegistry TODORefactor_gridStateRegistry;
+
+        private GridSettingsCollection _gridSettingsCollection;
 
         public LevelAPI(
             GridSettingsRegistry gridSettingsRegistry,
@@ -71,7 +66,14 @@ namespace Level.API
             TODORefactor_blockProtoRegistry = blockProtoRegistry;
             TODORefactor_gridSettingsRegistry = gridSettingsRegistry;
             TODORefactor_gridStateRegistry = gridStateRegistry;
+
+            _gridSettingsCollection = new();
         }
+
+        #region Public API
+
+        public GridSettingsCollection => _gridSettingsCollection;
+
         public IGridSettingsAPI GridSettings => _gridSettingsAPI;
         public IBlockProtoAPI BlockProto => _blockProtoAPI;
         public IGridStatesAPI GridStates => _gridStateAPI;
@@ -88,6 +90,8 @@ namespace Level.API
         {
             levelLoader.LoadFullContent( this );
         }
+
+        #endregion
     }
 
     public static class LevelAPITools
@@ -109,8 +113,8 @@ namespace Level.API
     }
 
     /// <summary>
-    /// Прослойка для доступа к единственному блоку.
-    /// Объект блока как таковой в модели не существует.
+    /// РџСЂРѕСЃР»РѕР№РєР° РґР»СЏ РґРѕСЃС‚СѓРїР° Рє РµРґРёРЅСЃС‚РІРµРЅРЅРѕРјСѓ Р±Р»РѕРєСѓ.
+    /// РћР±СЉРµРєС‚ Р±Р»РѕРєР° РєР°Рє С‚Р°РєРѕРІРѕР№ РІ РјРѕРґРµР»Рё РЅРµ СЃСѓС‰РµСЃС‚РІСѓРµС‚.
     /// </summary>
     public class BlockViewAPI : IObjectViewReceiver
     {
