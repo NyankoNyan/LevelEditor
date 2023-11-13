@@ -37,10 +37,10 @@ namespace RuntimeEditTools
             var blockProtoMenuContoller = new BlockProtoMenuContoller( blockProtoEditController, blockListContoller );
 
             // Grid settings editor
-            var gridSettingsEditController = new GridSettingsEditController( levelAPI.GridSettings, _gridSettingsFacade, _keyboard );
+            var gridSettingsEditController = new GridSettingsEditController( levelAPI.GridSettingsCollection, _gridSettingsFacade, _keyboard );
 
             // Grid settings list
-            var gridSettingsListController = new GridSettingsListController( _gridSettingsListFacade, levelAPI.GridSettings );
+            var gridSettingsListController = new GridSettingsListController( _gridSettingsListFacade, levelAPI.GridSettingsCollection );
 
             var gridSettingsMenuController = new GridSettingsMenuController( gridSettingsEditController, gridSettingsListController );
 

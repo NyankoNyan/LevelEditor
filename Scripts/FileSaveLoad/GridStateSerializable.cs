@@ -15,10 +15,9 @@ namespace Level.IO
                 gridSettingsId = grid.GridSettings.Key
             };
 
-        public void Load(IGridStatesAPI gridStatesAPI, IGridSettingsAPI gridSettingsAPI)
+        public void Load(GridStatesCollection gridStatesCollection, GridSettingsCollection gridSettingsCollection)
         {
-            var gridSettings = gridSettingsAPI.GetGridSettings( gridSettingsId );
-            gridStatesAPI.AddState( gridSettings.Name, id );
+            gridStatesCollection.Add( gridSettingsId, id );
         }
     }
 }

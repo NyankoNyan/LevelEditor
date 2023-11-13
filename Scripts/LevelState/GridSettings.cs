@@ -7,7 +7,7 @@ using UnityEngine.Events;
 namespace Level
 {
     [Serializable]
-    public struct GridSettingsCore
+    public struct GridSettingsCreateParams
     {
         public string name;
         public Vector3Int chunkSize;
@@ -32,14 +32,14 @@ namespace Level
         public string tag;
     }
 
-    public class GridSettings : IHasKey<uint>, IInitializable<GridSettingsCore>, IDestroy
+    public class GridSettings : IHasKey<uint>, IInitializable<GridSettingsCreateParams>, IDestroy
     {
         public UnityAction changed;
         public UnityAction<DataLayerSettings> layerAdded;
         public UnityAction<DataLayerSettings> layerRemoved;
 
         private uint _id;
-        private GridSettingsCore _settings;
+        private GridSettingsCreateParams _settings;
 
         public uint Key => _id;
 
@@ -54,7 +54,7 @@ namespace Level
             }
         }
 
-        public GridSettingsCore Settings => _settings;
+        public GridSettingsCreateParams Settings => _settings;
 
         public Vector3Int ChunkSize
         {
@@ -99,7 +99,7 @@ namespace Level
             }
         }
 
-        public void Init(GridSettingsCore value, uint counter)
+        public void Init(GridSettingsCreateParams value, uint counter)
         {
             _settings = value;
             _id = counter;
@@ -147,6 +147,6 @@ namespace Level
     public class GridSettingsRegistry : Registry<uint, GridSettings>
     { };
 
-    public class GridSettingsFabric : Fabric<GridSettings, GridSettingsCore>
+    public class GridSettingsFabric : Fabric<GridSettings, GridSettingsCreateParams>
     { };
 }

@@ -1,25 +1,48 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
 namespace Level.API
 {
-    public class GridSettingsCollection:IEnumerable<GridSettings> {
-
-        private GridSettingsRegistry _gridSettingsRegistry;
-        private GridSettingsFabric _gridSettingsFabric;
-
+    /// <summary>
+    /// Коллекция описаний пространственных сеток
+    /// </summary>
+    public class GridSettingsCollection : IEnumerable<GridSettings>
+    {
+        //TODO протянуть события
         public Action<GridSettings> added;
 
         public Action<GridSettings> removed;
 
-        public GridSettings Add(GridSettingsCreateParams? createParams = null, uint? id = null){
-            
+        private GridSettingsRegistry _gridSettingsRegistry;
+        private GridSettingsFabric _gridSettingsFabric;
+
+        public GridSettingsCollection()
+        {
+            _gridSettingsRegistry = new();
+            _gridSettingsFabric = new();
+            _gridSettingsFabric.onCreate += gs => _gridSettingsRegistry.Add( gs );
+        }
+
+        public void Dispose()
+        {
+            //TODO dispose
+        }
+
+        /// <summary>
+        /// Добавляет в коллекцию новые описания пространственных сеток.
+        /// </summary>
+        /// <param name="createParams">Настройки создания сетки. Если пустое, то создаст новую сетку с настройками по умолчанию.</param>
+        /// <param name="id">Индекс добавляемого элемента (нужно для загрузки уровня). Опциональное поле.</param>
+        /// <returns></returns>
+        public GridSettings Add(GridSettingsCreateParams? createParams = null, uint? id = null)
+        {
             const int nameTryCount = 10;
             GridSettingsCreateParams coolCreateParams;
 
-            if (createParams==null){
+            if (createParams == null) {
                 // Default create parameters
                 coolCreateParams = new() {
                     chunkSize = Vector3Int.one,
@@ -38,65 +61,82 @@ namespace Level.API
                 // Trying set unoccupied name
                 bool nameOk = false;
                 for (int i = 0; i < nameTryCount; i++) {
-                    if(i==0){
+                    if (i == 0) {
                         coolCreateParams.name = baseName;
-                    }else{
+                    } else {
                         coolCreateParams.name = baseName + UnityEngine.Random.Range( 0, 10000 );
                     }
-                    if (! _gridSettingsRegistry.Values.Any( x => x.Name == coolCreateParams.name )){
+                    if (!_gridSettingsRegistry.Values.Any( x => x.Name == coolCreateParams.name )) {
                         nameOk = true;
                         break;
                     }
                 }
-                if(!nameOk){
+                if (!nameOk) {
                     throw new LevelAPIException( $"Cant't find free name for new block proto" );
                 }
-            }else{
+            } else {
                 coolCreateParams = createParams.Value;
             }
 
-            if (string.IsNullOrWhiteSpace( gridSettings.name )) {
+            if (string.IsNullOrWhiteSpace( coolCreateParams.name )) {
                 throw new LevelAPIException( $"Empty grid settings name" );
             }
-            if (_gridSettingsRegistry.Values.Any( x => x.Name == gridSettings.name )) {
-                throw new LevelAPIException( $"Grid settings with name {gridSettings.name} already exists" );
+            if (_gridSettingsRegistry.Values.Any( x => x.Name == coolCreateParams.name )) {
+                throw new LevelAPIException( $"Grid settings with name {coolCreateParams.name} already exists" );
             }
 
-            if (id == null){
-                return _gridSettingsFabric.Create( gridSettings ).Key;
-            }else{
-                if (id == 0){
+            if (id == null) {
+                return _gridSettingsFabric.Create( coolCreateParams );
+            } else {
+                if (id.Value == 0) {
                     throw new LevelAPIException( $"Empty grid settings id" );
                 }
-                return _gridSettingsFabric.CreateWithCounter( gridSettings, id );
-            }            
+                return _gridSettingsFabric.CreateWithCounter( coolCreateParams, id.Value );
+            }
         }
 
-        public void Remove(uint id){
+        /// <summary>
+        /// Удаляет описание с указанным индексом.
+        /// </summary>
+        /// <param name="id"></param>
+        public void Remove(uint id)
+        {
             GridSettings gridSettings = null;
+            //TODO проверкм наличия сеток с текущим описанием
             try {
-                gridSettings = _gridSettingsRegistry.Values.First( x => x.Key == gridSettingsId );
+                gridSettings = _gridSettingsRegistry.Values.First( x => x.Key == id );
             } catch (InvalidOperationException) {
-                throw new LevelAPIException( $"Missing grid with id {gridSettingsId}" );
+                throw new LevelAPIException( $"Missing grid with id {id}" );
             }
+            //TODO удалять всё же
         }
 
-        public GridSettings this[uint id]{
+        /// <summary>
+        /// Возвращает описание по индексу.
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns></returns>
+        public GridSettings this[uint id]
+        {
             get {
-                return _gridSettingsRegistry.Dict[gridSettingsId];
+                return _gridSettingsRegistry.Dict[id];
             }
         }
 
-        public IEnumerator<GridSettings> GetEnumerator(){
-            return _gridSettingsRegistry.Values.GetEnumerator();
+        /// <summary>
+        /// Ищет описание по имени
+        /// </summary>
+        /// <param name="name"></param>
+        /// <returns>Возвращает объект параметров грида. Если ничего не найдено, вернёт null.</returns>
+        public GridSettings FindByName(string name)
+        {
+            return _gridSettingsRegistry.Values.SingleOrDefault( x => x.Name == name );
         }
 
-        private IEnumerator<GridSettings> GetEnumerator1(){
-            return this.GetEnumerator
-        } 
+        public IEnumerator<GridSettings> GetEnumerator() => _gridSettingsRegistry.Values.GetEnumerator();
 
-        IEnumerator IEnumerable.GetEnumerator(){
-            return GetEnumerator1();
-        }
+        private IEnumerator<GridSettings> GetEnumerator1() => this.GetEnumerator();
+
+        IEnumerator IEnumerable.GetEnumerator() => GetEnumerator1();
     }
 }

@@ -28,7 +28,7 @@ namespace RuntimeEditTools
         };
 
         private uint _gridSettingsId;
-        private IGridSettingsAPI _gridSettingsAPI;
+        private GridSettingsCollection _gridSettingsAPI;
 
         public UnityAction<string, object> OnParamModelUpdate { get; set; }
 
@@ -47,14 +47,14 @@ namespace RuntimeEditTools
             }
         }
 
-        public GridSettingsParametersConnector(IGridSettingsAPI gridSettingsAPI)
+        public GridSettingsParametersConnector(GridSettingsCollection gridSettingsAPI)
         {
             _gridSettingsAPI = gridSettingsAPI;
         }
 
         public object GetParameter(string name)
         {
-            var gridSettings = _gridSettingsAPI.GetGridSettings( _gridSettingsId );
+            var gridSettings = _gridSettingsAPI[_gridSettingsId];
             switch (name) {
                 case ID:
                     return gridSettings.Key;
@@ -86,7 +86,7 @@ namespace RuntimeEditTools
 
         public void SetParameter(string name, object value)
         {
-            var gridSettings = _gridSettingsAPI.GetGridSettings( _gridSettingsId );
+            var gridSettings = _gridSettingsAPI[_gridSettingsId];
             switch (name) {
                 case NAME:
                     gridSettings.Name = (string)value;
@@ -115,13 +115,13 @@ namespace RuntimeEditTools
 
         private void ReleaseAPIReceivers()
         {
-            var gridSettings = _gridSettingsAPI.GetGridSettings( _gridSettingsId );
+            var gridSettings = _gridSettingsAPI[_gridSettingsId];
             gridSettings.changed -= OnModelChanged;
         }
 
         private void SetupAPIReceivers()
         {
-            var gridSettings = _gridSettingsAPI.GetGridSettings( _gridSettingsId );
+            var gridSettings = _gridSettingsAPI[_gridSettingsId];
             gridSettings.changed += OnModelChanged;
         }
 

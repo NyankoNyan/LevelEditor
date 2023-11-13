@@ -13,18 +13,18 @@ namespace RuntimeEditTools
         private const string editCmdId = "EDIT";
 
         private InteractiveListFacade _listFacade;
-        private IGridSettingsAPI _gridSettingsAPI;
+        private GridSettingsCollection _gridSettingsAPI;
 
         public UnityAction<uint> onStartEdit;
         public UnityAction<string, IDataContainer[]> onListAction;
 
-        public GridSettingsListController(InteractiveListFacade listFacade, IGridSettingsAPI gridSettingsAPI)
+        public GridSettingsListController(InteractiveListFacade listFacade, GridSettingsCollection gridSettingsAPI)
         {
             _listFacade = listFacade;
             _gridSettingsAPI = gridSettingsAPI;
 
             // From model to view
-            foreach (var gridSettings in gridSettingsAPI.Values) {
+            foreach (var gridSettings in gridSettingsAPI) {
                 AddGridSettingsToList( gridSettings );
             }
 
@@ -51,7 +51,7 @@ namespace RuntimeEditTools
         {
             switch (args.id) {
                 case addCmdId:
-                    _gridSettingsAPI.AddEmpty();
+                    _gridSettingsAPI.Add();
                     break;
 
                 case removeCmdId:

@@ -1,5 +1,6 @@
 ﻿using Level;
 using Level.API;
+using System;
 using UnityEngine;
 using UnityEngine.Events;
 
@@ -8,7 +9,7 @@ namespace LevelView
     public class LevelViewBuilder
     {
         private IConstructFabric _constructFabric;
-        private ILevelAPI _levelAPI;
+        private LevelAPI _levelAPI;
         private IObjectViewFabric _objViewFabric;
 
         public LevelViewBuilder(IConstructFabric constructFabric)
@@ -16,7 +17,7 @@ namespace LevelView
             _constructFabric = constructFabric;
         }
 
-        public void Build(ILevelAPI levelAPI, Transform root, bool ignorePools)
+        public void Build(LevelAPI levelAPI, Transform root, bool ignorePools)
         {
             _levelAPI = levelAPI;
             if (ignorePools) {
@@ -33,11 +34,11 @@ namespace LevelView
             }
 
             // Setup grid states
-            UnityAction<GridState> onStateAdded = (gridState) => {
+            Action<GridState> onStateAdded = (gridState) => {
                 SetupGridState( gridState, root );
             };
-            levelAPI.GridStates.onStateAdded += onStateAdded;
-            foreach (var gridState in levelAPI.GridStates.Grids) {
+            levelAPI.GridStatesCollection.added += onStateAdded;
+            foreach (var gridState in levelAPI.GridStatesCollection) {
                 SetupGridState( gridState, root );
             }
         }
@@ -51,7 +52,6 @@ namespace LevelView
 
         private void SetupGridState(GridState gridState, Transform parent)
         {
-
             GameObject gridView = new( $"{gridState.Key}-{gridState.GridSettingsName}" );
             gridView.transform.parent = parent;
             gridView.transform.localPosition = default;
@@ -114,6 +114,7 @@ namespace LevelView
                 case LayerType.BlockLayer:
                     SetupBlockLayer( dataLayer as BlockLayer, parent, gridSettings );
                     break;
+
                 default:
                     Debug.LogError( $"Layer {dataLayer.LayerType} not supported" );
                     break;

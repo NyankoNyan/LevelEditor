@@ -7,7 +7,7 @@ namespace Level.IO
     internal class GridSettingsSerializable
     {
         public uint id;
-        public GridSettingsCore settings;
+        public GridSettingsCreateParams settings;
 
         public static explicit operator GridSettingsSerializable(GridSettings gridSettings)
             => new() {
@@ -15,9 +15,9 @@ namespace Level.IO
                 settings = gridSettings.Settings
             };
 
-        public void Load(IGridSettingsAPI gridSettingsAPI)
+        public void Load(GridSettingsCollection gridSettingsCollection)
         {
-            gridSettingsAPI.Add( settings, id );
+            gridSettingsCollection.Add( settings, id );
         }
     }
 }

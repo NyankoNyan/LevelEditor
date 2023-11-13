@@ -1,12 +1,11 @@
 ﻿using Level.API;
-using System.Linq;
 using UnityEngine;
 
 namespace Level.Builder
 {
     public class GridInstanceBuilder : MonoBehaviour, IBuilderCheck
     {
-        [SerializeField] string gridSettingsName;
+        [SerializeField] private string gridSettingsName;
 
         public void Check()
         {
@@ -15,9 +14,10 @@ namespace Level.Builder
             }
         }
 
-        public void Export(IGridStatesAPI api, IBlockProtoAPI blockProtoAPI)
+        public void Export(GridStatesCollection api, IBlockProtoAPI blockProtoAPI)
         {
-            var gridState = api.AddState( gridSettingsName );
+            var gridSettings = api.Level.GridSettingsCollection.FindByName( gridSettingsName );
+            var gridState = api.Add( gridSettings.Key );
 
             foreach (var chunkBuilder in GetComponentsInChildren<ChunkBuilder>()) {
                 chunkBuilder.Export( gridState, blockProtoAPI );

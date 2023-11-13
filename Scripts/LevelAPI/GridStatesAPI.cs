@@ -1,66 +1,85 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
-using System.Linq;
-using UnityEngine;
-using UnityEngine.Assertions;
-using UnityEngine.Events;
 
 namespace Level.API
 {
-    public interface IGridStatesAPI
+    public class GridStatesCollection : IEnumerable<GridState>
     {
-        UnityAction<GridState> onStateAdded { get; set; }
-        GridState AddState(string gridSettingsName);
-        GridState AddState(string gridSettingsName, uint id);
-        void RemoveState(uint id);
-        IEnumerable<GridState> Grids { get; }
-    }
+        public Action<GridState> added;
+        public Action<GridState> removed;
 
-    internal class GridStatesAPI : IGridStatesAPI
-    {
+        private LevelAPI _level;
         private GridStateRegistry _gridStateRegistry;
         private GridStateFabric _gridStateFabric;
-        private IGridSettingsAPI _gridSettingsAPI;
         private DataLayerFabric _dataLayerFabric;
 
-        //private DataLayerAPIFabric _dataLayerAPIFabric;
+        public LevelAPI Level => _level;
 
-        public GridStatesAPI(GridStateRegistry gridStateRegistry, GridStateFabric gridStateFabric, IGridSettingsAPI gridSettingsAPI, DataLayerFabric dataLayerFabric)
+        public GridStatesCollection(LevelAPI level)
         {
-            _gridStateRegistry = gridStateRegistry;
-            _gridStateFabric = gridStateFabric;
-            _gridSettingsAPI = gridSettingsAPI;
-            //_dataLayerAPIFabric = dataLayerAPIFabric;
-            _dataLayerFabric = dataLayerFabric;
+            _level = level;
+
+            _gridStateRegistry = new();
+            _gridStateFabric = new();
+            _dataLayerFabric = new();
+
+            _gridStateFabric.onCreate += OnFacCreate;
+            _gridStateRegistry.onAdd += OnRegAdd;
+            _gridStateRegistry.onRemove += OnRegRemove;
         }
 
-        public IEnumerable<GridState> Grids => _gridStateRegistry.Values;
-
-        public UnityAction<GridState> onStateAdded { get => _gridStateFabric.onCreate; set => _gridStateFabric.onCreate = value; }
-
-        public GridState AddState(string gridSettingsName)
+        public void Dispose()
         {
-            var gridSettings = _gridSettingsAPI.GetGridSettings( gridSettingsName );
-            var createParams = new GridStateCreateParams( gridSettings, _dataLayerFabric );
-            return _gridStateFabric.Create( createParams );
+            _gridStateRegistry.onAdd -= OnRegAdd;
+            _gridStateRegistry.onRemove -= OnRegRemove;
+            _gridStateFabric.onCreate -= OnFacCreate;
         }
 
-        public GridState AddState(string gridSettingsName, uint id)
+        /// <summary>
+        /// Создаёт новую сетку на основе её описания.
+        /// </summary>
+        /// <param name="gridSettingsId">Индекс описания пространственных сеток</param>
+        /// <param name="id">Индекс новой сетки (нужен для згрузки). По умолчаю находит свободный индекс.</param>
+        /// <returns></returns>
+        public GridState Add(uint gridSettingsId, uint? id = null)
         {
-            var gridSettings = _gridSettingsAPI.GetGridSettings( gridSettingsName );
-            var createParams = new GridStateCreateParams( gridSettings, _dataLayerFabric );
-            return _gridStateFabric.CreateWithCounter( createParams, id );
-        }
-
-        public void RemoveState(uint id)
-        {
-            GridState gridState = null;
-            try {
-                gridState = _gridStateRegistry.Values.First( x => x.Key == id );
-            } catch (InvalidOperationException) {
-                throw new LevelAPIException( $"Missing grid instance with id {id}" );
+            var gridSettings = _level.GridSettingsCollection[gridSettingsId];
+            GridStateCreateParams createParams = new( gridSettings, _dataLayerFabric );
+            if (id.HasValue) {
+                // TODO check not exists
+                return _gridStateFabric.CreateWithCounter( createParams, id.Value );
+            } else {
+                return _gridStateFabric.Create( createParams );
             }
-            gridState.Destroy();
         }
+
+        /// <summary>
+        /// Удалить сетку со всем содержимым.
+        /// </summary>
+        /// <param name="id"></param>
+        public void Remove(uint id)
+        {
+            _gridStateRegistry.Remove( id );
+        }
+
+        public GridState this[uint id]
+        {
+            get {
+                return _gridStateRegistry.Dict[id];
+            }
+        }
+
+        public IEnumerator<GridState> GetEnumerator() => _gridStateRegistry.Values.GetEnumerator();
+
+        private IEnumerator<GridState> GetEnumerator1() => this.GetEnumerator();
+
+        IEnumerator IEnumerable.GetEnumerator() => GetEnumerator1();
+
+        private void OnRegAdd(GridState gridState) => added?.Invoke( gridState );
+
+        private void OnRegRemove(GridState gridState) => removed?.Invoke( gridState );
+
+        private void OnFacCreate(GridState gridState) => _gridStateRegistry.Add( gridState );
     }
 }

@@ -5,10 +5,10 @@ namespace RuntimeEditTools
 {
     internal class GridSettingsEditController : BaseParameterEditController
     {
-        private IGridSettingsAPI _gridSettingsAPI;
+        private GridSettingsCollection _gridSettingsAPI;
 
         public GridSettingsEditController(
-            IGridSettingsAPI gridSettingsAPI,
+            GridSettingsCollection gridSettingsAPI,
             ParametersListFacade facade,
             Keyboard keyboard)
             : base( facade, keyboard )

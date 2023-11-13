@@ -1,6 +1,5 @@
 ﻿using Level.API;
 using System.IO;
-using System.Linq;
 using System.Text.RegularExpressions;
 using UnityEngine;
 
@@ -8,7 +7,7 @@ namespace Level.IO
 {
     public interface ILevelLoader
     {
-        void LoadFullContent(ILevelAPI levelAPI);
+        void LoadFullContent(LevelAPI levelAPI);
     }
 
     public class FileLevelLoader : ILevelLoader
@@ -20,7 +19,7 @@ namespace Level.IO
             _filePath = filePath;
         }
 
-        public void LoadFullContent(ILevelAPI levelAPI)
+        public void LoadFullContent(LevelAPI levelAPI)
         {
             var blPrSerials = LoadData<ListWrapper<BlockProtoSerializable>>( LevelFileConsts.FILE_BLOCK_PROTO );
             foreach (var blPrSerial in blPrSerials.list) {
@@ -29,18 +28,18 @@ namespace Level.IO
 
             var grSetSerials = LoadData<ListWrapper<GridSettingsSerializable>>( LevelFileConsts.FILE_GRID_SETTINGS );
             foreach (var grSetSerial in grSetSerials.list) {
-                grSetSerial.Load( levelAPI.GridSettings );
+                grSetSerial.Load( levelAPI.GridSettingsCollection );
             }
 
             var grStateSerials = LoadData<ListWrapper<GridStateSerializable>>( LevelFileConsts.FILE_GRID_STATE );
             foreach (var grStateSerial in grStateSerials.list) {
-                grStateSerial.Load( levelAPI.GridStates, levelAPI.GridSettings );
+                grStateSerial.Load( levelAPI.GridStatesCollection, levelAPI.GridSettingsCollection );
             }
 
-            LoadChunks( levelAPI.GridStates );
+            LoadChunks( levelAPI.GridStatesCollection );
         }
 
-        private void LoadChunks(IGridStatesAPI gridStatesAPI)
+        private void LoadChunks(GridStatesCollection gridStatesAPI)
         {
             string[] chunkFiles = Directory.GetFiles( $"{_filePath}/{LevelFileConsts.DIR_CHUNKS}" );
 
@@ -60,7 +59,7 @@ namespace Level.IO
                     string subPath = $"{LevelFileConsts.DIR_CHUNKS}/{gridId}.{x}_{y}_{z}";
                     var chunkSerial = LoadData<ChunkSerializable>( subPath );
 
-                    var gridState = gridStatesAPI.Grids.SingleOrDefault( x => x.Key == gridId );
+                    var gridState = gridStatesAPI[gridId];
                     if (gridState == null) {
                         Debug.LogError( $"Missing grid with id {gridId}" );
                     } else {

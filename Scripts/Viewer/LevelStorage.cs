@@ -21,10 +21,10 @@ namespace LevelView
         }
         private static LevelStorage _instance;
 
-        public ILevelAPI API => _levelAPI;
+        public LevelAPI API => _levelAPI;
 
         private LevelAPIFabric _levelAPIFabric;
-        private ILevelAPI _levelAPI;
+        private LevelAPI _levelAPI;
 
 
         private void Awake()

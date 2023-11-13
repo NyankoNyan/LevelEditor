@@ -1,6 +1,4 @@
 using System;
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Events;
 
@@ -8,27 +6,24 @@ namespace Level.API
 {
     public class LevelAPIException : Exception
     {
-        public LevelAPIException(string msg) : base( msg ) { }
+        public LevelAPIException(string msg) : base( msg )
+        {
+        }
     }
-
 
     public class LevelAPIFabric
     {
         public LevelAPI Create()
         {
-            var gridSettingsEnv = new TypeEnv<GridSettings, uint, GridSettingsCore, GridSettingsFabric, GridSettingsRegistry>();
+            var gridSettingsEnv = new TypeEnv<GridSettings, uint, GridSettingsCreateParams, GridSettingsFabric, GridSettingsRegistry>();
             var blockProtoEnv = new TypeEnv<BlockProto, uint, BlockProtoCreateParams, BlockProtoFabric, BlockProtoRegistry>();
             var gridStateEnv = new TypeEnv<GridState, uint, GridStateCreateParams, GridStateFabric, GridStateRegistry>();
-            var dataLayerFabric = new DataLayerFabric();
 
             return new LevelAPI(
                 gridSettingsEnv.Registry,
-                gridSettingsEnv.Fabric,
                 blockProtoEnv.Registry,
                 blockProtoEnv.Fabric,
-                gridStateEnv.Registry,
-                gridStateEnv.Fabric,
-                dataLayerFabric
+                gridStateEnv.Registry
                 );
         }
     }
@@ -38,47 +33,39 @@ namespace Level.API
     /// </summary>
     public class LevelAPI
     {
-        private GridSettingsAPI _gridSettingsAPI;
         private BlockProtoAPI _blockProtoAPI;
+
         //private DataLayerAPIFabric _dataLayerAPIFabric;
-        private GridStatesAPI _gridStateAPI;
+        private GridStatesCollection _gridStatesCollection;
+
         private BlockProtoRegistry TODORefactor_blockProtoRegistry;
         private GridSettingsRegistry TODORefactor_gridSettingsRegistry;
         private GridStateRegistry TODORefactor_gridStateRegistry;
-
         private GridSettingsCollection _gridSettingsCollection;
 
         public LevelAPI(
             GridSettingsRegistry gridSettingsRegistry,
-            GridSettingsFabric gridSettingsFabric,
             BlockProtoRegistry blockProtoRegistry,
             BlockProtoFabric blockProtoFabric,
-            GridStateRegistry gridStateRegistry,
-            GridStateFabric gridStateFabric,
-            DataLayerFabric dataLayerFabric
+            GridStateRegistry gridStateRegistry
             )
         {
-            _gridSettingsAPI = new GridSettingsAPI( gridSettingsRegistry, gridSettingsFabric );
             _blockProtoAPI = new BlockProtoAPI( blockProtoRegistry, blockProtoFabric );
-            //_dataLayerAPIFabric = new DataLayerAPIFabric();
-            _gridStateAPI = new GridStatesAPI( gridStateRegistry, gridStateFabric, _gridSettingsAPI, dataLayerFabric );
+            _gridSettingsCollection = new();
+            _gridStatesCollection = new GridStatesCollection( this );
 
             TODORefactor_blockProtoRegistry = blockProtoRegistry;
             TODORefactor_gridSettingsRegistry = gridSettingsRegistry;
             TODORefactor_gridStateRegistry = gridStateRegistry;
-
-            _gridSettingsCollection = new();
         }
 
         #region Public API
 
-        public GridSettingsCollection => _gridSettingsCollection;
-
-        public IGridSettingsAPI GridSettings => _gridSettingsAPI;
+        public GridSettingsCollection GridSettingsCollection => _gridSettingsCollection;
         public IBlockProtoAPI BlockProto => _blockProtoAPI;
-        public IGridStatesAPI GridStates => _gridStateAPI;
+        public GridStatesCollection GridStatesCollection => _gridStatesCollection;
 
-        void ILevelAPI.TODORefactorSaveLevel(Level.IO.ILevelSave levelSaver)
+        public void TODORefactorSaveLevel(Level.IO.ILevelSave levelSaver)
         {
             levelSaver.SaveFullContent(
                 TODORefactor_blockProtoRegistry,
@@ -86,12 +73,12 @@ namespace Level.API
                 TODORefactor_gridStateRegistry );
         }
 
-        void ILevelAPI.TODORefactorLoadLevel(Level.IO.ILevelLoader levelLoader)
+        public void TODORefactorLoadLevel(Level.IO.ILevelLoader levelLoader)
         {
             levelLoader.LoadFullContent( this );
         }
 
-        #endregion
+        #endregion Public API
     }
 
     public static class LevelAPITools
@@ -109,6 +96,7 @@ namespace Level.API
         UnityAction removed { get; set; }
         UnityAction<bool> visibilityChanged { get; set; }
         bool Visible { get; }
+
         void Remove();
     }
 
@@ -149,6 +137,7 @@ namespace Level.API
         }
 
         public UnityAction removed { get; set; }
+
         public UnityAction<bool> visibilityChanged
         {
             get => throw new NotImplementedException();
