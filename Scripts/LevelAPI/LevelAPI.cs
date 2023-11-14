@@ -1,6 +1,5 @@
 using System;
 using UnityEngine;
-using UnityEngine.Events;
 
 namespace Level.API
 {
@@ -32,12 +31,13 @@ namespace Level.API
 
         public LevelAPI()
         {
-            _blockProtoCollection = new BlockProtoCollection( );
+            _blockProtoCollection = new BlockProtoCollection();
             _gridSettingsCollection = new GridSettingsCollection();
             _gridStatesCollection = new GridStatesCollection( this );
         }
 
-        public void Destroy(){
+        public void Destroy()
+        {
             _gridStatesCollection.Destroy();
             _gridSettingsCollection.Destroy();
             _blockProtoCollection.Destroy();
@@ -74,8 +74,8 @@ namespace Level.API
 
     public interface IObjectViewReceiver
     {
-        UnityAction removed { get; set; }
-        UnityAction<bool> visibilityChanged { get; set; }
+        Action removed { get; set; }
+        Action<bool> visibilityChanged { get; set; }
         bool Visible { get; }
 
         void Remove();
@@ -95,7 +95,7 @@ namespace Level.API
             _blockLayer = blockLayer ?? throw new ArgumentNullException( nameof( blockLayer ) );
             _flatCoord = GridChunk.BlockCoordToFlat( blockCoord, gridSettings.ChunkSize );
 
-            UnityAction<int> onChanged = (i) => {
+            Action<int> onChanged = (i) => {
                 if (i == _flatCoord) {
                     BlockData blockData = blockLayer.Item( i );
                     if (blockData.blockId == 0) {
@@ -105,7 +105,7 @@ namespace Level.API
             };
             blockLayer.onChanged += onChanged;
 
-            UnityAction<DataLayerSettings> layerRemoved = null;
+            Action<DataLayerSettings> layerRemoved = null;
             layerRemoved = (layerSettings) => {
                 if (layerSettings.tag == _blockLayer.Tag) {
                     blockLayer.onChanged -= onChanged;
@@ -117,9 +117,9 @@ namespace Level.API
             gridSettings.layerRemoved += layerRemoved;
         }
 
-        public UnityAction removed { get; set; }
+        public Action removed { get; set; }
 
-        public UnityAction<bool> visibilityChanged
+        public Action<bool> visibilityChanged
         {
             get => throw new NotImplementedException();
             set => throw new NotImplementedException();

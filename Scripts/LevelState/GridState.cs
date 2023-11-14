@@ -1,7 +1,5 @@
-using Level.IO;
-using System.Collections;
+using System;
 using System.Collections.Generic;
-using System.IO;
 using UnityEngine;
 using UnityEngine.Assertions;
 
@@ -73,9 +71,12 @@ namespace Level
             this.dataLayerFabric = dataLayerFabric;
         }
     }
-    public class GridStateRegistry : Registry<uint, GridState> { };
-    public class GridStateFabric : Fabric<GridState, GridStateCreateParams> { };
 
+    public class GridStateRegistry : Registry<uint, GridState>
+    { };
+
+    public class GridStateFabric : Fabric<GridState, GridStateCreateParams>
+    { };
 
     //public interface IChunkSource
     //{

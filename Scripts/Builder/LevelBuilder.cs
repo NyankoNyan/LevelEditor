@@ -53,8 +53,8 @@ namespace Level.Builder
             levelLoader.LoadFullContent( level );
 
             builderGridSettings.Import( level.GridSettingsCollection );
-            builderBlockProtos.Import( level.BlockProto );
-            builderGridInstanceCollector.Import( level.GridStatesCollection, level.BlockProto );
+            builderBlockProtos.Import( level.BlockProtoCollection );
+            builderGridInstanceCollector.Import( level.GridStatesCollection, level.BlockProtoCollection );
         }
 
         private void ClearFolder()
@@ -71,8 +71,8 @@ namespace Level.Builder
         private void BuildLevelState(LevelAPI level)
         {
             builderGridSettings.Export( level.GridSettingsCollection );
-            builderBlockProtos.Export( level.BlockProto );
-            builderGridInstanceCollector.Export( level.GridStatesCollection, level.BlockProto );
+            builderBlockProtos.Export( level.BlockProtoCollection );
+            builderGridInstanceCollector.Export( level.GridStatesCollection, level.BlockProtoCollection );
         }
 
         private void ImportLevelState(LevelAPI level)

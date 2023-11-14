@@ -23,7 +23,7 @@ namespace Level.IO
         {
             var blPrSerials = LoadData<ListWrapper<BlockProtoSerializable>>( LevelFileConsts.FILE_BLOCK_PROTO );
             foreach (var blPrSerial in blPrSerials.list) {
-                blPrSerial.Load( levelAPI.BlockProto );
+                blPrSerial.Load( levelAPI.BlockProtoCollection );
             }
 
             var grSetSerials = LoadData<ListWrapper<GridSettingsSerializable>>( LevelFileConsts.FILE_GRID_SETTINGS );

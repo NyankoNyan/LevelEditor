@@ -29,10 +29,10 @@ namespace RuntimeEditTools
             var levelAPI = LevelStorage.Instance.API;
 
             // Block proto editor
-            var blockProtoEditController = new BlockProtoEditController( levelAPI.BlockProto, _blockProtoFacade, _keyboard );
+            var blockProtoEditController = new BlockProtoEditController( levelAPI.BlockProtoCollection, _blockProtoFacade, _keyboard );
 
             // Block proto list
-            var blockListContoller = new BlockListContoller( _blockListFacade, levelAPI.BlockProto );
+            var blockListContoller = new BlockListContoller( _blockListFacade, levelAPI.BlockProtoCollection );
 
             var blockProtoMenuContoller = new BlockProtoMenuContoller( blockProtoEditController, blockListContoller );
 

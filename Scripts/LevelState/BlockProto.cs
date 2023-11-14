@@ -1,15 +1,14 @@
 ﻿using System;
 using UnityEngine;
-using UnityEngine.Events;
 
 namespace Level
 {
     public class BlockProto : IHasKey<uint>, IInitializable<BlockProtoCreateParams>, IDestroy
     {
-        public UnityAction changed;
-        public UnityAction<string, string> nameChanged;
-        public UnityAction<string, string> tagChanged;
-        public UnityAction<string, string> formFactorChanged;
+        public Action changed;
+        public Action<string, string> nameChanged;
+        public Action<string, string> tagChanged;
+        public Action<string, string> formFactorChanged;
 
         private uint _id;
         private BlockProtoSettings _settings;
@@ -68,7 +67,7 @@ namespace Level
 
         internal BlockProtoSettings Settings => _settings;
 
-        public UnityAction OnDestroyAction { get; set; }
+        public Action OnDestroyAction { get; set; }
 
         public void Destroy()
         {

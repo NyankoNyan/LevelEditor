@@ -1,8 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using UnityEngine.Events;
 
 namespace Level
@@ -19,11 +16,12 @@ namespace Level
 
     public interface IDestroy
     {
-        UnityAction OnDestroyAction { get; set; }
+        Action OnDestroyAction { get; set; }
+
         void Destroy();
     }
 
-    public class Registry<TKey, TValue> 
+    public class Registry<TKey, TValue>
         where TValue : IHasKey<TKey>, IDestroy
     {
         public UnityAction<TValue> onAdd;
@@ -62,6 +60,7 @@ namespace Level
         public UnityAction<T> onCreate;
         private uint _counter;
         public uint Counter => _counter;
+
         public T Create(TCreateParams createParams)
         {
             T value = new();
@@ -72,6 +71,7 @@ namespace Level
             }
             return value;
         }
+
         public T CreateWithCounter(TCreateParams createParams, uint counter)
         {
             T value = new();

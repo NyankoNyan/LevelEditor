@@ -2,7 +2,6 @@
 using Level.API;
 using System;
 using UnityEngine;
-using UnityEngine.Events;
 
 namespace LevelView
 {
@@ -26,10 +25,10 @@ namespace LevelView
                 _objViewFabric = new ObjectViewFabric( _constructFabric );
             }
 
-            levelAPI.BlockProto.onBlockProtoAdded += (blockProto) => {
+            levelAPI.BlockProtoCollection.added += (blockProto) => {
                 SetupBlockProto( blockProto, _constructFabric );
             };
-            foreach (var blockProto in levelAPI.BlockProto.BlockProtos) {
+            foreach (var blockProto in levelAPI.BlockProtoCollection) {
                 SetupBlockProto( blockProto, _constructFabric );
             }
 
@@ -57,7 +56,7 @@ namespace LevelView
             gridView.transform.localPosition = default;
             gridView.transform.localRotation = Quaternion.identity;
 
-            UnityAction<GridChunk> chunkLoaded = (chunk) => {
+            Action<GridChunk> chunkLoaded = (chunk) => {
                 SetupChunk( chunk, gridView.transform, gridState.GridSettings );
             };
             gridState.chunkLoaded += chunkLoaded;
@@ -66,7 +65,7 @@ namespace LevelView
                 SetupChunk( chunk, gridView.transform, gridState.GridSettings );
             }
 
-            UnityAction onDestroy = null;
+            Action onDestroy = null;
             onDestroy = () => {
                 gridState.chunkLoaded -= chunkLoaded;
                 gridState.OnDestroyAction -= onDestroy;
@@ -88,7 +87,7 @@ namespace LevelView
                 gridSettings.ChunkSize.z * chunk.Key.z
                 );
 
-            UnityAction<DataLayer> layerAdded = (dataLayer) => {
+            Action<DataLayer> layerAdded = (dataLayer) => {
                 SetupLayer( dataLayer, chunkView.transform, gridSettings );
             };
             chunk.layerAdded += layerAdded;
@@ -97,7 +96,7 @@ namespace LevelView
                 SetupLayer( dataLayer, chunkView.transform, gridSettings );
             }
 
-            UnityAction onRemove = null;
+            Action onRemove = null;
             onRemove = () => {
                 chunk.layerAdded -= layerAdded;
                 chunk.OnDestroyAction -= onRemove;
@@ -136,7 +135,7 @@ namespace LevelView
                     blockCoord.x * gridSettings.CellSize.x,
                     blockCoord.y * gridSettings.CellSize.y,
                     blockCoord.z * gridSettings.CellSize.z );
-                BlockProto blockProto = _levelAPI.BlockProto.GetBlockProto( blockData.blockId );
+                BlockProto blockProto = _levelAPI.BlockProtoCollection[blockData.blockId];
                 BlockViewAPI blockViewAPI = new BlockViewAPI( blockLayer, blockCoord, gridSettings );
                 var objectView = _objViewFabric.Create( blockProto.Name, blockViewAPI );
                 objectView.transform.parent = parent;

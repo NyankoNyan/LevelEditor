@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
-using UnityEngine.Events;
 
 namespace Level
 {
@@ -31,8 +30,8 @@ namespace Level
 
     public class GridChunk : IHasKey<Vector3Int>, IInitializable<GridChunkCreateParams>, IDestroy
     {
-        public UnityAction<DataLayer> layerAdded;
-        public UnityAction<string> layerRemoved;
+        public Action<DataLayer> layerAdded;
+        public Action<string> layerRemoved;
 
         private Vector3Int _id;
         private DataLayerFabric _dataLayerFabric;
@@ -43,7 +42,7 @@ namespace Level
         public Vector3Int Key => _id;
         public IEnumerable<DataLayer> Layers => _dataLayers;
 
-        public UnityAction OnDestroyAction { get; set; }
+        public Action OnDestroyAction { get; set; }
 
         public void Destroy()
         {
@@ -82,12 +81,12 @@ namespace Level
             }
 
             // Event handlers
-            UnityAction<DataLayerSettings> layerAdded = (layerSettings) => {
+            Action<DataLayerSettings> layerAdded = (layerSettings) => {
                 DataLayer dataLayer = CreateLayer( layerSettings );
                 this.layerAdded?.Invoke( dataLayer );
             };
 
-            UnityAction<DataLayerSettings> layerRemoved = (layerSettings) => {
+            Action<DataLayerSettings> layerRemoved = (layerSettings) => {
                 int ri = _dataLayers.FindIndex( x => x.Tag == layerSettings.tag );
                 _dataLayers.RemoveAt( ri );
                 this.layerRemoved?.Invoke( layerSettings.tag );
@@ -96,7 +95,7 @@ namespace Level
             _gridSettings.layerAdded += layerAdded;
             _gridSettings.layerRemoved += layerRemoved;
 
-            UnityAction onDestroy = null;
+            Action onDestroy = null;
             onDestroy = () => {
                 _gridSettings.layerAdded -= layerAdded;
                 _gridSettings.layerRemoved -= layerRemoved;

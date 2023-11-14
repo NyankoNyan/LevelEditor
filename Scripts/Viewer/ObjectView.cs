@@ -15,7 +15,7 @@ namespace LevelView
 
     public class ObjectViewFabric : IObjectViewFabric
     {
-        ConstructMetaStorage _constructMetaStorage;
+        private ConstructMetaStorage _constructMetaStorage;
 
         public ObjectViewFabric(IConstructFabric constructFabric)
         {
@@ -27,7 +27,7 @@ namespace LevelView
             ObjectView obj = _constructMetaStorage.Pop( prefabId );
             obj.Init( receiver );
 
-            UnityAction onRemove = null;
+            Action onRemove = null;
             onRemove = () => {
                 _constructMetaStorage.Push( prefabId, obj );
                 receiver.removed -= onRemove;
@@ -45,7 +45,6 @@ namespace LevelView
         public bool IsLoaded(string prefabId)
             => _constructMetaStorage.IsLoaded( prefabId );
     }
-
 
     /// <summary>
     /// For editor
@@ -65,7 +64,6 @@ namespace LevelView
         }
     }
 
-
     public class ObjectView : MonoBehaviour
     {
         private IObjectViewReceiver _receiver;
@@ -82,13 +80,12 @@ namespace LevelView
             //    gameObject.SetActive( visible );
             //};
 
-            UnityAction remove = null;
+            Action remove = null;
             remove = () => {
                 _receiver = null;
                 //_receiver.visibilityChanged -= applyVisibility;
                 _receiver.removed -= remove;
             };
-
 
             //_receiver.visibilityChanged += applyVisibility;
             //applyVisibility( _receiver.Visible );
@@ -96,5 +93,4 @@ namespace LevelView
             _receiver.removed += remove;
         }
     }
-
 }

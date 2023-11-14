@@ -5,18 +5,18 @@ namespace RuntimeEditTools
 {
     internal class BlockProtoEditController : BaseParameterEditController
     {
-        private IBlockProtoAPI _blockProtoAPI;
+        private BlockProtoCollection _blockProtoCollection;
 
         public BlockProtoEditController(
-            IBlockProtoAPI blockProtoAPI,
+            BlockProtoCollection blockProtoAPI,
             ParametersListFacade facade,
             Keyboard keyboard)
             : base( facade, keyboard )
         {
             Assert.IsNotNull( blockProtoAPI );
 
-            _blockProtoAPI = blockProtoAPI;
-            _connector = new BlockProtoParametersConnector( _blockProtoAPI );
+            _blockProtoCollection = blockProtoAPI;
+            _connector = new BlockProtoParametersConnector( _blockProtoCollection );
         }
 
         public void SetBlockId(uint blockId)

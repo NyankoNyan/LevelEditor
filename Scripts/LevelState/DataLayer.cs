@@ -1,20 +1,22 @@
 ﻿using System;
-using UnityEngine.Events;
 
 namespace Level
 {
     public abstract class DataLayer
     {
-        public UnityAction<int> onChanged;
+        public Action<int> onChanged;
+
         //private bool _changed;
         private string _tag;
 
         public abstract LayerType LayerType { get; }
         public string Tag => _tag;
+
         public DataLayer(string tag)
         {
             _tag = tag;
         }
+
         //public void RegChanges() => _changed = true;
         //public void FlushChanges()
         //{
@@ -48,14 +50,15 @@ namespace Level
         }
 
         public T Item(int index) => _data[index];
+
         public void SetItem(int index, T value)
         {
             _data[index] = value;
             onChanged?.Invoke( index );
         }
+
         internal T[] Data => _data;
     }
-
 
     public class DataLayerFabric
     {
@@ -64,6 +67,7 @@ namespace Level
             switch (layerType) {
                 case LayerType.BlockLayer:
                     return new BlockLayer( size, tag );
+
                 default:
                     throw new ArgumentException();
             }
@@ -74,6 +78,7 @@ namespace Level
             switch (layerType) {
                 case LayerType.BlockLayer:
                     return new BlockLayer( size, tag, data as BlockData[] );
+
                 default:
                     throw new ArgumentException();
             }

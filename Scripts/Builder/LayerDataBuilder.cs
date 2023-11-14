@@ -9,12 +9,12 @@ namespace Level.Builder
         public abstract void Export(
             DataLayer dataLayer,
             GridState gridStateAPI,
-            IBlockProtoAPI blockProtoAPI);
+            BlockProtoCollection blockProtoCollection);
 
         public abstract void Import(
             DataLayer dataLayer,
             GridState gridStateAPI,
-            IBlockProtoAPI blockProtoAPI);
+            BlockProtoCollection blockProtoCollection);
     }
 
     public class LayerDataBulderFabric
@@ -24,6 +24,7 @@ namespace Level.Builder
             switch (layerType) {
                 case LayerType.BlockLayer:
                     return BlockLayerDataBuilder.Create( tag, parent );
+
                 default:
                     throw new ArgumentException();
             }

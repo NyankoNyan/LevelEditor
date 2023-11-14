@@ -14,23 +14,23 @@ namespace Level.Builder
             }
         }
 
-        public void Export(GridStatesCollection api, IBlockProtoAPI blockProtoAPI)
+        public void Export(GridStatesCollection api, BlockProtoCollection blockProtos)
         {
             var gridSettings = api.Level.GridSettingsCollection.FindByName( gridSettingsName );
             var gridState = api.Add( gridSettings.Key );
 
             foreach (var chunkBuilder in GetComponentsInChildren<ChunkBuilder>()) {
-                chunkBuilder.Export( gridState, blockProtoAPI );
+                chunkBuilder.Export( gridState, blockProtos );
             }
         }
 
-        public void Import(GridState gridState, IBlockProtoAPI blockProtoAPI)
+        public void Import(GridState gridState, BlockProtoCollection blockProtos)
         {
             gridSettingsName = gridState.GridSettings.Name;
             transform.name = $"{gridState.Key}-{gridSettingsName}";
 
             var chunkBuilder = gameObject.AddComponent<ChunkBuilder>();
-            chunkBuilder.Import( gridState, blockProtoAPI );
+            chunkBuilder.Import( gridState, blockProtos );
         }
     }
 }

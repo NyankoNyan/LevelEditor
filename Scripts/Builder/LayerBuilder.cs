@@ -20,17 +20,17 @@ namespace Level.Builder
             }
         }
 
-        public void Export(GridState gridState, Vector3Int chunkCoord, IBlockProtoAPI blockProtoAPI)
+        public void Export(GridState gridState, Vector3Int chunkCoord, BlockProtoCollection blockProtos)
         {
             var chunk = gridState.GetChunk( chunkCoord );
             DataLayer layer = chunk.GetLayer( dataLayerSettings.layerType, dataLayerSettings.tag );
-            layerDataBuilder.Export( layer, gridState, blockProtoAPI );
+            layerDataBuilder.Export( layer, gridState, blockProtos );
         }
 
         public void Import(
             GridState gridState,
             Vector3Int chunkCoord,
-            IBlockProtoAPI blockProtoAPI,
+            BlockProtoCollection blockProtos,
             LayerType layerType,
             string layerTag)
         {
@@ -48,7 +48,7 @@ namespace Level.Builder
 
             GridChunk chunk = gridState.GetChunk( chunkCoord );
             DataLayer layer = chunk.GetLayer( layerType, layerTag );
-            layerDataBuilder.Import( layer, gridState, blockProtoAPI );
+            layerDataBuilder.Import( layer, gridState, blockProtos );
         }
     }
 }

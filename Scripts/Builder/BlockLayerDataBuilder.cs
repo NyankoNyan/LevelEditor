@@ -1,19 +1,19 @@
-﻿using System;
-using UnityEngine;
+﻿using Level.API;
+using System;
 using System.Collections.Generic;
-using Level.API;
+using UnityEngine;
 using UnityEngine.Assertions;
 
 namespace Level.Builder
 {
     public class BlockLayerDataBuilder : LayerDataBuilder
     {
-        [SerializeField] List<Block> blocks = new();
+        [SerializeField] private List<Block> blocks = new();
 
         public override void Export(
             DataLayer dataLayer,
             GridState gridStateAPI,
-            IBlockProtoAPI blockProtoAPI)
+            BlockProtoCollection blockProtoCollection)
         {
             var blockLayer = dataLayer as BlockLayer;
             Assert.IsNotNull( blockLayer );
@@ -36,7 +36,7 @@ namespace Level.Builder
                         Debug.LogError( $"{e.Message} on index {i}", gameObject );
                         continue;
                     }
-                    var blockProto = blockProtoAPI.GetBlockProto( block.id );
+                    var blockProto = blockProtoCollection.FindByName( block.id );
                     data[blockIndex].blockId = (ushort)blockProto.Key; //TODO make same type
                 }
             }
@@ -45,7 +45,7 @@ namespace Level.Builder
         public override void Import(
             DataLayer dataLayer,
             GridState gridStateAPI,
-            IBlockProtoAPI blockProtoAPI)
+            BlockProtoCollection blockProtoAPI)
         {
             blocks.Clear();
             var blockLayer = dataLayer as BlockLayer;
@@ -58,7 +58,7 @@ namespace Level.Builder
                 if (bd.blockId > 0) {
                     Block block = new Block();
                     block.coord = GridChunk.FlatToBlockCoordSafe( i, chunkSize );
-                    var blockProto = blockProtoAPI.GetBlockProto( bd.blockId );
+                    var blockProto = blockProtoAPI[bd.blockId];
                     block.id = blockProto.Name;
                     blocks.Add( block );
                 }

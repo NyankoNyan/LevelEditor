@@ -12,22 +12,22 @@ namespace Level.Builder
             }
         }
 
-        public void Export(GridStatesCollection gridStatesCollection, IBlockProtoAPI blockProtoAPI)
+        public void Export(GridStatesCollection gridStatesCollection, BlockProtoCollection blockProtos)
         {
             var gridStateBuilders = transform.GetComponentsInChildren<GridInstanceBuilder>();
             foreach (var gsb in gridStateBuilders) {
-                gsb.Export( gridStatesCollection, blockProtoAPI );
+                gsb.Export( gridStatesCollection, blockProtos );
             }
         }
 
-        public void Import(GridStatesCollection gridStatesCollection, IBlockProtoAPI blockProtoAPI)
+        public void Import(GridStatesCollection gridStatesCollection, BlockProtoCollection blockProtos)
         {
             Clear();
             foreach (var gridState in gridStatesCollection) {
                 var go = new GameObject( gridState.Key.ToString() );
                 go.transform.parent = transform;
                 var gridInstance = go.AddComponent<GridInstanceBuilder>();
-                gridInstance.Import( gridState, blockProtoAPI );
+                gridInstance.Import( gridState, blockProtos );
             }
         }
 

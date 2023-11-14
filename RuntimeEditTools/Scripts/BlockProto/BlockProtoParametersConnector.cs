@@ -8,7 +8,7 @@ namespace RuntimeEditTools
 {
     public class BlockProtoParametersConnector : IParametersConnector
     {
-        private IBlockProtoAPI _blockProtoAPI;
+        private BlockProtoCollection _blockProtoCollection;
 
         private const string ID = "Id";
         private const string NAME = "Name";
@@ -49,16 +49,16 @@ namespace RuntimeEditTools
             set => _onParamModelUpdate = value;
         }
 
-        public BlockProtoParametersConnector(IBlockProtoAPI blockProtoAPI)
+        public BlockProtoParametersConnector(BlockProtoCollection blockProtoCollection)
         {
-            _blockProtoAPI = blockProtoAPI;
+            _blockProtoCollection = blockProtoCollection;
         }
 
         public IEnumerable<ParameterDescription> ParametersDescriptions => parametersDescriptions;
 
         public object GetParameter(string name)
         {
-            var blockProto = _blockProtoAPI.GetBlockProto( BlockId );
+            var blockProto = _blockProtoCollection[BlockId];
             switch (name) {
                 case ID:
                     return blockProto.Key;
@@ -82,7 +82,7 @@ namespace RuntimeEditTools
 
         public void SetParameter(string name, object value)
         {
-            var blockProto = _blockProtoAPI.GetBlockProto( BlockId );
+            var blockProto = _blockProtoCollection[BlockId];
             switch (name) {
                 case NAME:
                     blockProto.Name = (string)value;
@@ -111,13 +111,13 @@ namespace RuntimeEditTools
 
         private void ReleaseAPIReceivers()
         {
-            var blockProto = _blockProtoAPI.GetBlockProto( BlockId );
+            var blockProto = _blockProtoCollection[BlockId];
             blockProto.changed -= OnModelChanged;
         }
 
         private void SetupAPIReceivers()
         {
-            var blockProto = _blockProtoAPI.GetBlockProto( BlockId );
+            var blockProto = _blockProtoCollection[BlockId];
             blockProto.changed += OnModelChanged;
         }
 

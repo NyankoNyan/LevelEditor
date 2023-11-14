@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
-using UnityEngine.Events;
 
 namespace Level
 {
@@ -34,9 +33,9 @@ namespace Level
 
     public class GridSettings : IHasKey<uint>, IInitializable<GridSettingsCreateParams>, IDestroy
     {
-        public UnityAction changed;
-        public UnityAction<DataLayerSettings> layerAdded;
-        public UnityAction<DataLayerSettings> layerRemoved;
+        public Action changed;
+        public Action<DataLayerSettings> layerAdded;
+        public Action<DataLayerSettings> layerRemoved;
 
         private uint _id;
         private GridSettingsCreateParams _settings;
@@ -90,7 +89,7 @@ namespace Level
         }
 
         public int ChunkSizeFlat => ChunkSize.x * ChunkSize.y * ChunkSize.z;
-        public UnityAction OnDestroyAction { get; set; }
+        public Action OnDestroyAction { get; set; }
 
         public void Destroy()
         {
