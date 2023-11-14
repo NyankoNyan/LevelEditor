@@ -29,7 +29,7 @@ namespace Level.API
             _gridStateRegistry.onRemove += OnRegRemove;
         }
 
-        public void Dispose()
+        public void Destroy()
         {
             _gridStateRegistry.onAdd -= OnRegAdd;
             _gridStateRegistry.onRemove -= OnRegRemove;

@@ -15,16 +15,7 @@ namespace Level.API
     {
         public LevelAPI Create()
         {
-            var gridSettingsEnv = new TypeEnv<GridSettings, uint, GridSettingsCreateParams, GridSettingsFabric, GridSettingsRegistry>();
-            var blockProtoEnv = new TypeEnv<BlockProto, uint, BlockProtoCreateParams, BlockProtoFabric, BlockProtoRegistry>();
-            var gridStateEnv = new TypeEnv<GridState, uint, GridStateCreateParams, GridStateFabric, GridStateRegistry>();
-
-            return new LevelAPI(
-                gridSettingsEnv.Registry,
-                blockProtoEnv.Registry,
-                blockProtoEnv.Fabric,
-                gridStateEnv.Registry
-                );
+            return new LevelAPI();
         }
     }
 
@@ -33,44 +24,34 @@ namespace Level.API
     /// </summary>
     public class LevelAPI
     {
-        private BlockProtoAPI _blockProtoAPI;
+        private BlockProtoCollection _blockProtoCollection;
 
-        //private DataLayerAPIFabric _dataLayerAPIFabric;
         private GridStatesCollection _gridStatesCollection;
 
-        private BlockProtoRegistry TODORefactor_blockProtoRegistry;
-        private GridSettingsRegistry TODORefactor_gridSettingsRegistry;
-        private GridStateRegistry TODORefactor_gridStateRegistry;
         private GridSettingsCollection _gridSettingsCollection;
 
-        public LevelAPI(
-            GridSettingsRegistry gridSettingsRegistry,
-            BlockProtoRegistry blockProtoRegistry,
-            BlockProtoFabric blockProtoFabric,
-            GridStateRegistry gridStateRegistry
-            )
+        public LevelAPI()
         {
-            _blockProtoAPI = new BlockProtoAPI( blockProtoRegistry, blockProtoFabric );
-            _gridSettingsCollection = new();
+            _blockProtoCollection = new BlockProtoCollection( );
+            _gridSettingsCollection = new GridSettingsCollection();
             _gridStatesCollection = new GridStatesCollection( this );
+        }
 
-            TODORefactor_blockProtoRegistry = blockProtoRegistry;
-            TODORefactor_gridSettingsRegistry = gridSettingsRegistry;
-            TODORefactor_gridStateRegistry = gridStateRegistry;
+        public void Destroy(){
+            _gridStatesCollection.Destroy();
+            _gridSettingsCollection.Destroy();
+            _blockProtoCollection.Destroy();
         }
 
         #region Public API
 
         public GridSettingsCollection GridSettingsCollection => _gridSettingsCollection;
-        public IBlockProtoAPI BlockProto => _blockProtoAPI;
+        public BlockProtoCollection BlockProtoCollection => _blockProtoCollection;
         public GridStatesCollection GridStatesCollection => _gridStatesCollection;
 
         public void TODORefactorSaveLevel(Level.IO.ILevelSave levelSaver)
         {
-            levelSaver.SaveFullContent(
-                TODORefactor_blockProtoRegistry,
-                TODORefactor_gridSettingsRegistry,
-                TODORefactor_gridStateRegistry );
+            levelSaver.SaveFullContent( this );
         }
 
         public void TODORefactorLoadLevel(Level.IO.ILevelLoader levelLoader)

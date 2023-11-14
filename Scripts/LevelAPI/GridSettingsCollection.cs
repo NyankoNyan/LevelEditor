@@ -26,7 +26,7 @@ namespace Level.API
             _gridSettingsFabric.onCreate += gs => _gridSettingsRegistry.Add( gs );
         }
 
-        public void Dispose()
+        public void Destroy()
         {
             //TODO dispose
         }
@@ -85,7 +85,7 @@ namespace Level.API
                 throw new LevelAPIException( $"Grid settings with name {coolCreateParams.name} already exists" );
             }
 
-            if (id == null) {
+            if(!id.HasValue) {
                 return _gridSettingsFabric.Create( coolCreateParams );
             } else {
                 if (id.Value == 0) {

@@ -4,31 +4,28 @@ using System.Collections.Generic;
 using System.IO;
 using UnityEngine;
 using UnityEngine.Assertions;
-using UnityEngine.Events;
 
 namespace Level
 {
     public class GridState : IHasKey<uint>, IInitializable<GridStateCreateParams>, IDestroy
     {
-        public UnityAction<GridChunk> chunkLoaded;
-
-        private uint _instanceId;
-        private GridSettings _gridSettings;
-        private DataLayerFabric _dataLayerFabric;
-        private TypeEnv<GridChunk, Vector3Int, GridChunkCreateParams, GridChunkFabric, GridChunkRegistry> _chunkEnv;
+        public Action<GridChunk> chunkLoaded;
 
         public uint Key => _instanceId;
         public string GridSettingsName => _gridSettings.Name;
         public GridSettings GridSettings => _gridSettings;
         internal IEnumerable<GridChunk> LoadedChunks => _chunkEnv.Registry.Values;
 
-        public UnityAction OnDestroyAction { get; set; }
+        public Action OnDestroyAction { get; set; }
+
+        private uint _instanceId;
+        private GridSettings _gridSettings;
+        private DataLayerFabric _dataLayerFabric;
+        private TypeEnv<GridChunk, Vector3Int, GridChunkCreateParams, GridChunkFabric, GridChunkRegistry> _chunkEnv;
 
         public void Destroy()
         {
-            if (OnDestroyAction != null) {
-                OnDestroyAction();
-            }
+            OnDestroyAction?.Invoke();
         }
 
         public void Init(GridStateCreateParams value, uint counter)

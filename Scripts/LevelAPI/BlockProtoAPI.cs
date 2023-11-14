@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
@@ -6,104 +7,106 @@ using UnityEngine.Events;
 
 namespace Level.API
 {
-    public interface IBlockProtoAPI
+    /// <summary>
+    /// Коллекция для хранения описаний блоков (без графония). 
+    /// Инстанции блоков хранятся в другом месте.
+    /// </summary>
+    public class BlockProtoCollection:IEnumerable<BlockProto>
     {
-        UnityAction<BlockProto> onBlockProtoAdded { get; set; }
-        UnityAction<BlockProto> onBlockProtoRemoved { get; set; }
-        uint Add(BlockProtoSettings blockProtoSettings);
-        uint AddEmpty();
-        BlockProto Add(BlockProtoSettings blockProtoSettings, uint id);
-        void Remove(uint blockProtoId);
-        IEnumerable<BlockProto> BlockProtos { get; }
-        BlockProto GetBlockProto(string blockProtoName);
-        BlockProto GetBlockProto(uint id);
-    }
+        // TODO Протянуть события
+        public Action<BlockProto> added;
+        public Action<BlockProto> removed;
 
-
-    public class BlockProtoAPI : IBlockProtoAPI
-    {
         private BlockProtoRegistry _blockProtoRegistry;
         private BlockProtoFabric _blockProtoFabric;
 
-        public IEnumerable<BlockProto> BlockProtos
-            => _blockProtoRegistry.Values;
-
-        public UnityAction<BlockProto> onBlockProtoAdded { get => _blockProtoFabric.onCreate; set => _blockProtoFabric.onCreate = value; }
-
-        public UnityAction<BlockProto> onBlockProtoRemoved { get => _blockProtoRegistry.onRemove; set => _blockProtoRegistry.onRemove = value; }
-
-        internal BlockProtoAPI(BlockProtoRegistry blockProtoRegistry, BlockProtoFabric blockProtoFabric)
+        public BlockProtoCollection()
         {
-            _blockProtoRegistry = blockProtoRegistry;
-            _blockProtoFabric = blockProtoFabric;
+            _blockProtoRegistry = new();
+            _blockProtoFabric = new();
+
+            _blockProtoFabric.onCreate += gs => _blockProtoRegistry.Add( gs );
         }
 
-        public uint Add(BlockProtoSettings blockProtoSettings)
+        public void Destroy()
         {
-            if (_blockProtoRegistry.Values.Any( x => x.Name == blockProtoSettings.name )) {
-                throw new LevelAPIException( $"Block proto with name {blockProtoSettings.name} already exists" );
+            //TODO dispose
+        }
+
+        /// <summary>
+        /// Добавляет описание блока в коллекцию
+        /// </summary>
+        /// <param name="blockProtoSettings"></param>
+        /// <param name="id"></param>
+        /// <returns></returns>
+        /// <exception cref="LevelAPIException"></exception>
+        public uint Add(BlockProtoSettings? blockProtoSettings = null, uint? id = null){
+            BlockProtoSettings localSettings;
+            const int nameTryCount = 10;
+
+            if (blockProtoSettings.HasValue){
+                localSettings = blockProtoSettings.Value;
+
+                if (_blockProtoRegistry.Values.Any(x => x.Name == localSettings.name)){
+                    throw new LevelAPIException($"Block proto with name {localSettings.name} already exists");
+                }
+            }else{
+                bool nameOk = false;
+                string baseName = $"block_{_blockProtoFabric.Counter + 1}";
+                localSettings = new BlockProtoSettings(){
+                    name = baseName,
+                    sizeof = Vector3Int.one
+                };
+                // TODO external method for names
+                for (int i = 0; i < nameTryCount; i++){
+                    if (i == 0){
+                        localSettings.name = baseName;
+                    }else{
+                        localSettings.name = baseName + UnityEngine.Random.Range(0, 10000),
+                    }
+                    if (_blockProtoRegistry.Values.All(x => x.Name != localSettings.name)){
+                        nameOk = true;
+                        break;
+                    }
+                }
+                if (!nameOk) {
+                    throw new LevelAPIException($"Cant't find free name for new block proto");
+                }
             }
-            var createParams = new BlockProtoCreateParams( blockProtoSettings );
-            return _blockProtoFabric.Create( createParams ).Key;
-        }
 
-        public BlockProto Add(BlockProtoSettings blockProtoSettings, uint id)
-        {
-            if (_blockProtoRegistry.Values.Any( x => x.Name == blockProtoSettings.name )) {
-                throw new LevelAPIException( $"Block proto with name {blockProtoSettings.name} already exists" );
+            var createParams = new BlockProtoCreateParams(localSettings);
+            if (id.HasValue){
+                return _blockProtoFabric.CreateWithCounter(createParams, id);
+            }else{
+                return _blockProtoFabric.Create(createParams).Key;
             }
-            var createParams = new BlockProtoCreateParams( blockProtoSettings );
-            return _blockProtoFabric.CreateWithCounter( createParams, id );
         }
 
-        public void Remove(uint blockProtoId)
-        {
+        public void Remove(uint id){
             BlockProto blockProto = null;
-            try {
-                blockProto = _blockProtoRegistry.Values.First( x => x.Key == blockProtoId );
-            } catch (InvalidOperationException) {
-                throw new LevelAPIException( $"Missing block with id {blockProtoId}" );
+            try{
+                blockProto = _blockProtoRegistry.Values.First(x => x.Key == id);
+            } catch (InvalidOperationException){
+                throw new LevelAPIException($"Missing block with id {id}");
             }
+            // TODO Check block proto references
             blockProto.Destroy();
         }
 
-        public BlockProto GetBlockProto(string blockProtoName)
-            => _blockProtoRegistry.Values.Single( x => x.Name == blockProtoName );
-
-        public BlockProto GetBlockProto(uint id)
-            => _blockProtoRegistry.Dict[id];
-
-        public uint AddEmpty()
-        {
-            const int nameTryCount = 10;
-            string baseName = $"block_{_blockProtoFabric.Counter + 1}";
-            try {
-                var blockProtoSettings = new BlockProtoSettings() {
-                    name = baseName
-                };
-                return Add( blockProtoSettings );
-            } catch (LevelAPIException) {
-                for (int i = 0; i < nameTryCount; i++) {
-                    try {
-                        var blockProtoSettings = new BlockProtoSettings() {
-                            name = baseName + UnityEngine.Random.Range( 0, 10000 ),
-                            size = Vector3Int.one
-                        };
-                        return Add( blockProtoSettings );
-                    } catch (LevelAPIException) { }
-                }
-                throw new LevelAPIException( $"Cant't find free name for new block proto" );
+        public BlockProto this[uint id]{
+            get{
+                return _blockProtoRegistry.Dict[id];
             }
         }
 
-        //private void SubscribeToBlockDestroy(BlockProto blockProto)
-        //{
-        //    UnityAction onDestroyAction = null;
-        //    onDestroyAction = () => {
-        //        blockProto.OnDestroyAction -= onDestroyAction;
-        //        _onBlockProtoRemoved?.Invoke( blockProto );
-        //    };
-        //    blockProto.OnDestroyAction += onDestroyAction;
-        //}
+        public BlockProto FindByName(string name){
+            return _blockProtoRegistry.Values.SingleOrDefault(x => x.Name == name);
+        }
+
+        public IEnumerator<BlockProto> GetEnumerator() => _blockProtoRegistry.Values.GetEnumerator();
+
+        private IEnumerator<BlockProto> GetEnumerator1() => this.GetEnumerator();
+
+        IEnumerator IEnumerable.GetEnumerator() => GetEnumerator1();
     }
 }
