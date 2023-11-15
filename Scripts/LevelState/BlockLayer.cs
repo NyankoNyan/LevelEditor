@@ -17,11 +17,22 @@ namespace Level
         public byte rotation;
     }
 
-    public class BlockLayer : DataLayer<BlockData>
+    public class BlockLayer<TData> : ChunkLayer<TData, Vector3Int>
     {
-        public BlockLayer(int size, string tag) : base( size, tag ) { }
-        public BlockLayer(int size, string tag, BlockData[] data) : base( size, tag, data ) { }
+        private Vector3Int _size;
+        
+        public BlockLayer(string tag, Vector3Int size) : base( tag ) { 
+            if(size.x <= 0 || size.y <= 0 || size.z <= 0){
+                throw new Exception($"Bad chunk size {size} for layer with tag {tag}");
+            }
+            _size = size;
+        }
 
         public override LayerType LayerType => LayerType.BlockLayer;
+
+        public override TData GetData(Vector3Int key)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

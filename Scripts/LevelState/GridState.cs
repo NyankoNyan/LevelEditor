@@ -5,6 +5,11 @@ using UnityEngine.Assertions;
 
 namespace Level
 {
+    /// <summary>
+    /// Хранит текущее состояние пространственной сетки и её содержимое. 
+    /// Содержимое хранится в виде независимых слоёв, каждый из которых представляет свой тип данных.
+    /// Слой может быть разбит на чанки. Чанки разных слоёв могут быть загружены независимо друг от друга.
+    /// </summary>
     public class GridState : IHasKey<uint>, IInitializable<GridStateCreateParams>, IDestroy
     {
         public Action<GridChunk> chunkLoaded;
@@ -19,7 +24,8 @@ namespace Level
         private uint _instanceId;
         private GridSettings _gridSettings;
         private DataLayerFabric _dataLayerFabric;
-        private TypeEnv<GridChunk, Vector3Int, GridChunkCreateParams, GridChunkFabric, GridChunkRegistry> _chunkEnv;
+        //private TypeEnv<GridChunk, Vector3Int, GridChunkCreateParams, GridChunkFabric, GridChunkRegistry> _chunkEnv;
+        private List<DataLayer> _dataLayers;
 
         public void Destroy()
         {
