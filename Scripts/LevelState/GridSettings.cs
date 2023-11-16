@@ -23,13 +23,13 @@ namespace Level
         PropsLayer
     }
 
-    [Serializable]
-    public struct DataLayerSettings
-    {
-        public string name;
-        public LayerType layerType;
-        public string tag;
-    }
+    //[Serializable]
+    //public struct DataLayerSettings
+    //{
+    //    public string name;
+    //    public LayerType layerType;
+    //    public string tag;
+    //}
 
     public class GridSettings : IHasKey<uint>, IInitializable<GridSettingsCreateParams>, IDestroy
     {

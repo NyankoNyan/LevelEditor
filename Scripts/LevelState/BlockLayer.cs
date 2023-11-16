@@ -1,4 +1,5 @@
 ﻿using System;
+using UnityEngine;
 
 namespace Level
 {
@@ -7,8 +8,9 @@ namespace Level
     public struct BlockData
     {
         public ushort blockId;
+
         /// <summary>
-        /// Вращение. 
+        /// Вращение.
         /// </summary>
         /// <remarks>
         /// Биты 0-2 кодируют знаковую ось xyz по которой выровнен блок.
@@ -20,10 +22,11 @@ namespace Level
     public class BlockLayer<TData> : ChunkLayer<TData, Vector3Int>
     {
         private Vector3Int _size;
-        
-        public BlockLayer(string tag, Vector3Int size) : base( tag ) { 
-            if(size.x <= 0 || size.y <= 0 || size.z <= 0){
-                throw new Exception($"Bad chunk size {size} for layer with tag {tag}");
+
+        public BlockLayer(string tag, Vector3Int size, ChunkStorage chunkStorage) : base( tag, chunkStorage )
+        {
+            if (size.x <= 0 || size.y <= 0 || size.z <= 0) {
+                throw new Exception( $"Bad chunk size {size} for layer with tag {tag}" );
             }
             _size = size;
         }
@@ -32,7 +35,28 @@ namespace Level
 
         public override TData GetData(Vector3Int key)
         {
-            throw new NotImplementedException();
+            Vector3Int chunkCoord = new Vector3Int(
+                key.x / _size.x - ( key.x < 0 ? 1 : 0 ),
+                key.y / _size.y - ( key.y < 0 ? 1 : 0 ),
+                key.z / _size.z - ( key.z < 0 ? 1 : 0 )
+                );
+            Vector3Int blockCoord = key - Vector3Int.Scale( chunkCoord, _size );
+            ushort id = (ushort)GridState.BlockCoordToFlat( blockCoord, _size );
+
+            return GetData( new ChunkDataKey( chunkCoord, id ) );
+        }
+
+        public override void SetData(Vector3Int key, TData data)
+        {
+            Vector3Int chunkCoord = new Vector3Int(
+                key.x / _size.x - ( key.x < 0 ? 1 : 0 ),
+                key.y / _size.y - ( key.y < 0 ? 1 : 0 ),
+                key.z / _size.z - ( key.z < 0 ? 1 : 0 )
+                );
+            Vector3Int blockCoord = key - Vector3Int.Scale( chunkCoord, _size );
+            ushort id = (ushort)GridState.BlockCoordToFlat( blockCoord, _size );
+
+            SetData( new ChunkDataKey( chunkCoord, id ), data );
         }
     }
 }

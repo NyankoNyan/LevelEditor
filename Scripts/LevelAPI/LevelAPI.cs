@@ -87,28 +87,30 @@ namespace Level.API
     /// </summary>
     public class BlockViewAPI : IObjectViewReceiver
     {
-        private BlockLayer _blockLayer;
+        private BlockLayer<BlockData> _blockLayer;
         private int _flatCoord;
 
-        public BlockViewAPI(BlockLayer blockLayer, Vector3Int blockCoord, GridSettings gridSettings)
+        public BlockViewAPI(BlockLayer<BlockData> blockLayer, Vector3Int blockCoord, GridSettings gridSettings)
         {
             _blockLayer = blockLayer ?? throw new ArgumentNullException( nameof( blockLayer ) );
-            _flatCoord = GridChunk.BlockCoordToFlat( blockCoord, gridSettings.ChunkSize );
+            _flatCoord = GridState.BlockCoordToFlat( blockCoord, gridSettings.ChunkSize );
 
-            Action<int> onChanged = (i) => {
-                if (i == _flatCoord) {
-                    BlockData blockData = blockLayer.Item( i );
-                    if (blockData.blockId == 0) {
-                        removed?.Invoke();
+            Action<DataLayerEventArgs> changed = (args) => {
+                if (args is BlockLevelLoadedEventArgs loadArgs) {
+                    if (loadArgs.blockCoord == blockCoord) {
+                        BlockData blockData = blockLayer.GetData( loadArgs.blockCoord);
+                        if (blockData.blockId == 0) {
+                            removed?.Invoke();
+                        }
                     }
                 }
             };
-            blockLayer.onChanged += onChanged;
+            blockLayer.changed += changed;
 
             Action<DataLayerSettings> layerRemoved = null;
             layerRemoved = (layerSettings) => {
                 if (layerSettings.tag == _blockLayer.Tag) {
-                    blockLayer.onChanged -= onChanged;
+                    blockLayer.changed -= changed;
                     gridSettings.layerRemoved -= layerRemoved;
 
                     removed?.Invoke();

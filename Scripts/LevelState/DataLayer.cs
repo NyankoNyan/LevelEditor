@@ -1,9 +1,31 @@
 ﻿using System;
-using System.Numerics;
-using RuntimeEditTools;
+using System.Collections.Generic;
+using System.Linq;
+using UnityEngine;
 
 namespace Level
 {
+    [Serializable]
+    public struct DataLayerSettings
+    {
+        public LayerType layerType;
+        public Vector3Int chunkSize;
+        public string tag;
+    }
+
+    public abstract class DataLayerEventArgs
+    {
+        public DataLayer dataLayer;
+    }
+
+    public class BlockLayerEventArgs : DataLayerEventArgs
+    {
+        public Vector3Int blockCoord;
+    }
+
+    public class BlockLevelLoadedEventArgs : BlockLayerEventArgs
+    { }
+
     /// <summary>
     /// Абстрактный слой данных.
     /// <para>
@@ -11,130 +33,141 @@ namespace Level
     /// Слой может быть как разбит на чанки, так и не разбит.
     /// </para>
     /// <para>
-    /// Если слой разбит на чанки, глобальная индексация данных в таком слое не имеет смысла. 
-    /// В таком случае навигация по данным осуществляется или через непосредственное 
+    /// Если слой разбит на чанки, глобальная индексация данных в таком слое не имеет смысла.
+    /// В таком случае навигация по данным осуществляется или через непосредственное
     /// указание чанка и индекса единицы данных в нём, или через специальный навигационный тип.
-    /// Допустим, к блоку в чанке можно обратиться через связку Vector3Int + uint 
+    /// Допустим, к блоку в чанке можно обратиться через связку Vector3Int + uint
     /// или через глобальный Vector3Int блока.
     /// </para>
     /// <para>
-    /// Если слой на чанки не разбит, мы обзываем его индексным, потому что 
+    /// Если слой на чанки не разбит, мы обзываем его индексным, потому что
     /// глобальная индексация для него имеет смысл.
-    /// Такие слои нужны для всяких дальнодействующих операций, движущихся между 
+    /// Такие слои нужны для всяких дальнодействующих операций, движущихся между
     /// чанками объектов и хранения архивных данных, типа инвентарей отсутствующих игроков.
     /// </para>
     /// <para>
-    /// Слои одного или даже разных гридов могут быть логически связаны между собой. 
+    /// Слои одного или даже разных гридов могут быть логически связаны между собой.
     /// Но это уже проблема обработчков слоёв.
     /// </para>
     /// </summary>
-    public abstract class DataLayer<T>
+    public abstract class DataLayer
     {
-        public Action<int> onChanged;
+        public Action<DataLayerEventArgs> changed;
         public abstract LayerType LayerType { get; }
+
         public string Tag => _tag;
 
-
         private string _tag;
-        protected T[] _data;
 
         public DataLayer(string tag)
         {
             _tag = tag;
         }
+    }
 
-        public T this[uint id]{
-            get{
-                return _data[id];
-            }
-            set{
-                _data[id] = value;
-            }
+    public struct ChunkDataKey
+    {
+        public Vector3Int chunkCoord;
+        public ushort dataId;
+
+        public ChunkDataKey(Vector3Int chunkCoord, ushort dataId)
+        {
+            this.chunkCoord = chunkCoord;
+            this.dataId = dataId;
         }
     }
 
-    public struct ChunkDataKey{
-        public Vector3Int chunkCoord;
-        public ushort dataId;
-    }
-
-    public abstract class IndexLayer<TData>:DataLayer<TData>
+    public abstract class IndexLayer<TData> : DataLayer
     {
-        public IndexLayer(string tag):base(tag){}
+        public IndexLayer(string tag) : base( tag )
+        {
+        }
     }
 
     /// <summary>
-    /// Долговременное хранилище чанков.
-    /// </summary>
-    public abstract class ChunkStorage{
-        public abstract object LoadChunk(Vector3Int coord);
-        public abstract object SaveChunk(Vector3Int coord, object currentData);
-        public abstract object RemoveAllChunks();
-        public abstract Vector3Int[] GetExistedChunks();
-    }
-
-
-    /// <summary>
-    /// Чанковый слой разбивается на большие пространственные блоки и хранит 
+    /// Чанковый слой разбивается на большие пространственные блоки и хранит
     /// данные порциями завязанными на положении точек привязки данных в пространстве.
     /// </summary>
     /// <typeparam name="TData"></typeparam>
     /// <typeparam name="TGlobalDataKey"></typeparam>
-    public abstract class ChunkLayer<TData, TGlobalDataKey>:DataLayer<TData>{
+    public abstract class ChunkLayer<TData, TGlobalDataKey> : DataLayer
+    {
+        //TODO Chunk removing
+        public Action<Vector3Int> chunkRemoved;
+        public Action<Vector3Int> chunkAdded;
 
-        ChunkStorage _chunkStorage;
-        Dictionary<Vector3Int, DataLayerContent<TData>> _loadedChunks;
+        private ChunkStorage _chunkStorage;
+        private Dictionary<Vector3Int, DataLayerContent<TData>> _loadedChunks;
 
-        public ChunkLayer(string tag, ChunkStorage chunkStorage):base(tag){
+        public ChunkLayer(string tag, ChunkStorage chunkStorage) : base( tag )
+        {
             _chunkStorage = chunkStorage;
         }
 
         public abstract TData GetData(TGlobalDataKey key);
+        public abstract void SetData(TGlobalDataKey key, TData data);
 
-        public TData GetData(ChunkDataKey key){
-            var chunkData = GetChunkData(key.chunkCoord);
+        public TData GetData(ChunkDataKey key)
+        {
+            var chunkData = GetChunkData( key.chunkCoord );
             return chunkData[key.dataId];
         }
-        public void PreloadChunks(Vector3Int[] chunkCoords){
-            foreach(var coord in chunkCoords){
-                _ = GetChunkData(coord);
+
+        public void SetData(ChunkDataKey key, TData data)
+        {
+            var chunkData = GetChunkData( key.chunkCoord );
+            chunkData[key.dataId] = data;
+        }
+
+        public void PreloadChunks(Vector3Int[] chunkCoords)
+        {
+            foreach (var coord in chunkCoords) {
+                _ = GetChunkData( coord );
             }
         }
 
-        private DataLayerContent<TData> GetChunkData(Vector3Int coord){
+        public Vector3Int[] LoadedChunks => _loadedChunks.Keys.ToArray();
+
+        public DataLayerContent<TData> GetChunkData(Vector3Int coord)
+        {
             DataLayerContent<TData> data;
-            if(!_loadedChunks.TryGetValue(coord, out data)){
-                data = (DataLayerContent<TData>)_chunkStorage.LoadChunk(coord);
-                _loadedChunks.Add(coord, data);
+            if (!_loadedChunks.TryGetValue( coord, out data )) {
+                data = (DataLayerContent<TData>)_chunkStorage.LoadChunk( coord );
+                _loadedChunks.Add( coord, data );
+                chunkAdded?.Invoke( coord );
             }
             return data;
         }
     }
 
-
-    public abstract class DataLayerContent<T> {
-
+    public abstract class DataLayerContent<T>
+    {
         protected abstract T GetData(uint id);
+
         protected abstract void SetData(uint id, T value);
 
-        public T this[uint id]{
-            get => GetData(id);
-            set => SetData(id, value);
+        public T this[uint id]
+        {
+            get => GetData( id );
+            set => SetData( id, value );
         }
     }
 
-    public class DataLayerStaticContent<T>:DataLayerContent<T>{
+    public class DataLayerStaticContent<T> : DataLayerContent<T>
+    {
         private T[] _data;
-        public DataLayerStaticContent(uint size){
+
+        public DataLayerStaticContent(uint size)
+        {
             _data = new T[size];
         }
 
-        protected override T GetData(uint id)=>_data[id];
+        protected override T GetData(uint id) => _data[id];
 
-        protected override void SetData(uint id, T value)=>_data[id] = value;
+        protected override void SetData(uint id, T value) => _data[id] = value;
     }
 
-    public class DataLayerDynamicContent<T>:DataLayerContent<T>
+    public class DataLayerDynamicContent<T> : DataLayerContent<T>
     {
         private Dictionary<uint, T> _data = new();
 
@@ -148,64 +181,41 @@ namespace Level
             _data[id] = value;
         }
 
-        public void RemoveData(uint id){
-            _data.Remove(id);
+        public void RemoveData(uint id)
+        {
+            _data.Remove( id );
         }
     }
 
-    // public abstract class DataLayer<T> : DataLayer
-    // {
-    //     private T[] _data;
+    //public class DataLayerFabric
+    //{
+    //    private ChunkStorage _chunkStorage;
 
-    //     protected DataLayer(int size, string tag) : base( tag )
-    //     {
-    //         _data = new T[size];
-    //     }
+    //    public DataLayerFabric(ChunkStorage chunkStorage)
+    //    {
+    //        _chunkStorage = chunkStorage;
+    //    }
 
-    //     protected DataLayer(int size, string tag, T[] data) : base( tag )
-    //     {
-    //         if (data == null) {
-    //             throw new ArgumentNullException();
-    //         }
-    //         if (size != data.Length) {
-    //             throw new ArgumentException();
-    //         }
-    //         _data = data;
-    //     }
+    //    public DataLayer Create(LayerType layerType, string tag, int size)
+    //    {
+    //        switch (layerType) {
+    //            case LayerType.BlockLayer:
+    //                return new BlockLayer( tag, size, _chunkStorage );
 
-    //     public T Item(int index) => _data[index];
+    //            default:
+    //                throw new ArgumentException();
+    //        }
+    //    }
 
-    //     public void SetItem(int index, T value)
-    //     {
-    //         _data[index] = value;
-    //         onChanged?.Invoke( index );
-    //     }
+    //    //public DataLayer Create<T>(LayerType layerType, string tag, int size, T[] data)
+    //    //{
+    //    //    switch (layerType) {
+    //    //        case LayerType.BlockLayer:
+    //    //            return new BlockLayer( size, tag, data as BlockData[] );
 
-    //     internal T[] Data => _data;
-    // }
-
-    // public class DataLayerFabric
-    // {
-    //     public DataLayer Create(LayerType layerType, string tag, int size)
-    //     {
-    //         switch (layerType) {
-    //             case LayerType.BlockLayer:
-    //                 return new BlockLayer( size, tag );
-
-    //             default:
-    //                 throw new ArgumentException();
-    //         }
-    //     }
-
-    //     public DataLayer Create<T>(LayerType layerType, string tag, int size, T[] data)
-    //     {
-    //         switch (layerType) {
-    //             case LayerType.BlockLayer:
-    //                 return new BlockLayer( size, tag, data as BlockData[] );
-
-    //             default:
-    //                 throw new ArgumentException();
-    //         }
-    //     }
-    // }
+    //    //        default:
+    //    //            throw new ArgumentException();
+    //    //    }
+    //    //}
+    //}
 }
