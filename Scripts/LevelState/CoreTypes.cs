@@ -21,4 +21,16 @@ namespace Level
         public static implicit operator ChunkBlockKey(Tuple<Vector3Int, Vector3Int> value)
             => new ChunkBlockKey( value.Item1, value.Item2 );
     }
+
+    public struct ChunkDataKey
+    {
+        public Vector3Int chunkCoord;
+        public ushort dataId;
+
+        public ChunkDataKey(Vector3Int chunkCoord, ushort dataId)
+        {
+            this.chunkCoord = chunkCoord;
+            this.dataId = dataId;
+        }
+    }
 }

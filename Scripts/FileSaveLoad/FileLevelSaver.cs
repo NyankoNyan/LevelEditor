@@ -19,6 +19,7 @@ namespace Level.IO
         public const string FILE_GRID_SETTINGS = "grid_settings";
         public const string FILE_GRID_STATE = "grid_state";
         public const string DIR_CHUNKS = "chunks";
+        public const string LAYER_BLOCKS = "blocks";
     }
 
     [Serializable]

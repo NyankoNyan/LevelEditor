@@ -17,6 +17,12 @@ namespace Level
         /// Биты 3-4 кодируют само вращение (0, 90, 180, 270).
         /// </remarks>
         public byte rotation;
+
+        public BlockData(ushort blockId, byte rotation)
+        {
+            this.blockId = blockId;
+            this.rotation = rotation;
+        }
     }
 
     public class BlockLayer<TData> : ChunkLayer<TData, Vector3Int>

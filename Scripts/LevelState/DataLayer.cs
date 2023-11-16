@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
@@ -65,18 +66,10 @@ namespace Level
         }
     }
 
-    public struct ChunkDataKey
-    {
-        public Vector3Int chunkCoord;
-        public ushort dataId;
-
-        public ChunkDataKey(Vector3Int chunkCoord, ushort dataId)
-        {
-            this.chunkCoord = chunkCoord;
-            this.dataId = dataId;
-        }
-    }
-
+    /// <summary>
+    /// Слой с доступом по глобальному индексу.
+    /// </summary>
+    /// <typeparam name="TData"></typeparam>
     public abstract class IndexLayer<TData> : DataLayer
     {
         public IndexLayer(string tag) : base( tag )
@@ -139,83 +132,4 @@ namespace Level
             return data;
         }
     }
-
-    public abstract class DataLayerContent<T>
-    {
-        protected abstract T GetData(uint id);
-
-        protected abstract void SetData(uint id, T value);
-
-        public T this[uint id]
-        {
-            get => GetData( id );
-            set => SetData( id, value );
-        }
-    }
-
-    public class DataLayerStaticContent<T> : DataLayerContent<T>
-    {
-        private T[] _data;
-
-        public DataLayerStaticContent(uint size)
-        {
-            _data = new T[size];
-        }
-
-        protected override T GetData(uint id) => _data[id];
-
-        protected override void SetData(uint id, T value) => _data[id] = value;
-    }
-
-    public class DataLayerDynamicContent<T> : DataLayerContent<T>
-    {
-        private Dictionary<uint, T> _data = new();
-
-        protected override T GetData(uint id)
-        {
-            return _data[id];
-        }
-
-        protected override void SetData(uint id, T value)
-        {
-            _data[id] = value;
-        }
-
-        public void RemoveData(uint id)
-        {
-            _data.Remove( id );
-        }
-    }
-
-    //public class DataLayerFabric
-    //{
-    //    private ChunkStorage _chunkStorage;
-
-    //    public DataLayerFabric(ChunkStorage chunkStorage)
-    //    {
-    //        _chunkStorage = chunkStorage;
-    //    }
-
-    //    public DataLayer Create(LayerType layerType, string tag, int size)
-    //    {
-    //        switch (layerType) {
-    //            case LayerType.BlockLayer:
-    //                return new BlockLayer( tag, size, _chunkStorage );
-
-    //            default:
-    //                throw new ArgumentException();
-    //        }
-    //    }
-
-    //    //public DataLayer Create<T>(LayerType layerType, string tag, int size, T[] data)
-    //    //{
-    //    //    switch (layerType) {
-    //    //        case LayerType.BlockLayer:
-    //    //            return new BlockLayer( size, tag, data as BlockData[] );
-
-    //    //        default:
-    //    //            throw new ArgumentException();
-    //    //    }
-    //    //}
-    //}
 }
