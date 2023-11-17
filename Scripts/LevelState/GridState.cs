@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Numerics;
+using Level.API;
 using UnityEngine;
 using UnityEngine.Assertions;
 
@@ -50,6 +52,40 @@ namespace Level
             //Assert.IsNotNull( _dataLayerFabric );
 
             //_chunkEnv = new();
+        }
+
+        public DataLayer GetLayer(string tag){
+            return _dataLayers.SingleOrDefault(x=>x.Tag == tag);
+        }
+
+        /// <summary>
+        /// Установка
+        /// </summary>
+        /// <param name="layerTag"></param>
+        /// <param name="chunkKey"></param>
+        /// <param name="blockData"></param>
+        /// <exception cref="LevelAPIException"></exception>
+        public void AddBlock(string layerTag, ChunkDataKey chunkKey, object blockData)
+        {
+            var layer = GetLayer(layerTag);
+            if(layer==null)
+                throw new LevelAPIException($"Grid state {Key}. Layer {layerTag} not found.");
+            
+            if(layer is BlockLayer<BlockData> blockLayer){
+                blockLayer.SetData(chunkKey, (BlockData)blockData);
+            }else{
+                throw new LevelAPIException($"Unsupported block type {layer.GetType()}");
+            }
+        }
+
+        public void AddBlock<TData>(string laterTag, ChunkDataKey key, TData data)
+        {
+
+        }
+
+        public void AddBlock<TData, TGlobalKey>(string layerTag, TGlobalKey key, TData data)
+        {
+
         }
 
         //public GridChunk GetChunk(Vector3Int chunkCoord)
