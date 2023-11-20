@@ -65,7 +65,7 @@ namespace Level
             }
         }
 
-        internal BlockProtoSettings Settings => _settings;
+        public BlockProtoSettings Settings => _settings;
 
         public Action OnDestroyAction { get; set; }
 

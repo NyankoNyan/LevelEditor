@@ -35,38 +35,6 @@ namespace Level.IO
             foreach (var grStateSerial in grStateSerials.list) {
                 grStateSerial.Load( levelAPI.GridStatesCollection, levelAPI.GridSettingsCollection );
             }
-
-            LoadChunks( levelAPI.GridStatesCollection );
-        }
-
-        private void LoadChunks(GridStatesCollection gridStatesAPI)
-        {
-            string[] chunkFiles = Directory.GetFiles( $"{_filePath}/{LevelFileConsts.DIR_CHUNKS}" );
-
-            var regex = new Regex( @"(\d+)\.(-?\d+)_(-?\d+)_(-?\d+)\.json" );
-
-            foreach (string chunkFile in chunkFiles) {
-                MatchCollection matches = regex.Matches( chunkFile );
-                if (matches.Count == 0) {
-                    Debug.LogError( $"Chunk file name {chunkFile} don't match with naming rule" );
-                } else {
-                    // Group[0] is full match
-                    uint gridId = uint.Parse( matches[0].Groups[1].Value );
-                    int x = int.Parse( matches[0].Groups[2].Value );
-                    int y = int.Parse( matches[0].Groups[3].Value );
-                    int z = int.Parse( matches[0].Groups[4].Value );
-
-                    string subPath = $"{LevelFileConsts.DIR_CHUNKS}/{gridId}.{x}_{y}_{z}";
-                    var chunkSerial = LoadData<ChunkSerializable>( subPath );
-
-                    var gridState = gridStatesAPI[gridId];
-                    if (gridState == null) {
-                        Debug.LogError( $"Missing grid with id {gridId}" );
-                    } else {
-                        chunkSerial.Load( gridState );
-                    }
-                }
-            }
         }
 
         private T LoadData<T>(string file)

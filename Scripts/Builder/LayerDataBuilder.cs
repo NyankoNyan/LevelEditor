@@ -4,30 +4,30 @@ using UnityEngine;
 
 namespace Level.Builder
 {
-    public abstract class LayerDataBuilder : MonoBehaviour
-    {
-        public abstract void Export(
-            DataLayer dataLayer,
-            GridState gridStateAPI,
-            BlockProtoCollection blockProtoCollection);
+    //public abstract class LayerDataBuilder : MonoBehaviour
+    //{
+    //    public abstract void Export(
+    //        DataLayer dataLayer,
+    //        GridState gridStateAPI,
+    //        BlockProtoCollection blockProtoCollection);
 
-        public abstract void Import(
-            DataLayer dataLayer,
-            GridState gridStateAPI,
-            BlockProtoCollection blockProtoCollection);
-    }
+    //    public abstract void Import(
+    //        DataLayer dataLayer,
+    //        GridState gridStateAPI,
+    //        BlockProtoCollection blockProtoCollection);
+    //}
 
-    public class LayerDataBulderFabric
-    {
-        public LayerDataBuilder Create(LayerType layerType, string tag, Transform parent)
-        {
-            switch (layerType) {
-                case LayerType.BlockLayer:
-                    return BlockLayerDataBuilder.Create( tag, parent );
+    //public class LayerDataBulderFabric
+    //{
+    //    public LayerDataBuilder Create(LayerType layerType, string tag, Transform parent)
+    //    {
+    //        switch (layerType) {
+    //            case LayerType.BlockLayer:
+    //                return BlockLayerDataBuilder.Create( tag, parent );
 
-                default:
-                    throw new ArgumentException();
-            }
-        }
-    }
+    //            default:
+    //                throw new ArgumentException();
+    //        }
+    //    }
+    //}
 }

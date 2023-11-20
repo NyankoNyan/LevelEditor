@@ -1,11 +1,13 @@
 using System.Collections;
+using System.Collections.Generic;
 
-namespace Level{
+namespace Level
+{
     /// <summary>
     /// Содержимое слоя данных
     /// </summary>
     /// <typeparam name="T"></typeparam>
-    public abstract class DataLayerContent<T>:IEnumerable<T>
+    public abstract class DataLayerContent<T> : IEnumerable<T>
     {
         protected abstract T GetData(uint id);
 
@@ -15,14 +17,13 @@ namespace Level{
 
         private IEnumerator<T> GetEnumerator1() => this.GetEnumerator();
 
-        IEnumerator IEnumerable.GetEnumerator()=>GetEnumerator1();
-        
+        IEnumerator IEnumerable.GetEnumerator() => GetEnumerator1();
+
         public T this[uint id]
         {
             get => GetData( id );
             set => SetData( id, value );
         }
-
     }
 
     /// <summary>
@@ -38,7 +39,7 @@ namespace Level{
             _data = new T[size];
         }
 
-        public override IEnumerator<T> GetEnumerator()=>(IEnumerator<T> )_data.GetEnumerator();
+        public override IEnumerator<T> GetEnumerator() => (IEnumerator<T>)_data.GetEnumerator();
 
         protected override T GetData(uint id) => _data[id];
 
@@ -64,9 +65,8 @@ namespace Level{
             _data.Remove( id );
         }
 
-        public override IEnumerator<T> GetEnumerator()=>_data.Values.GetEnumerator();
+        public override IEnumerator<T> GetEnumerator() => _data.Values.GetEnumerator();
 
         public Dictionary<uint, T> Items => _data;
     }
-
 }

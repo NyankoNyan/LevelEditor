@@ -1,8 +1,8 @@
+using Level.API;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Numerics;
-using Level.API;
+using System.Linq;
 using UnityEngine;
 using UnityEngine.Assertions;
 
@@ -54,8 +54,9 @@ namespace Level
             //_chunkEnv = new();
         }
 
-        public DataLayer GetLayer(string tag){
-            return _dataLayers.SingleOrDefault(x=>x.Tag == tag);
+        public DataLayer GetLayer(string tag)
+        {
+            return _dataLayers.SingleOrDefault( x => x.Tag == tag );
         }
 
         /// <summary>
@@ -67,47 +68,24 @@ namespace Level
         /// <exception cref="LevelAPIException"></exception>
         public void AddBlock(string layerTag, ChunkDataKey chunkKey, object blockData)
         {
-            var layer = GetLayer(layerTag);
-            if(layer==null)
-                throw new LevelAPIException($"Grid state {Key}. Layer {layerTag} not found.");
-            
-            if(layer is BlockLayer<BlockData> blockLayer){
-                blockLayer.SetData(chunkKey, (BlockData)blockData);
-            }else{
-                throw new LevelAPIException($"Unsupported block type {layer.GetType()}");
+            var layer = GetLayer( layerTag );
+            if (layer == null)
+                throw new LevelAPIException( $"Grid state {Key}. Layer {layerTag} not found." );
+
+            if (layer is BlockLayer<BlockData> blockLayer) {
+                blockLayer.SetData( chunkKey, (BlockData)blockData );
+            } else {
+                throw new LevelAPIException( $"Unsupported block type {layer.GetType()}" );
             }
         }
 
         public void AddBlock<TData>(string laterTag, ChunkDataKey key, TData data)
         {
-
         }
 
         public void AddBlock<TData, TGlobalKey>(string layerTag, TGlobalKey key, TData data)
         {
-
         }
-
-        //public GridChunk GetChunk(Vector3Int chunkCoord)
-        //{
-        //    GridChunk chunk;
-
-        //    if (!_chunkEnv.Registry.Dict.TryGetValue( chunkCoord, out chunk )) {
-        //        chunk = LoadChunk( chunkCoord );
-        //    }
-        //    return chunk;
-        //}
-
-        //private GridChunk LoadChunk(Vector3Int chunkCoord)
-        //{
-        //    //TODO User extensions for chunk load
-        //    var chunkCreateParams = new GridChunkCreateParams( chunkCoord, _gridSettings.Settings.layers, _gridSettings, _dataLayerFabric, null );
-        //    GridChunk chunk = _chunkEnv.Fabric.Create( chunkCreateParams );
-        //    if (chunkLoaded != null) {
-        //        chunkLoaded( chunk );
-        //    }
-        //    return chunk;
-        //}
 
         public static int BlockCoordToFlat(Vector3Int blockCoord, Vector3Int chunkSize)
         {
@@ -160,48 +138,4 @@ namespace Level
 
     public class GridStateFabric : Fabric<GridState, GridStateCreateParams>
     { };
-
-    //public interface IChunkSource
-    //{
-    //    /// <summary>
-    //    /// Load or generate chunks data
-    //    /// </summary>
-    //    /// <param name="gridId"></param>
-    //    /// <param name="chunkCoord"></param>
-    //    /// <returns></returns>
-    //    public List<SavedDataLayer> GetDataLayers(uint gridId, Vector3Int chunkCoord);
-    //    public struct SavedDataLayer
-    //    {
-    //        public string name;
-    //        public DataLayer dataLayer;
-    //    }
-    //}
-
-    //public class DefaultChunkSource : IChunkSource
-    //{
-    //    private string _chunksFolder;
-
-    //    public DefaultChunkSource(string chunksFolder)
-    //    {
-    //        _chunksFolder = chunksFolder;
-    //    }
-
-    //    public List<IChunkSource.SavedDataLayer> GetDataLayers(uint gridId, Vector3Int chunkCoord)
-    //    {
-    //        List<IChunkSource.SavedDataLayer> result = new();
-    //        string chunkName = $"{gridId}.{chunkCoord.x}_{chunkCoord.y}_{chunkCoord.z}";
-    //        string chunkFile = JsonDataIO.FileFullName( _chunksFolder, chunkName );
-
-    //        if (File.Exists( chunkFile )) {
-    //            // Load existed chunk from file
-    //            var chunkSerial = JsonDataIO.LoadData<ChunkSerializable>( _chunksFolder, chunkName );
-
-    //            for(DataLayerSerializable layer in chunkSerial.dataLayer) {
-    //                layer.layerType
-    //            }
-    //        } else {
-    //            // Create empty data
-    //        }
-    //    }
-    //}
 }

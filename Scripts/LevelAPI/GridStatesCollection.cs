@@ -12,7 +12,6 @@ namespace Level.API
         private LevelAPI _level;
         private GridStateRegistry _gridStateRegistry;
         private GridStateFabric _gridStateFabric;
-        private DataLayerFabric _dataLayerFabric;
 
         public LevelAPI Level => _level;
 
@@ -22,7 +21,6 @@ namespace Level.API
 
             _gridStateRegistry = new();
             _gridStateFabric = new();
-            _dataLayerFabric = new();
 
             _gridStateFabric.onCreate += OnFacCreate;
             _gridStateRegistry.onAdd += OnRegAdd;
@@ -45,7 +43,7 @@ namespace Level.API
         public GridState Add(uint gridSettingsId, uint? id = null)
         {
             var gridSettings = _level.GridSettingsCollection[gridSettingsId];
-            GridStateCreateParams createParams = new( gridSettings, _dataLayerFabric );
+            GridStateCreateParams createParams = new( gridSettings, _level.ChunkStorageFabric );
             if (id.HasValue) {
                 // TODO check not exists
                 return _gridStateFabric.CreateWithCounter( createParams, id.Value );

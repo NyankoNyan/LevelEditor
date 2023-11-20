@@ -57,7 +57,7 @@ namespace LevelView
             gridView.transform.localRotation = Quaternion.identity;
 
             Action<DataLayerEventArgs, GridState> layerChanged = (args, gridState) => {
-                if(args is BlockLevelLoadedEventArgs loadArgs) {
+                if (args is BlockLevelLoadedEventArgs loadArgs) {
                     SetupDataLayer( loadArgs.dataLayer, parent, gridState.GridSettings );
                 }
             };
@@ -93,36 +93,19 @@ namespace LevelView
             Transform parent,
             GridSettings gridSettings)
         {
-            foreach(var chunkCoord in blockLayer.LoadedChunks) {
-                GameObject layerGO = new( "Block layer");
+            foreach (var chunkCoord in blockLayer.LoadedChunks) {
+                GameObject layerGO = new( "Block layer" );
                 layerGO.transform.parent = parent;
                 layerGO.transform.SetLocalPositionAndRotation( Vector3.zero, Quaternion.identity );
-                DataLayerContent<BlockData> chunkData = blockLayer.GetChunkData( chunkCoord );                
-                SetupBlockChunk( chunkCoord, chunkData, layerGO.transform, gridSettings );
+                DataLayerContent<BlockData> chunkData = blockLayer.GetChunkData( chunkCoord );
+                SetupBlockChunk( chunkCoord, chunkData, blockLayer, layerGO.transform, gridSettings );
             }
-
-            //for (int i = 0; i < gridSettings.ChunkSizeFlat; i++) {
-            //    var blockData = blockLayer.Item( i );
-            //    if (blockData.blockId == 0) {
-            //        continue;
-            //    }
-            //    Vector3Int blockCoord = GridChunk.FlatToBlockCoord( i, gridSettings.ChunkSize );
-            //    Vector3 pos = new Vector3(
-            //        blockCoord.x * gridSettings.CellSize.x,
-            //        blockCoord.y * gridSettings.CellSize.y,
-            //        blockCoord.z * gridSettings.CellSize.z );
-            //    BlockProto blockProto = _levelAPI.BlockProtoCollection[blockData.blockId];
-            //    BlockViewAPI blockViewAPI = new BlockViewAPI( blockLayer, blockCoord, gridSettings );
-            //    var objectView = _objViewFabric.Create( blockProto.Name, blockViewAPI );
-            //    objectView.transform.parent = parent;
-            //    objectView.transform.localRotation = Quaternion.identity;
-            //    objectView.transform.localPosition = pos;
-            //}
         }
 
         private void SetupBlockChunk(
             Vector3Int chunkCoord,
             DataLayerContent<BlockData> chunkData,
+            BlockLayer<BlockData> blockLayer,
             Transform parent,
             GridSettings gridSettings)
         {
@@ -136,7 +119,7 @@ namespace LevelView
                 );
 
             for (int i = 0; i < gridSettings.ChunkSizeFlat; i++) {
-                var blockData = chunkData[ (uint)i ];
+                var blockData = chunkData[(uint)i];
                 if (blockData.blockId == 0) {
                     continue;
                 }
@@ -152,22 +135,6 @@ namespace LevelView
                 objectView.transform.localRotation = Quaternion.identity;
                 objectView.transform.localPosition = pos;
             }
-
-            //Action<DataLayer> layerAdded = (dataLayer) => {
-            //    SetupLayer( dataLayer, chunkView.transform, gridSettings );
-            //};
-            //chunk.layerAdded += layerAdded;
-
-            //foreach (var dataLayer in chunk.Layers) {
-            //    SetupLayer( dataLayer, chunkView.transform, gridSettings );
-            //}
-
-            //Action onRemove = null;
-            //onRemove = () => {
-            //    chunk.layerAdded -= layerAdded;
-            //    chunk.OnDestroyAction -= onRemove;
-            //};
-            //chunk.OnDestroyAction += onRemove;
         }
 
         private void SetupLayer(
@@ -177,7 +144,7 @@ namespace LevelView
         {
             switch (dataLayer.LayerType) {
                 case LayerType.BlockLayer:
-                    SetupBlockLayer( dataLayer as BlockLayer, parent, gridSettings );
+                    SetupBlockLayer( dataLayer as BlockLayer<BlockData>, parent, gridSettings );
                     break;
 
                 default:
@@ -185,7 +152,5 @@ namespace LevelView
                     break;
             }
         }
-
-        
     }
 }

@@ -50,7 +50,7 @@ namespace Level.IO
             SaveData( new ListWrapper<BlockProtoSerializable>( level.BlockProtoCollection.Select( x => (BlockProtoSerializable)x ).ToArray() ), LevelFileConsts.FILE_BLOCK_PROTO );
             SaveData( new ListWrapper<GridSettingsSerializable>( level.GridSettingsCollection.Select( x => (GridSettingsSerializable)x ).ToArray() ), LevelFileConsts.FILE_GRID_SETTINGS );
             SaveData( new ListWrapper<GridStateSerializable>( level.GridStatesCollection.Select( x => (GridStateSerializable)x ).ToArray() ), LevelFileConsts.FILE_GRID_STATE );
-            SaveChunks( level.GridStatesCollection );
+            //SaveChunks( level.GridStatesCollection );
         }
 
         private void SaveData(object obj, string file)
@@ -58,16 +58,16 @@ namespace Level.IO
             JsonDataIO.SaveData( obj, _filePath, file, _prettyPrint );
         }
 
-        private void SaveChunks(GridStatesCollection gridStatesCollection)
-        {
-            CheckDirectory( LevelFileConsts.DIR_CHUNKS );
-            foreach (var gridState in gridStatesCollection) {
-                foreach (var gridChunk in gridState.LoadedChunks) {
-                    string subPath = $"{LevelFileConsts.DIR_CHUNKS}/{gridState.Key}.{gridChunk.Key.x}_{gridChunk.Key.y}_{gridChunk.Key.z}";
-                    SaveData( (ChunkSerializable)gridChunk, subPath );
-                }
-            }
-        }
+        //private void SaveChunks(GridStatesCollection gridStatesCollection)
+        //{
+        //    CheckDirectory( LevelFileConsts.DIR_CHUNKS );
+        //    foreach (var gridState in gridStatesCollection) {
+        //        foreach (var gridChunk in gridState.LoadedChunks) {
+        //            string subPath = $"{LevelFileConsts.DIR_CHUNKS}/{gridState.Key}.{gridChunk.Key.x}_{gridChunk.Key.y}_{gridChunk.Key.z}";
+        //            SaveData( (ChunkSerializable)gridChunk, subPath );
+        //        }
+        //    }
+        //}
 
         private void CheckDirectory(string path)
         {

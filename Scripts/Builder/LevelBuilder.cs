@@ -16,7 +16,8 @@ namespace Level.Builder
         [SerializeField] public string levelFolder = "Levels";
         [SerializeField] private GridSettingsBuilder builderGridSettings;
         [SerializeField] private BlockProtosBuilder builderBlockProtos;
-        [SerializeField] private GridInstanceBuilderCollector builderGridInstanceCollector;
+
+        //[SerializeField] private GridInstanceBuilderCollector builderGridInstanceCollector;
         [SerializeField] private bool jsonPrettyPrint;
 
         public void ExportLevel()
@@ -44,8 +45,8 @@ namespace Level.Builder
             builderBlockProtos = new GameObject( "BlockProtos", typeof( BlockProtosBuilder ) ).GetComponent<BlockProtosBuilder>();
             builderBlockProtos.transform.parent = transform;
 
-            builderGridInstanceCollector = new GameObject( "Grids", typeof( GridInstanceBuilderCollector ) ).GetComponent<GridInstanceBuilderCollector>();
-            builderGridInstanceCollector.transform.parent = transform;
+            //builderGridInstanceCollector = new GameObject( "Grids", typeof( GridInstanceBuilderCollector ) ).GetComponent<GridInstanceBuilderCollector>();
+            //builderGridInstanceCollector.transform.parent = transform;
 
             var level = new LevelAPIFabric().Create();
             var levelLoader = new FileLevelLoader( levelFolder );
@@ -54,7 +55,7 @@ namespace Level.Builder
 
             builderGridSettings.Import( level.GridSettingsCollection );
             builderBlockProtos.Import( level.BlockProtoCollection );
-            builderGridInstanceCollector.Import( level.GridStatesCollection, level.BlockProtoCollection );
+            //builderGridInstanceCollector.Import( level.GridStatesCollection, level.BlockProtoCollection );
         }
 
         private void ClearFolder()
@@ -72,7 +73,7 @@ namespace Level.Builder
         {
             builderGridSettings.Export( level.GridSettingsCollection );
             builderBlockProtos.Export( level.BlockProtoCollection );
-            builderGridInstanceCollector.Export( level.GridStatesCollection, level.BlockProtoCollection );
+            //builderGridInstanceCollector.Export( level.GridStatesCollection, level.BlockProtoCollection );
         }
 
         private void ImportLevelState(LevelAPI level)
@@ -89,9 +90,9 @@ namespace Level.Builder
                 Debug.LogError( $"{this}: Missing {nameof( builderBlockProtos )}" );
             }
 
-            if (!builderGridInstanceCollector) {
-                Debug.LogError( $"{this}: Missing {nameof( builderGridInstanceCollector )}" );
-            }
+            //if (!builderGridInstanceCollector) {
+            //    Debug.LogError( $"{this}: Missing {nameof( builderGridInstanceCollector )}" );
+            //}
         }
 
         public void RebuildView()

@@ -29,8 +29,16 @@ namespace Level.API
 
         private GridSettingsCollection _gridSettingsCollection;
 
-        public LevelAPI()
+        private ChunkStorageFabric _chunkStorageFabric;
+
+        public LevelAPI(ChunkStorageFabric chunkStorageFabric = null)
         {
+            if (chunkStorageFabric != null) {
+                _chunkStorageFabric = chunkStorageFabric;
+            } else {
+                _chunkStorageFabric = new MockChunkStorageFabric();
+            }
+
             _blockProtoCollection = new BlockProtoCollection();
             _gridSettingsCollection = new GridSettingsCollection();
             _gridStatesCollection = new GridStatesCollection( this );
@@ -48,6 +56,8 @@ namespace Level.API
         public GridSettingsCollection GridSettingsCollection => _gridSettingsCollection;
         public BlockProtoCollection BlockProtoCollection => _blockProtoCollection;
         public GridStatesCollection GridStatesCollection => _gridStatesCollection;
+
+        internal ChunkStorageFabric ChunkStorageFabric => _chunkStorageFabric;
 
         public void TODORefactorSaveLevel(Level.IO.ILevelSave levelSaver)
         {
@@ -98,7 +108,7 @@ namespace Level.API
             Action<DataLayerEventArgs> changed = (args) => {
                 if (args is BlockLevelLoadedEventArgs loadArgs) {
                     if (loadArgs.blockCoord == blockCoord) {
-                        BlockData blockData = blockLayer.GetData( loadArgs.blockCoord);
+                        BlockData blockData = blockLayer.GetData( loadArgs.blockCoord );
                         if (blockData.blockId == 0) {
                             removed?.Invoke();
                         }
@@ -131,8 +141,8 @@ namespace Level.API
 
         public void Remove()
         {
-            BlockData blockData = default;
-            _blockLayer.SetItem( _flatCoord, blockData );
+            //BlockData blockData = default;
+            //_blockLayer.SetItem( _flatCoord, blockData );
         }
     }
 }
