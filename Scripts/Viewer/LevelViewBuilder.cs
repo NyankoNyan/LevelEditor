@@ -7,11 +7,11 @@ namespace LevelView
 {
     public class LevelViewBuilder
     {
-        private IConstructFabric _constructFabric;
+        private ConstructFabric _constructFabric;
         private LevelAPI _levelAPI;
         private IObjectViewFabric _objViewFabric;
 
-        public LevelViewBuilder(IConstructFabric constructFabric)
+        public LevelViewBuilder(ConstructFabric constructFabric)
         {
             _constructFabric = constructFabric;
         }

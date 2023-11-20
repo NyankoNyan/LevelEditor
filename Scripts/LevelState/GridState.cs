@@ -79,12 +79,18 @@ namespace Level
             }
         }
 
-        public void AddBlock<TData>(string laterTag, ChunkDataKey key, TData data)
-        {
-        }
-
         public void AddBlock<TData, TGlobalKey>(string layerTag, TGlobalKey key, TData data)
         {
+            var layer = GetLayer(layerTag);
+            if(layer==null){
+                throw new LevelAPIException($"Missing layer {layerTag}");
+            }
+
+            if(layer is ChunkLayer<TData, TGlobalKey> chunkLayer){
+                chunkLayer.SetData(key, data);
+            }else{
+                throw new LevelAPIException($"Layer {layerTag} is not {nameof(ChunkLayer<TData, TGlobalKey>)}");
+            }
         }
 
         public static int BlockCoordToFlat(Vector3Int blockCoord, Vector3Int chunkSize)

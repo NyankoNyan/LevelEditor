@@ -3,19 +3,13 @@ using UnityEngine;
 
 namespace LevelView
 {
-    public interface IConstructFabric
+    public class ConstructFabric 
     {
-        ObjectView Create(string prefabId);
-        bool HasPrefab(string prefabId);
-    }
-
-    public class ConstructFabric : IConstructFabric
-    {
-        private Dictionary<string, ObjectView> _prefabs = new();
-        public void AddPrefab(string prefabId, ObjectView go)
+        private Dictionary<string, GameObject> _prefabs = new();
+        public void AddPrefab(string prefabId, GameObject go)
             => _prefabs.Add( prefabId, go );
 
-        public ObjectView Create(string prefabId)
+        public GameObject Create(string prefabId)
         {
             var prefab = _prefabs[prefabId];
             return GameObject.Instantiate( prefab );
