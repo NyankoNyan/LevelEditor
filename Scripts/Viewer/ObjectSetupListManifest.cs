@@ -11,7 +11,7 @@ namespace LevelView
     /// Её можно расширять для добавления новых свойств объектов.
     /// </remarks>
     [Serializable]
-    public class ObjectSetup
+    public class ObjectSetup : IEquatable<ObjectSetup>
     {
         /// <summary>
         /// Уникальный идентификатор типа объекта. Используется как ключ. Одновременно не могут существовать два типа
@@ -100,6 +100,14 @@ namespace LevelView
         /// объект влезал в куб со стороной 1 метр.
         /// </remarks>
         public Vector3 previewScale = Vector3.one;
+
+        public bool Equals(ObjectSetup other)
+        {
+            return id == other.id && refId == other.refId
+                && prefab == other.prefab && mesh == other.mesh && mesh.mainTexture == other.mainTexture
+                && offset == other.offset && rotation == other.rotation && scale == other.scale;
+        }
+
     }
 
     /// <summary>

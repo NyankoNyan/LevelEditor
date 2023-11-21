@@ -1,8 +1,11 @@
 using Level.API;
+
 using LevelView;
+
 using System;
 using System.IO;
 using System.Reflection;
+
 using UnityEngine;
 
 namespace Level.Samples
@@ -15,12 +18,13 @@ namespace Level.Samples
     public class TestLevelEditor : MonoBehaviour
     {
         [SerializeField] private string _levelFolder = @"Level\test_level";
-        [SerializeField] private GameObject _floorBlockPrefab;
+        [SerializeField] private  GameObject _floorBlockPrefab;
 
         LevelAPI _level;
 
-        void Start(){
-            if(!LevelStorage.Instance){
+        void Start()
+        {
+            if (!LevelStorage.Instance) {
                 throw new Exception($"Missing level storage on scene");
             }
             // Получаем объект уровня
@@ -41,8 +45,7 @@ namespace Level.Samples
         private void CreateModelEnvironment()
         {
             // Добавляем описание блоков
-            var blockProto = _level.BlockProtoCollection.Add(new BlockProtoSettings()
-            {
+            var blockProto = _level.BlockProtoCollection.Add(new BlockProtoSettings() {
                 name = "test_block_1",
                 formFactor = "create_test",
                 layerTag = "blocks",
@@ -50,15 +53,13 @@ namespace Level.Samples
                 size = Vector3Int.one
             });
             // Описание слоя даннных
-            DataLayerSettings dlSettings = new()
-            {
+            DataLayerSettings dlSettings = new() {
                 tag = "blocks",
                 chunkSize = Vector3Int.one * 8,
                 layerType = LayerType.BlockLayer
             };
             // Добавляем описание сетки
-            var gridSettings = _level.GridSettingsCollection.Add(new GridSettingsCreateParams()
-            {
+            var gridSettings = _level.GridSettingsCollection.Add(new GridSettingsCreateParams() {
                 name = "Some default test simple block grid",
                 cellSize = Vector3.one,
                 chunkSize = Vector3Int.one * 8, // TODO Схуяли здесь ещё один размер чанка. Надо уже определиться уровень хранения.
@@ -69,10 +70,8 @@ namespace Level.Samples
             var grid = _level.GridStatesCollection.Add(gridSettings.Key);
             // Добавляем блоки пола
             BlockData blockFloor = new BlockData((ushort)blockProto.Key, 0);
-            for (int x = -50; x <= 50; x++)
-            {
-                for (int z = -50; z <= 50; z++)
-                {
+            for (int x = -50; x <= 50; x++) {
+                for (int z = -50; z <= 50; z++) {
                     grid.AddBlock<BlockData, Vector3Int>("blocks", new Vector3Int(x, 0, z), blockFloor);
                 }
             }
@@ -85,14 +84,15 @@ namespace Level.Samples
                 new ObjectSetup(){
                     id = "test_block_1_default",
                     refId = "test_block_1",
-                    prefab = _floorBlockPrefab 
+                    prefab = _floorBlockPrefab
                 }
             };
 
             ConstructFabric constructFabric = new();
-            constructFabric.AddPrefab("test_block_1", _floorBlockPrefab);//TODO А нахуя оно вообще надо?
+            constructFabric.AddPrefabs(objectSetups);
 
             LevelViewBuilder levelViewBuilder = new(constructFabric);
+            levelViewBuilder.Build(_level, transform, false);
         }
 
         /// <summary>
@@ -100,47 +100,33 @@ namespace Level.Samples
         /// </summary>
         private void PrepareFileStorage()
         {
-            if (Directory.Exists(_levelFolder))
-            {
+            if (Directory.Exists(_levelFolder)) {
                 ClearFolder(_levelFolder);
-            }
-            else
-            {
+            } else {
                 Directory.CreateDirectory(_levelFolder);
             }
         }
 
         private static void ClearFolder(string folder)
         {
-            if (Directory.Exists(folder))
-            {
+            if (Directory.Exists(folder)) {
                 //Check
-                foreach (var dir in Directory.GetDirectories(folder))
-                {
-                    try
-                    {
+                foreach (var dir in Directory.GetDirectories(folder)) {
+                    try {
                         Directory.Delete(dir);
-                    }
-                    catch (Exception e)
-                    {
+                    } catch (Exception e) {
                         throw new Exception($"Can't delete folder {dir}", e);
                     }
                 }
 
-                foreach (var file in Directory.GetFiles(folder))
-                {
-                    try
-                    {
+                foreach (var file in Directory.GetFiles(folder)) {
+                    try {
                         File.Delete(file);
-                    }
-                    catch (Exception e)
-                    {
+                    } catch (Exception e) {
                         throw new Exception($"Can't delete file {file}", e);
                     }
                 }
-            }
-            else
-            {
+            } else {
                 throw new Exception($"Folder {folder} isn't exists");
             }
         }
