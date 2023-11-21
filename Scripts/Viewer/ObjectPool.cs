@@ -4,14 +4,18 @@ using UnityEngine;
 
 namespace LevelView
 {
+    /// <summary>
+    /// Пул объектов изначально заданного идентификатора
+    /// </summary>
     public class ObjectPool
     {
-        string _prefabId;
-        Stack<ObjectView> _stack = new();
-        IConstructFabric _fabric;
-        Transform _root;
+        //TODO Прогрев пула (прединициализация)
+        private string _prefabId;
+        private Stack<GameObject> _stack = new();
+        private ConstructFabric _fabric;
+        private Transform _root;
 
-        public ObjectPool(string prefabId, IConstructFabric fabric, Transform root)
+        public ObjectPool(string prefabId, ConstructFabric fabric, Transform root)
         {
             if (string.IsNullOrWhiteSpace( prefabId )) {
                 throw new ArgumentException( nameof( prefabId ) );
@@ -25,7 +29,7 @@ namespace LevelView
             }
         }
 
-        public ObjectView Pop()
+        public GameObject Pop()
         {
             if (_stack.Count > 0) {
                 return _stack.Pop();
@@ -34,7 +38,7 @@ namespace LevelView
             }
         }
 
-        public void Push(ObjectView obj)
+        public void Push(GameObject obj)
         {
             obj.transform.parent = _root;
             _stack.Push( obj );

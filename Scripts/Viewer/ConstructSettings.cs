@@ -6,16 +6,16 @@ namespace LevelView
     [CreateAssetMenu( fileName = "ConstructSettings", menuName = "LevelEditor/ConstructSettings" )]
     public class ConstructSettings : ScriptableObject
     {
-        [SerializeField] Prefab[] _prefabs;
+        [SerializeField] private Prefab[] _prefabs;
 
         [Serializable]
         private struct Prefab
         {
             public string id;
-            public ObjectView prefab;
+            public GameObject prefab;
         }
 
-        public IConstructFabric GetConstructFabric()
+        public ConstructFabric GetConstructFabric()
         {
             ConstructFabric constructFabric = new();
             for (int i = 0; i < _prefabs.Length; i++) {

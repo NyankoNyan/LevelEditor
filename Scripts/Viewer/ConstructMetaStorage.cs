@@ -4,17 +4,21 @@ using UnityEngine;
 
 namespace LevelView
 {
+    /// <summary>
+    /// Хранилище всех объектов с идентификаторами.
+    /// </summary>
     public class ConstructMetaStorage
     {
-        Dictionary<string, ObjectPool> _pools = new();
-        IConstructFabric _constructFabric;
+        //TODO Добавить глобальный прогрев объектов игры
+        private Dictionary<string, ObjectPool> _pools = new();
+        private ConstructFabric _constructFabric;
 
-        public ConstructMetaStorage(IConstructFabric constructFabric)
+        public ConstructMetaStorage(ConstructFabric constructFabric)
         {
             _constructFabric = constructFabric ?? throw new ArgumentNullException( nameof( constructFabric ) );
         }
 
-        public ObjectView Pop(string prefabId)
+        public GameObject Pop(string prefabId)
         {
             ObjectPool pool;
             if (!_pools.TryGetValue( prefabId, out pool )) {
@@ -26,7 +30,7 @@ namespace LevelView
             return pool.Pop();
         }
 
-        public void Push(string prefabId, ObjectView obj)
+        public void Push(string prefabId, GameObject obj)
         {
             var pool = _pools[prefabId];
             pool.Push( obj );
