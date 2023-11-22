@@ -10,7 +10,8 @@ namespace LevelView
     /// </summary>
     public interface IObjectViewFabric
     {
-        GameObject Create(string prefabId, IObjectViewReceiver receiver);
+        // GameObject Create(string prefabId, IObjectViewReceiver receiver);
+        GameObject Create(string prefabId);
     }
 
     public class ObjectViewFabric : IObjectViewFabric
@@ -22,18 +23,24 @@ namespace LevelView
             _constructMetaStorage = new( constructFabric );
         }
 
-        public GameObject Create(string prefabId, IObjectViewReceiver receiver)
+        // public GameObject Create(string prefabId, IObjectViewReceiver receiver)
+        // {
+        //     GameObject obj = _constructMetaStorage.Pop( prefabId );
+        //     obj.Init( receiver );
+
+        //     Action onRemove = null;
+        //     onRemove = () => {
+        //         _constructMetaStorage.Push( prefabId, obj );
+        //         receiver.removed -= onRemove;
+        //     };
+        //     receiver.removed += onRemove;
+
+        //     return obj;
+        // }
+
+        public GameObject Create(string prefabId)
         {
             GameObject obj = _constructMetaStorage.Pop( prefabId );
-            obj.Init( receiver );
-
-            Action onRemove = null;
-            onRemove = () => {
-                _constructMetaStorage.Push( prefabId, obj );
-                receiver.removed -= onRemove;
-            };
-            receiver.removed += onRemove;
-
             return obj;
         }
 

@@ -1,4 +1,7 @@
 ﻿using System;
+
+using Level.API;
+
 using UnityEngine;
 
 namespace Level
@@ -23,46 +26,114 @@ namespace Level
             this.blockId = blockId;
             this.rotation = rotation;
         }
+
+        public static Quaternion DecodeRotation(byte rotation)
+        {
+            Quaternion firstRot;
+            Quaternion secondRot;
+
+            switch ((Angle)(rotation & 24)) {
+                case Angle.Deg90:
+                    firstRot = Quaternion.AngleAxis(Vector3.up, 90);
+                    break;
+                case Angle.Deg180:
+                    firstRot = Quaternion.AngleAxis(Vector3.up, 180);
+                    break;
+                case Angle.Deg270:
+                    firstRot = Quaternion.AngleAxis(Vector3.up, 270);
+                    break;
+                default:
+                    firstRot = Quaternion.identity;
+                    break;
+            }
+
+            switch ((Axis)(rotation & 7)) {
+                case Axis.PlusX:
+                    secondRot = Quaternion.AngleAxis(Vector3.forward, -90);
+                    break;
+                case Axis.MinusX:
+                    secondRot = Quaternion.AngleAxis(Vector3.forward, 90);
+                    break;
+                case Axis.PlusY:
+                    secondRot = Quaternion.identity;
+                    break;
+                case Axis.MinusY:
+                    secondRot = Quaternion.AngleAxis(Vector3.forward, 180);
+                    break;
+                case Axis.PlusZ:
+                    secondRot = Quaternion.AngleAxis(Vector3.right, 90);
+                    break;
+                case Axis.MinusZ:
+                    secondRot = Quaternion.AngleAxis(Vector3.right, -90);
+                    break;
+                default:
+                    throw new LevelAPIException($"Unknown rotation {rotation}");
+            }
+
+            return secondRot * firstRot;
+        }
+
+        public enum Axis
+        {
+            PlusX = 0,
+            PlusY = 1,
+            PlusZ = 2,
+            MinusX = 4,
+            MinusY = 5,
+            MinusZ = 6
+        }
+
+        public enum Angle
+        {
+            Deg0 = 0,
+            Deg90 = 8,
+            Deg180 = 16,
+            Deg270 = 24
+        }
     }
 
     public class BlockLayer<TData> : ChunkLayer<TData, Vector3Int>
     {
         private Vector3Int _size;
 
-        public BlockLayer(string tag, Vector3Int size, ChunkStorage chunkStorage) : base( tag, chunkStorage )
+        public BlockLayer(string tag, Vector3Int size, ChunkStorage chunkStorage) : base(tag, chunkStorage)
         {
             if (size.x <= 0 || size.y <= 0 || size.z <= 0) {
-                throw new Exception( $"Bad chunk size {size} for layer with tag {tag}" );
+                throw new Exception($"Bad chunk size {size} for layer with tag {tag}");
             }
             _size = size;
         }
 
+        public Vector3Int ChunkSize => _size;
+
         public override LayerType LayerType => LayerType.BlockLayer;
+
+        public uint ChunkFlatSize => _size.x * _size.y * _size.z;
 
         public override TData GetData(Vector3Int key)
         {
             Vector3Int chunkCoord = new Vector3Int(
-                key.x / _size.x - ( key.x < 0 ? 1 : 0 ),
-                key.y / _size.y - ( key.y < 0 ? 1 : 0 ),
-                key.z / _size.z - ( key.z < 0 ? 1 : 0 )
+                key.x / _size.x - (key.x < 0 ? 1 : 0),
+                key.y / _size.y - (key.y < 0 ? 1 : 0),
+                key.z / _size.z - (key.z < 0 ? 1 : 0)
                 );
-            Vector3Int blockCoord = key - Vector3Int.Scale( chunkCoord, _size );
-            ushort id = (ushort)GridState.BlockCoordToFlat( blockCoord, _size );
+            Vector3Int blockCoord = key - Vector3Int.Scale(chunkCoord, _size);
+            ushort id = (ushort)GridState.BlockCoordToFlat(blockCoord, _size);
 
-            return GetData( new ChunkDataKey( chunkCoord, id ) );
+            return GetData(new ChunkDataKey(chunkCoord, id));
         }
 
         public override void SetData(Vector3Int key, TData data)
         {
             Vector3Int chunkCoord = new Vector3Int(
-                key.x / _size.x - ( key.x < 0 ? 1 : 0 ),
-                key.y / _size.y - ( key.y < 0 ? 1 : 0 ),
-                key.z / _size.z - ( key.z < 0 ? 1 : 0 )
+                key.x / _size.x - (key.x < 0 ? 1 : 0),
+                key.y / _size.y - (key.y < 0 ? 1 : 0),
+                key.z / _size.z - (key.z < 0 ? 1 : 0)
                 );
-            Vector3Int blockCoord = key - Vector3Int.Scale( chunkCoord, _size );
-            ushort id = (ushort)GridState.BlockCoordToFlat( blockCoord, _size );
+            Vector3Int blockCoord = key - Vector3Int.Scale(chunkCoord, _size);
+            ushort id = (ushort)GridState.BlockCoordToFlat(blockCoord, _size);
 
-            SetData( new ChunkDataKey( chunkCoord, id ), data );
+            SetData(new ChunkDataKey(chunkCoord, id), data);
         }
     }
 }

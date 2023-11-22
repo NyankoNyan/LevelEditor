@@ -34,6 +34,7 @@ namespace LevelView
                 _levelAPI.BlockProtoCollection.added,
                 (blockProto) => SetupBlockProto(blockProto, _constructFabric)
             );
+            //TODO onRemoved
 
             // Setup grid states
             ReactiveTools.SubscribeCollection(
@@ -41,6 +42,7 @@ namespace LevelView
                 _levelAPI.GridStatesCollection.added,
                 (gridState) => SetupGridState(gridState, root)
             );
+            //TODO onRemoved
         }
 
         private void SetupBlockProto(BlockProto blockProto, ConstructFabric constructFabric)
@@ -53,25 +55,29 @@ namespace LevelView
 
         private void SetupGridState(GridState gridState, Transform parent)
         {
+            // Корневой объект для хранения грида
             GameObject gridView = new($"{gridState.Key}-{gridState.GridSettingsName}");
             gridView.transform.parent = parent;
             gridView.transform.localPosition = default;
             gridView.transform.localRotation = Quaternion.identity;
 
-            Action<DataLayerEventArgs, GridState> layerChanged = (args, gridState) => {
-                if (args is BlockLevelLoadedEventArgs loadArgs) {
-                    SetupDataLayer(loadArgs.dataLayer, parent, gridState.GridSettings);
-                }
+            Action<GridState, DataLayer> onLayerAdded = (gridState, dataLayer)=>{
+                SetupDataLayer(dataLayer, parent, gridState.GridSettings);
             };
-            gridState.layerChanged += layerChanged;
-
+            gridState.layerAdded += onLayerAdded;
             foreach (var dataLayer in gridState.DataLayers) {
                 SetupDataLayer(dataLayer, parent, gridState.GridSettings);
             }
 
+            Action<GridState, string> onLayerRemoved = (gridState, layerTag)=>{
+                //TODO something
+            };
+            gridState.layerRemoved += onLayerRemoved;
+
             Action onDestroy = null;
             onDestroy = () => {
-                gridState.layerChanged -= layerChanged;
+                gridState.layerAdded -= onLayerAdded;
+                gridState.layerRemoved -= onLayerRemoved;
                 gridState.OnDestroyAction -= onDestroy;
             };
             gridState.OnDestroyAction += onDestroy;
@@ -93,25 +99,33 @@ namespace LevelView
         private void SetupBlockLayer(
             BlockLayer<BlockData> blockLayer,
             Transform parent,
-            GridSettings gridSettings)
+            GridSettings gridSettings,
+            DataLayerSettings dataLayerSettings)
         {
+            GameObject layerView = new(dataLayerSettings.tag);
+            layerView.transform.parent = parent;
+            layerView.transform.localPosition = default;
+            layerView.transform.localRotation = Quaternion.identity;
+
+            blockLayer.chunkAdded += (chunkCoord)=>{
+                SetupBlockChunk(chunkCoord, blockLayer, layerView, gridSettings);
+            };
             foreach (var chunkCoord in blockLayer.LoadedChunks) {
-                GameObject layerGO = new("Block layer");
-                layerGO.transform.parent = parent;
-                layerGO.transform.SetLocalPositionAndRotation(Vector3.zero, Quaternion.identity);
-                DataLayerContent<BlockData> chunkData = blockLayer.GetChunkData(chunkCoord);
-                SetupBlockChunk(chunkCoord, chunkData, blockLayer, layerGO.transform, gridSettings);
+                 SetupBlockChunk(chunkCoord, blockLayer, layerView, gridSettings);
             }
+
+            blockLayer.chunkRemoved += (chunkCoord)=>{
+                //TODO something
+            };
         }
 
         private void SetupBlockChunk(
             Vector3Int chunkCoord,
-            DataLayerContent<BlockData> chunkData,
             BlockLayer<BlockData> blockLayer,
             Transform parent,
             GridSettings gridSettings)
         {
-            GameObject chunkView = new($"{chunkCoord.x} {chunkCoord.y} {chunkCoord.z}");
+            GameObject chunkView = new($"{chunkCoord.x}-{chunkCoord.y}-{chunkCoord.z}");
             chunkView.transform.parent = parent;
             chunkView.transform.localRotation = Quaternion.identity;
             chunkView.transform.localPosition = new Vector3(
@@ -120,39 +134,29 @@ namespace LevelView
                 gridSettings.ChunkSize.z * chunkCoord.z
                 );
 
-            for (int i = 0; i < gridSettings.ChunkSizeFlat; i++) {
-                var blockData = chunkData[(uint)i];
-                if (blockData.blockId == 0) {
-                    continue;
+            var content = (DataLayerStaticContent<BlockData>) blockLayer.GetChunkData(chunkCoord);
+
+            for(int i=0;i<content.Size;i++){
+                BlockData data = content[i];
+                // Block exists
+                if(data.blockId!=0){
+                    Vector3Int localBlockCoord = GridState.FlatToBlockCoord(i, blockLayer.ChunkSize);
+                    Vector3 pos = new Vector3(
+                        localBlockCoord.x * gridSettings.CellSize.x,
+                        localBlockCoord.y * gridSettings.CellSize.y,
+                        localBlockCoord.z * gridSettings.CellSize.z);
+                    BlockProto blockProto = _levelAPI.BlockProtoCollection[data.blockId];
+                    _objViewFabric.Create(blockProto.Name);
+                    objectView.transform.parent = parent;
+                    objectView.transform.localRotation = BlockData.DecodeRotation(data.rotation);
+                    objectView.transform.localPosition = pos;
                 }
-                Vector3Int blockCoord = GridState.FlatToBlockCoord(i, gridSettings.ChunkSize);
-                Vector3 pos = new Vector3(
-                    blockCoord.x * gridSettings.CellSize.x,
-                    blockCoord.y * gridSettings.CellSize.y,
-                    blockCoord.z * gridSettings.CellSize.z);
-                BlockProto blockProto = _levelAPI.BlockProtoCollection[blockData.blockId];
-                BlockViewAPI blockViewAPI = new BlockViewAPI(blockLayer, blockCoord, gridSettings);
-                var objectView = _objViewFabric.Create(blockProto.Name, blockViewAPI);
-                objectView.transform.parent = parent;
-                objectView.transform.localRotation = Quaternion.identity;
-                objectView.transform.localPosition = pos;
-            }
+            }            
         }
 
-        private void SetupLayer(
-            DataLayer dataLayer,
-            Transform parent,
-            GridSettings gridSettings)
+        private void RemoveBlockChunk()
         {
-            switch (dataLayer.LayerType) {
-                case LayerType.BlockLayer:
-                    SetupBlockLayer(dataLayer as BlockLayer<BlockData>, parent, gridSettings);
-                    break;
-
-                default:
-                    Debug.LogError($"Layer {dataLayer.LayerType} not supported");
-                    break;
-            }
+            //TODO remove
         }
     }
 }

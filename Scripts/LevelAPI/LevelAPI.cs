@@ -106,7 +106,7 @@ namespace Level.API
             _flatCoord = GridState.BlockCoordToFlat( blockCoord, gridSettings.ChunkSize );
 
             Action<DataLayerEventArgs> changed = (args) => {
-                if (args is BlockLevelLoadedEventArgs loadArgs) {
+                if (args is BlockLayerLoadedEventArgs loadArgs) {
                     if (loadArgs.blockCoord == blockCoord) {
                         BlockData blockData = blockLayer.GetData( loadArgs.blockCoord );
                         if (blockData.blockId == 0) {

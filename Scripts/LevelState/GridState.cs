@@ -1,8 +1,11 @@
 using Level.API;
+
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
+using System.Reflection;
+
 using UnityEngine;
 using UnityEngine.Assertions;
 
@@ -17,7 +20,9 @@ namespace Level
     {
         //public Action<GridChunk> chunkLoaded;
 
-        public Action<DataLayerEventArgs, GridState> layerChanged;
+        //public Action<DataLayerEventArgs, GridState> layerChanged;
+        public Action<GridState, DataLayer> layerAdded;
+        public Action<GridState, string> layerRemoved;
 
         public uint Key => _instanceId;
         public string GridSettingsName => _gridSettings.Name;
@@ -30,33 +35,58 @@ namespace Level
 
         private uint _instanceId;
         private GridSettings _gridSettings;
-
-        //private DataLayerFabric _dataLayerFabric;
-        //private TypeEnv<GridChunk, Vector3Int, GridChunkCreateParams, GridChunkFabric, GridChunkRegistry> _chunkEnv;
+        private ChunkStorageFabric _chunkStorageFabric;
         private List<DataLayer> _dataLayers = new();
-
-        private ChunkStorage _chunkStorage;
 
         public void Destroy()
         {
             OnDestroyAction?.Invoke();
+
+            _gridSettings.layerAdded -= OnLayerSettingsAdded;
+            _gridSettings.layerRemoved -= OnLayerSettingsRemoved;
         }
 
-        public void Init(GridStateCreateParams value, uint counter)
+        public void Init(GridStateCreateParams createParams, uint counter)
         {
             _instanceId = counter;
-            _gridSettings = value.gridSettings;
-            //_dataLayerFabric = value.dataLayerFabric;
+            _gridSettings = createParams.gridSettings;
+            _chunkStorageFabric = createParams.chunkStorageFabric;
 
-            Assert.IsNotNull( _gridSettings );
-            //Assert.IsNotNull( _dataLayerFabric );
+            Assert.IsNotNull(_gridSettings);
+            Assert.IsNotNull(_chunkStorageFabric);
 
-            //_chunkEnv = new();
+            //Init layers
+            foreach (var layerSettings in _gridSettings.Settings.layers) {
+                AddLayer(layerSettings);
+            }
+            _gridSettings.layerAdded += OnLayerSettingsAdded;
+            _gridSettings.layerRemoved += OnLayerSettingsRemoved;
+        }
+
+        private DataLayer AddLayer(DataLayerSettings layerSettings)
+        {
+            if (layerSettings.layerType == LayerType.BlockLayer) {
+                var chunkStorage = _chunkStorageFabric.GetChunkStorage(layerSettings, this);
+                var blockLayer = new BlockLayer<BlockData>(layerSettings.tag, layerSettings.chunkSize, chunkStorage);
+                _dataLayers.Add(blockLayer);
+                return blockLayer;
+            } else {
+                throw new LevelAPIException($"Unknown layer type {layerSettings.layerType} in {layerSettings.tag}");
+            }
+        }
+
+        private void RemoveLayer(DataLayerSettings layerSettings)
+        {
+            var layer = GetLayer(layerSettings.tag);
+            if(layer==null){
+                throw new LevelAPIException($"Missing layer {layerSettings.tag}");
+            }
+            _dataLayers.Remove(layer);
         }
 
         public DataLayer GetLayer(string tag)
         {
-            return _dataLayers.SingleOrDefault( x => x.Tag == tag );
+            return _dataLayers.SingleOrDefault(x => x.Tag == tag);
         }
 
         /// <summary>
@@ -68,27 +98,27 @@ namespace Level
         /// <exception cref="LevelAPIException"></exception>
         public void AddBlock(string layerTag, ChunkDataKey chunkKey, object blockData)
         {
-            var layer = GetLayer( layerTag );
+            var layer = GetLayer(layerTag);
             if (layer == null)
-                throw new LevelAPIException( $"Grid state {Key}. Layer {layerTag} not found." );
+                throw new LevelAPIException($"Grid state {Key}. Layer {layerTag} not found.");
 
             if (layer is BlockLayer<BlockData> blockLayer) {
-                blockLayer.SetData( chunkKey, (BlockData)blockData );
+                blockLayer.SetData(chunkKey, (BlockData)blockData);
             } else {
-                throw new LevelAPIException( $"Unsupported block type {layer.GetType()}" );
+                throw new LevelAPIException($"Unsupported block type {layer.GetType()}");
             }
         }
 
         public void AddBlock<TData, TGlobalKey>(string layerTag, TGlobalKey key, TData data)
         {
             var layer = GetLayer(layerTag);
-            if(layer==null){
+            if (layer == null) {
                 throw new LevelAPIException($"Missing layer {layerTag}");
             }
 
-            if(layer is ChunkLayer<TData, TGlobalKey> chunkLayer){
+            if (layer is ChunkLayer<TData, TGlobalKey> chunkLayer) {
                 chunkLayer.SetData(key, data);
-            }else{
+            } else {
                 throw new LevelAPIException($"Layer {layerTag} is not {nameof(ChunkLayer<TData, TGlobalKey>)}");
             }
         }
@@ -102,7 +132,7 @@ namespace Level
         {
             int yLayerSize = chunkSize.x * chunkSize.z;
             int layerMod = flat % yLayerSize;
-            return new Vector3Int( layerMod % chunkSize.x, flat / yLayerSize, layerMod / chunkSize.x );
+            return new Vector3Int(layerMod % chunkSize.x, flat / yLayerSize, layerMod / chunkSize.x);
         }
 
         public static int BlockCoordToFlatSafe(Vector3Int blockCoord, Vector3Int chunkSize)
@@ -110,9 +140,9 @@ namespace Level
             if (blockCoord.x < 0 || blockCoord.x >= chunkSize.x
                     || blockCoord.y < 0 || blockCoord.y >= chunkSize.y
                     || blockCoord.z < 0 || blockCoord.z >= chunkSize.z) {
-                throw new ArgumentException( $"Wrong block coordinate {blockCoord} with chunk size {chunkSize}" );
+                throw new ArgumentException($"Wrong block coordinate {blockCoord} with chunk size {chunkSize}");
             } else {
-                return BlockCoordToFlat( blockCoord, chunkSize );
+                return BlockCoordToFlat(blockCoord, chunkSize);
             }
         }
 
@@ -120,10 +150,22 @@ namespace Level
         {
             int chunkSizeFlat = chunkSize.x * chunkSize.y * chunkSize.z;
             if (flat < 0 || flat >= chunkSizeFlat) {
-                throw new ArgumentException( $"Wrong block index {flat} with chunk size {chunkSize}" );
+                throw new ArgumentException($"Wrong block index {flat} with chunk size {chunkSize}");
             } else {
-                return FlatToBlockCoord( flat, chunkSize );
+                return FlatToBlockCoord(flat, chunkSize);
             }
+        }
+
+        private void OnLayerSettingsRemoved(DataLayerSettings settings)
+        {
+            RemoveLayer(settings);
+            layerRemoved?.Invoke(this, settings.tag);
+        }
+
+        private void OnLayerSettingsAdded(DataLayerSettings settings)
+        {
+            var layer = AddLayer(settings);
+            layerAdded?.Invoke(this, layer);
         }
     }
 
