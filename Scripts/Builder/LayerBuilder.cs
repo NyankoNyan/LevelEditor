@@ -4,6 +4,7 @@ using UnityEngine;
 
 namespace Level.Builder
 {
+    //TODO remove file
     //public class LayerBuilder : MonoBehaviour, IBuilderCheck
     //{
     //    [SerializeField] private DataLayerSettings dataLayerSettings;

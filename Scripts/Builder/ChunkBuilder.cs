@@ -3,6 +3,7 @@ using UnityEngine;
 
 namespace Level.Builder
 {
+    //TODO remove file
     //public class ChunkBuilder : MonoBehaviour
     //{
     //    [SerializeField] private Vector3Int chunkCoord;

@@ -4,6 +4,7 @@ using UnityEngine;
 
 namespace Level.Builder
 {
+    //TODO remove file
     //public abstract class LayerDataBuilder : MonoBehaviour
     //{
     //    public abstract void Export(

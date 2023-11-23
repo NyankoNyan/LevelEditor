@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using UnityEngine.Events;
 
 namespace Level
 {
@@ -24,8 +23,8 @@ namespace Level
     public class Registry<TKey, TValue>
         where TValue : IHasKey<TKey>, IDestroy
     {
-        public UnityAction<TValue> onAdd;
-        public UnityAction<TValue> onRemove;
+        public Action<TValue> onAdd;
+        public Action<TValue> onRemove;
 
         private Dictionary<TKey, TValue> _values = new();
 
@@ -57,7 +56,7 @@ namespace Level
     public class Fabric<T, TCreateParams>
         where T : IInitializable<TCreateParams>, new()
     {
-        public UnityAction<T> onCreate;
+        public Action<T> onCreate;
         private uint _counter;
         public uint Counter => _counter;
 

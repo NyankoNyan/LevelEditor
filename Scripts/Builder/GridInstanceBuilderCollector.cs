@@ -3,6 +3,7 @@ using UnityEngine;
 
 namespace Level.Builder
 {
+    //TODO remove file
     //public class GridInstanceBuilderCollector : MonoBehaviour, IBuilderCheck
     //{
     //    public void Check()

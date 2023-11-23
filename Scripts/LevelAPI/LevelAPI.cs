@@ -77,7 +77,7 @@ namespace Level.API
         public static void Clear(Transform target)
         {
             while (target.childCount > 0) {
-                GameObject.DestroyImmediate( target.GetChild( 0 ) );
+                GameObject.DestroyImmediate( target.GetChild( 0 ).gameObject );
             }
         }
     }

@@ -3,6 +3,7 @@ using UnityEngine;
 
 namespace Level.Builder
 {
+    //TODO remove file
     //public class GridInstanceBuilder : MonoBehaviour, IBuilderCheck
     //{
     //    [SerializeField] private string gridSettingsName;

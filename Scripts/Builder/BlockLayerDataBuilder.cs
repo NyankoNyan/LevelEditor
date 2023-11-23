@@ -6,6 +6,7 @@ using UnityEngine.Assertions;
 
 namespace Level.Builder
 {
+    //TODO remove file
     //public class BlockLayerDataBuilder : LayerDataBuilder
     //{
     //    [SerializeField] private List<Block> blocks = new();
