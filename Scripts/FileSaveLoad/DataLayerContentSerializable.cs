@@ -24,7 +24,7 @@ namespace Level.IO
 
         public void Load(DataLayerStaticContent<BlockData> content)
         {
-            for (uint i = 0; i < blockDataIds.Length; i++) {
+            for (int i = 0; i < blockDataIds.Length; i++) {
                 content[i] = new BlockData( blockDataIds[i], blockDataRotations[i] );
             }
         }

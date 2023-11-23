@@ -61,7 +61,7 @@ namespace Level
         public override object LoadChunk(Vector3Int coord)
         {
             int flatSize = _size.x * _size.y * _size.z;
-            DataLayerStaticContent<BlockData> content = new( (uint)flatSize );
+            DataLayerStaticContent<BlockData> content = new( flatSize );
             return content;
         }
 
@@ -84,7 +84,7 @@ namespace Level
             if (dataLayerSettings.layerType == LayerType.BlockLayer) {
                 string gridFolder = _folder + "\\" + gridState.Key;
                 string folder = gridFolder + "\\" + LevelFileConsts.LAYER_BLOCKS + '_' + dataLayerSettings.tag;
-                uint flatSize = (uint)( gridState.GridSettings.ChunkSize.x * gridState.GridSettings.ChunkSize.y * gridState.GridSettings.ChunkSize.z );
+                int flatSize = gridState.GridSettings.ChunkSize.x * gridState.GridSettings.ChunkSize.y * gridState.GridSettings.ChunkSize.z;
                 var blockStorage = new FileBlockChunkStorage<BlockData>( folder, flatSize );
                 return blockStorage;
             } else {
@@ -96,10 +96,10 @@ namespace Level
     public class FileBlockChunkStorage<TData> : ChunkStorage
     {
         private string _directory;
-        private uint _chunkDataSize;
+        private int _chunkDataSize;
         private Dictionary<Vector3Int, string> _fileMap = new();
 
-        public FileBlockChunkStorage(string directory, uint chunkDataSize)
+        public FileBlockChunkStorage(string directory, int chunkDataSize)
         {
             _directory = directory;
             _chunkDataSize = chunkDataSize;

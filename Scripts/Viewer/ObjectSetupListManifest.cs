@@ -104,10 +104,9 @@ namespace LevelView
         public bool Equals(ObjectSetup other)
         {
             return id == other.id && refId == other.refId
-                && prefab == other.prefab && mesh == other.mesh && mesh.mainTexture == other.mainTexture
+                && prefab == other.prefab && mesh == other.mesh && mainTexture == other.mainTexture
                 && offset == other.offset && rotation == other.rotation && scale == other.scale;
         }
-
     }
 
     /// <summary>

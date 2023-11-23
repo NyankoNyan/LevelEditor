@@ -11,6 +11,7 @@ namespace LevelView
     {
         //TODO Прогрев пула (прединициализация)
         private string _prefabId;
+
         private Stack<GameObject> _stack = new();
         private ConstructFabric _fabric;
         private Transform _root;

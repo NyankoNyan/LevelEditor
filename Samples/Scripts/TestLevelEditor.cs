@@ -1,12 +1,9 @@
-using Level.API;
-
-using LevelView;
-
 using System;
 using System.IO;
-using System.Reflection;
-
+using Level.API;
+using LevelView;
 using UnityEngine;
+using UnityEngine.Assertions;
 
 namespace Level.Samples
 {
@@ -18,11 +15,11 @@ namespace Level.Samples
     public class TestLevelEditor : MonoBehaviour
     {
         [SerializeField] private string _levelFolder = @"Level\test_level";
-        [SerializeField] private  GameObject _floorBlockPrefab;
+        [SerializeField] private GameObject _floorBlockPrefab;
 
-        LevelAPI _level;
+        private LevelAPI _level;
 
-        void Start()
+        private void Start()
         {
             if (!LevelStorage.Instance) {
                 throw new Exception($"Missing level storage on scene");
