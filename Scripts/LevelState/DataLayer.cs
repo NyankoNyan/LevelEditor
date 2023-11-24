@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+
 using UnityEngine;
 using UnityEngine.Assertions;
 
@@ -12,6 +13,15 @@ namespace Level
         public LayerType layerType;
         public Vector3Int chunkSize;
         public string tag;
+        public bool hasViewLayer;
+
+        public DataLayerSettings(DataLayerSettings original)
+        {
+            layerType = original.layerType;
+            chunkSize = original.chunkSize;
+            tag = original.tag;
+            hasViewLayer = original.hasViewLayer;
+        }
     }
 
     public abstract class DataLayerEventArgs
@@ -20,7 +30,7 @@ namespace Level
 
         public DataLayerEventArgs(DataLayer dataLayer)
         {
-            Assert.IsNotNull( dataLayer );
+            Assert.IsNotNull(dataLayer);
             this.dataLayer = dataLayer;
         }
     }
@@ -35,7 +45,7 @@ namespace Level
             DataLayer dataLayer,
             IEnumerable<Info> added = null,
             IEnumerable<Info> changed = null,
-            IEnumerable<Vector3Int> removed = null) : base( dataLayer )
+            IEnumerable<Vector3Int> removed = null) : base(dataLayer)
         {
             this.added = added;
             this.changed = changed;
@@ -95,7 +105,7 @@ namespace Level
     /// <typeparam name="TData"></typeparam>
     public abstract class IndexLayer<TData> : DataLayer
     {
-        public IndexLayer(string tag) : base( tag )
+        public IndexLayer(string tag) : base(tag)
         {
         }
     }
@@ -116,7 +126,7 @@ namespace Level
         private ChunkStorage _chunkStorage;
         private Dictionary<Vector3Int, DataLayerContent<TData>> _loadedChunks;
 
-        public ChunkLayer(string tag, ChunkStorage chunkStorage) : base( tag )
+        public ChunkLayer(string tag, ChunkStorage chunkStorage) : base(tag)
         {
             _chunkStorage = chunkStorage;
         }
@@ -127,20 +137,20 @@ namespace Level
 
         public TData GetData(ChunkDataKey key)
         {
-            var chunkData = GetChunkData( key.chunkCoord );
+            var chunkData = GetChunkData(key.chunkCoord);
             return chunkData[key.dataId];
         }
 
         public void SetData(ChunkDataKey key, TData data)
         {
-            var chunkData = GetChunkData( key.chunkCoord );
+            var chunkData = GetChunkData(key.chunkCoord);
             chunkData[key.dataId] = data;
         }
 
         public void PreloadChunks(Vector3Int[] chunkCoords)
         {
             foreach (var coord in chunkCoords) {
-                _ = GetChunkData( coord );
+                _ = GetChunkData(coord);
             }
         }
 
@@ -149,10 +159,10 @@ namespace Level
         public DataLayerContent<TData> GetChunkData(Vector3Int coord)
         {
             DataLayerContent<TData> data;
-            if (!_loadedChunks.TryGetValue( coord, out data )) {
-                data = (DataLayerContent<TData>)_chunkStorage.LoadChunk( coord );
-                _loadedChunks.Add( coord, data );
-                chunkAdded?.Invoke( coord );
+            if (!_loadedChunks.TryGetValue(coord, out data)) {
+                data = (DataLayerContent<TData>)_chunkStorage.LoadChunk(coord);
+                _loadedChunks.Add(coord, data);
+                chunkAdded?.Invoke(coord);
             }
             return data;
         }

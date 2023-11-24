@@ -1,5 +1,7 @@
 ﻿using Level.API;
+
 using System;
+
 using UnityEngine;
 
 namespace LevelView
@@ -11,15 +13,17 @@ namespace LevelView
     {
         // GameObject Create(string prefabId, IObjectViewReceiver receiver);
         GameObject Create(string prefabId);
+        void Remove(GameObject gameObject);
     }
 
     public class ObjectViewFabric : IObjectViewFabric
     {
         private ConstructMetaStorage _constructMetaStorage;
+        private Dictionary<GameObject, string> _objectReg = new();
 
         public ObjectViewFabric(ConstructFabric constructFabric)
         {
-            _constructMetaStorage = new( constructFabric );
+            _constructMetaStorage = new(constructFabric);
         }
 
         // public GameObject Create(string prefabId, IObjectViewReceiver receiver)
@@ -39,7 +43,7 @@ namespace LevelView
 
         public GameObject Create(string prefabId)
         {
-            GameObject obj = _constructMetaStorage.Pop( prefabId );
+            GameObject obj = _constructMetaStorage.Pop(prefabId);
             return obj;
         }
 
@@ -49,7 +53,18 @@ namespace LevelView
         //}
 
         public bool IsLoaded(string prefabId)
-            => _constructMetaStorage.IsLoaded( prefabId );
+            => _constructMetaStorage.IsLoaded(prefabId);
+
+        public void Remove(GameObject gameObject)
+        {
+            if (_objectReg.TryGetValue(gameObject, out string setupId)) {
+                _objectReg.Remove(gameObject);
+                _constructMetaStorage.Push(setupId, gameObject);
+            } else {
+                throw new LevelAPIException($"Not found registration for object {gameObject} ");
+            }
+        }
+
     }
 
     /// <summary>
@@ -66,8 +81,14 @@ namespace LevelView
 
         public GameObject Create(string prefabId)
         {
-            return _constructFabric.Create( prefabId );
+            return _constructFabric.Create(prefabId);
         }
+
+        public void Remove(GameObject gameObject)
+        {
+            GameObject.Destroy(gameObject);
+        }
+
     }
 
     //public class ObjectView : MonoBehaviour

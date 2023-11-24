@@ -27,14 +27,14 @@ namespace Level
 
     public class MockChunkStorageFabric : ChunkStorageFabric
     {
-        private MockBlockChunkStorage _blockStorage;
+        private SimpleBlockChunkStorage<BlockData> _blockStorage;
 
         public override ChunkStorage GetChunkStorage(DataLayerSettings dataLayerSettings, GridState gridState)
         {
             switch (dataLayerSettings.layerType) {
                 case LayerType.BlockLayer:
                     if (_blockStorage == null) {
-                        _blockStorage = new MockBlockChunkStorage( dataLayerSettings.chunkSize );
+                        _blockStorage = new SimpleBlockChunkStorage<BlockData>( dataLayerSettings.chunkSize );
                     }
                     return _blockStorage;
 
@@ -44,11 +44,11 @@ namespace Level
         }
     }
 
-    public class MockBlockChunkStorage : ChunkStorage
+    public class SimpleBlockChunkStorage<TData> : ChunkStorage
     {
         private Vector3Int _size;
 
-        public MockBlockChunkStorage(Vector3Int size)
+        public SimpleBlockChunkStorage(Vector3Int size)
         {
             _size = size;
         }
@@ -61,7 +61,7 @@ namespace Level
         public override object LoadChunk(Vector3Int coord)
         {
             int flatSize = _size.x * _size.y * _size.z;
-            DataLayerStaticContent<BlockData> content = new( flatSize );
+            DataLayerStaticContent<TData> content = new( flatSize );
             return content;
         }
 
@@ -80,7 +80,7 @@ namespace Level
         }
 
         public override ChunkStorage GetChunkStorage(DataLayerSettings dataLayerSettings, GridState gridState)
-        {
+        {          
             if (dataLayerSettings.layerType == LayerType.BlockLayer) {
                 string gridFolder = _folder + "\\" + gridState.Key;
                 string folder = gridFolder + "\\" + LevelFileConsts.LAYER_BLOCKS + '_' + dataLayerSettings.tag;

@@ -9,6 +9,7 @@ namespace LevelView
     {
         private Dictionary<string, ObjectSetup> _prefabs = new();
         private Dictionary<string, List<ObjectSetup>> _refIdIndex = new();
+        
 
         /// <summary>
         /// Добавляет в коллекцию префаб с уникальным идентификатором.
@@ -48,7 +49,8 @@ namespace LevelView
                 //Ну мы пока просто первое совпадение берём. А потом доп.папраметры будут.
                 var objectSetup = indexList[0];
                 if (objectSetup.prefab) {
-                    return GameObject.Instantiate( objectSetup.prefab );
+                    var newGO = GameObject.Instantiate( objectSetup.prefab );
+                    return newGO;
                 } else {
                     throw new NotImplementedException();
                 }

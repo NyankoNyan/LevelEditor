@@ -69,10 +69,24 @@ namespace Level
                 var chunkStorage = _chunkStorageFabric.GetChunkStorage(layerSettings, this);
                 var blockLayer = new BlockLayer<BlockData>(layerSettings.tag, layerSettings.chunkSize, chunkStorage);
                 _dataLayers.Add(blockLayer);
+
+                if(layerSettings.hasViewLayer)
+                {
+
+                }
+
                 return blockLayer;
             } else {
                 throw new LevelAPIException($"Unknown layer type {layerSettings.layerType} in {layerSettings.tag}");
             }
+        }
+
+        private void AddViewLayer(DataLayerSettings mainLayerSettings)
+        {
+            DataLayerSettings layerSettings = new(mainLayerSettings);
+            layerSettings.hasViewLayer = false;
+            layerSettings.tag += "_VIEW";
+            var chunkStorage = _chunkStorageFabric.GetChunkStorage(layerSettings, this);
         }
 
         private void RemoveLayer(DataLayerSettings layerSettings)
@@ -82,6 +96,10 @@ namespace Level
                 throw new LevelAPIException($"Missing layer {layerSettings.tag}");
             }
             _dataLayers.Remove(layer);
+        }
+
+        private void RemoveViewLayer(){
+
         }
 
         public DataLayer GetLayer(string tag)

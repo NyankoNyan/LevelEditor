@@ -101,6 +101,16 @@ namespace Level
         }
     }
 
+    public struct ClientViewData
+    {
+        public GameObject gameObject;
+
+        public ClientViewData(GameObject gameObject)
+        {
+            this.gameObject = gameObject;
+        }
+    }
+
     public class BlockLayer<TData> : ChunkLayer<TData, Vector3Int>
     {
         private readonly Vector3Int _size;
@@ -119,16 +129,36 @@ namespace Level
 
         public int ChunkFlatSize => _size.x * _size.y * _size.z;
 
+        public Vector3Int GetChunkOfGlobalBlock(Vector3Int blockCoord)
+        {
+            return new Vector3Int(
+                blockCoord.x / _size.x - (blockCoord.x < 0 ? 1 : 0),
+                blockCoord.y / _size.y - (blockCoord.y < 0 ? 1 : 0),
+                blockCoord.z / _size.z - (blockCoord.z < 0 ? 1 : 0)
+                );
+        }
+
+        public Vector3Int LocalCoordOfGlobalBlock(Vector3Int blockCoord)
+        {
+            Vector3Int chunkCoord = GetChunkOfGlobalBlock(blockCoord);
+            return blockCoord - Vector3Int.Scale(chunkCoord, _size);
+        }
+
+        public int LocalIdOfGlobalBlock(Vector3Int blockCoord)
+        {
+            Vector3Int localCoord = LocalCoordOfGlobalBlock(blockCoord);
+            return GridState.BlockCoordToFlat(localCoord, _size);
+        }
+
+        public Vector3Int BlockGlobalCoord(Vector3Int chunkCoord, int blockId)
+        {
+            return Vector3Int.Scale(chunkCoord, _size) + GridState.FlatToBlockCoordSafe(blockId, _size);
+        }
+
         public override TData GetData(Vector3Int key)
         {
-            Vector3Int chunkCoord = new Vector3Int(
-                key.x / _size.x - (key.x < 0 ? 1 : 0),
-                key.y / _size.y - (key.y < 0 ? 1 : 0),
-                key.z / _size.z - (key.z < 0 ? 1 : 0)
-                );
-            Vector3Int blockCoord = key - Vector3Int.Scale(chunkCoord, _size);
-            ushort id = (ushort)GridState.BlockCoordToFlat(blockCoord, _size);
-
+            Vector3Int chunkCoord = GetChunkOfGlobalBlock(key);
+            ushort id = (ushort)LocalIdOfGlobalBlock(key);
             return GetData(new ChunkDataKey(chunkCoord, id));
         }
 
