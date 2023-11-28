@@ -1,4 +1,6 @@
-﻿namespace Level.API
+﻿using System;
+
+namespace Level.API
 {
     //TODO remove file
     public interface IChunkAPI
