@@ -30,7 +30,7 @@ namespace Level
 
         public DataLayerEventArgs(DataLayer dataLayer)
         {
-            Assert.IsNotNull( dataLayer );
+            Assert.IsNotNull(dataLayer);
             this.dataLayer = dataLayer;
         }
     }
@@ -38,17 +38,14 @@ namespace Level
     public class BlockLayerChangedEventArgs : DataLayerEventArgs
     {
         public IEnumerable<Info> added;
-        public IEnumerable<Info> changed;
         public IEnumerable<Vector3Int> removed;
 
         public BlockLayerChangedEventArgs(
             DataLayer dataLayer,
             IEnumerable<Info> added = null,
-            IEnumerable<Info> changed = null,
-            IEnumerable<Vector3Int> removed = null) : base( dataLayer )
+            IEnumerable<Vector3Int> removed = null) : base(dataLayer)
         {
             this.added = added;
-            this.changed = changed;
             this.removed = removed;
         }
 
@@ -106,18 +103,33 @@ namespace Level
     /// <typeparam name="TData"></typeparam>
     public abstract class IndexLayer<TData> : DataLayer
     {
-        public IndexLayer(DataLayerSettings settings) : base( settings )
+        public Action<TData> added;
+        public Action<TData> removed;
+        protected Dictionary<uint, TData> _data = new();
+        public IndexLayer(DataLayerSettings settings) : base(settings)
         {
+
+        }
+        public void Add(uint id, TData value)
+        {
+            if (!_data.TryAdd(id, value)) {
+                throw new Exception();
+            }
+            added?.Invoke(value);
+        }
+
+        public void Remove(uint id)
+        {
+            if (_data.TryGetValue(id, out TData value)) {
+                _data.Remove(id);
+                removed?.Invoke(value);
+            } else {
+                throw new Exception();
+            }
         }
     }
 
-    /// <summary>
-    /// Чанковый слой разбивается на большие пространственные блоки и хранит
-    /// данные порциями завязанными на положении точек привязки данных в пространстве.
-    /// </summary>
-    /// <typeparam name="TData"></typeparam>
-    /// <typeparam name="TGlobalDataKey"></typeparam>
-    public abstract class ChunkLayer<TData, TGlobalDataKey> : DataLayer
+    public abstract class SimpleChunkLayer<TData> : DataLayer
     {
         //TODO Chunk removing
         public Action<Vector3Int> chunkRemoved;
@@ -127,31 +139,27 @@ namespace Level
         private ChunkStorage _chunkStorage;
         private Dictionary<Vector3Int, DataLayerContent<TData>> _loadedChunks;
 
-        public ChunkLayer(DataLayerSettings settings, ChunkStorage chunkStorage) : base( settings )
+        public SimpleChunkLayer(DataLayerSettings settings, ChunkStorage chunkStorage) : base(settings)
         {
             _chunkStorage = chunkStorage;
         }
 
-        public abstract TData GetData(TGlobalDataKey key);
-
-        public abstract void SetData(TGlobalDataKey key, TData data);
-
         public TData GetData(ChunkDataKey key)
         {
-            var chunkData = GetChunkData( key.chunkCoord );
+            var chunkData = GetChunkData(key.chunkCoord);
             return chunkData[key.dataId];
         }
 
         public void SetData(ChunkDataKey key, TData data)
         {
-            var chunkData = GetChunkData( key.chunkCoord );
+            var chunkData = GetChunkData(key.chunkCoord);
             chunkData[key.dataId] = data;
         }
 
         public void PreloadChunks(Vector3Int[] chunkCoords)
         {
             foreach (var coord in chunkCoords) {
-                _ = GetChunkData( coord );
+                _ = GetChunkData(coord);
             }
         }
 
@@ -160,12 +168,29 @@ namespace Level
         public DataLayerContent<TData> GetChunkData(Vector3Int coord)
         {
             DataLayerContent<TData> data;
-            if (!_loadedChunks.TryGetValue( coord, out data )) {
-                data = (DataLayerContent<TData>)_chunkStorage.LoadChunk( coord );
-                _loadedChunks.Add( coord, data );
-                chunkAdded?.Invoke( coord );
+            if (!_loadedChunks.TryGetValue(coord, out data)) {
+                data = (DataLayerContent<TData>)_chunkStorage.LoadChunk(coord);
+                _loadedChunks.Add(coord, data);
+                chunkAdded?.Invoke(coord);
             }
             return data;
         }
+    }
+
+    /// <summary>
+    /// Чанковый слой разбивается на большие пространственные блоки и хранит
+    /// данные порциями завязанными на положении точек привязки данных в пространстве.
+    /// </summary>
+    /// <typeparam name="TData"></typeparam>
+    /// <typeparam name="TGlobalDataKey"></typeparam>
+    public abstract class ChunkLayer<TData, TGlobalDataKey> : SimpleChunkLayer<TData>
+    {
+        public ChunkLayer(DataLayerSettings settings, ChunkStorage chunkStorage) : base(settings, chunkStorage)
+        {
+        }
+
+        public abstract TData GetData(TGlobalDataKey key);
+
+        public abstract void SetData(TGlobalDataKey key, TData data);
     }
 }

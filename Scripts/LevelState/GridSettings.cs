@@ -20,7 +20,9 @@ namespace Level
     public enum LayerType
     {
         BlockLayer,
-        PropsLayer
+        PropsLayer,
+        ItemLayer,
+        GlobalItemLayer
     }
 
     //[Serializable]

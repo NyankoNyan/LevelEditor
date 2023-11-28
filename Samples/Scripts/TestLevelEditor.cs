@@ -1,7 +1,10 @@
 using System;
 using System.IO;
+
 using Level.API;
+
 using LevelView;
+
 using UnityEngine;
 using UnityEngine.Assertions;
 
@@ -26,6 +29,8 @@ namespace Level.Samples
             }
             // Получаем объект уровня
             _level = LevelStorage.Instance.API;
+
+            StartTest();
         }
 
         /// <summary>
@@ -34,6 +39,14 @@ namespace Level.Samples
         private void CheckSelf()
         {
             Assert.IsNotNull(_floorBlockPrefab);
+        }
+
+        private void StartTest()
+        {
+            PrepareFileStorage();
+            CreateModelEnvironment();
+            CreateViewEnvironment();
+            CreateAdditionalModelPart();
         }
 
         /// <summary>
@@ -70,6 +83,40 @@ namespace Level.Samples
             for (int x = -50; x <= 50; x++) {
                 for (int z = -50; z <= 50; z++) {
                     grid.AddBlock<BlockData, Vector3Int>("blocks", new Vector3Int(x, 0, z), blockFloor);
+                }
+            }
+        }
+
+        void CreateAdditionalModelPart(){
+            // Добавляем описание блоков
+            var blockProto = _level.BlockProtoCollection.Add(new BlockProtoSettings() {
+                name = "test_block_2",
+                formFactor = "create_test",
+                layerTag = "blocks",
+                lockXZ = true,
+                size = Vector3Int.one
+            });
+            // Описание слоя даннных
+            DataLayerSettings dlSettings = new() {
+                tag = "blocks",
+                chunkSize = Vector3Int.one * 8,
+                layerType = LayerType.BlockLayer
+            };
+            // Добавляем описание сетки
+            var gridSettings = _level.GridSettingsCollection.Add(new GridSettingsCreateParams() {
+                name = "Additional block grid",
+                cellSize = Vector3.one,
+                chunkSize = Vector3Int.one * 8, // TODO Схуяли здесь ещё один размер чанка. Надо уже определиться уровень хранения.
+                formFactor = "create_test", // TODO Собна мы на блок навесили и форм фактор и леер таг. А нах они оба нужны?
+                layers = new() { dlSettings }
+            });
+            // Добавляем сетку (инстанцию)
+            var grid = _level.GridStatesCollection.Add(gridSettings.Key);
+            // Добавляем блоки сверху пола
+            BlockData blockFloor = new BlockData((ushort)blockProto.Key, 0);
+            for (int x = -50; x <= 50; x++) {
+                for (int z = -50; z <= 50; z++) {
+                    grid.AddBlock<BlockData, Vector3Int>("blocks", new Vector3Int(x, 1, z), blockFloor);
                 }
             }
         }
