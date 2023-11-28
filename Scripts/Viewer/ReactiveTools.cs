@@ -1,3 +1,6 @@
+using System;
+using System.Collections.Generic;
+
 public static class ReactiveTools
 {
     public static Action<TValue1> SubscribeCollection<TValue1>(

@@ -1,6 +1,6 @@
-﻿using Level.API;
+﻿using System.Collections.Generic;
 
-using System;
+using Level.API;
 
 using UnityEngine;
 
@@ -13,13 +13,14 @@ namespace LevelView
     {
         // GameObject Create(string prefabId, IObjectViewReceiver receiver);
         GameObject Create(string prefabId);
+
         void Remove(GameObject gameObject);
     }
 
     public class ObjectViewFabric : IObjectViewFabric
     {
-        private ConstructMetaStorage _constructMetaStorage;
-        private Dictionary<GameObject, string> _objectReg = new();
+        private readonly ConstructMetaStorage _constructMetaStorage;
+        private readonly Dictionary<GameObject, string> _objectReg = new();
 
         public ObjectViewFabric(ConstructFabric constructFabric)
         {
@@ -64,7 +65,6 @@ namespace LevelView
                 throw new LevelAPIException($"Not found registration for object {gameObject} ");
             }
         }
-
     }
 
     /// <summary>
@@ -72,7 +72,7 @@ namespace LevelView
     /// </summary>
     public class ObjectViewFabricNonPool : IObjectViewFabric
     {
-        private ConstructFabric _constructFabric;
+        private readonly ConstructFabric _constructFabric;
 
         public ObjectViewFabricNonPool(ConstructFabric constructFabric)
         {
@@ -88,7 +88,6 @@ namespace LevelView
         {
             GameObject.Destroy(gameObject);
         }
-
     }
 
     //public class ObjectView : MonoBehaviour

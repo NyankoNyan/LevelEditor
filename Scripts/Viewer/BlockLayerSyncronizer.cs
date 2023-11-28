@@ -1,3 +1,7 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+
 using Level;
 using Level.API;
 
@@ -10,9 +14,9 @@ namespace LevelView
     /// </summary>
     public class BlockLayerSyncronizer : ViewChunkLayerSyncronizer<BlockData, Vector3Int>
     {
-        Transform _layerView;
-        Dictionary<Vector3Int, GameObject> _viewsGlobalIndex = new();
-        Dictionary<GameObject, Vector3Int> _viewsGlobalReverseIndex = new();
+        private Transform _layerView;
+        private readonly Dictionary<Vector3Int, GameObject> _viewsGlobalIndex = new();
+        private readonly Dictionary<GameObject, Vector3Int> _viewsGlobalReverseIndex = new();
 
         public BlockLayerSyncronizer(
             LevelAPI level,
@@ -22,7 +26,6 @@ namespace LevelView
             Transform gridTransform)
             : base(level, gridState, chunkLayer, objViewFabric, gridTransform)
         {
-
         }
 
         protected override void OnInit()

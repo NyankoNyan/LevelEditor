@@ -1,4 +1,6 @@
+using System;
 using System.Collections;
+using System.Collections.Generic;
 
 using UnityEngine;
 
@@ -76,15 +78,18 @@ namespace Level
 
     public class GlobalItemLayer : IndexLayer<ItemData>
     {
-
-        public GlobalItemLayer(DataLayerSettings settings) : base(settings) { }
+        public GlobalItemLayer(DataLayerSettings settings) : base(settings)
+        {
+        }
 
         public override LayerType LayerType => LayerType.GlobalItemLayer;
     }
 
     public class AttachedItemLayer : SimpleChunkLayer<ItemData>
     {
-        public AttachedItemLayer(DataLayerSettings settings, ChunkStorage chunkStorage) : base(settings, chunkStorage) { }
+        public AttachedItemLayer(DataLayerSettings settings, ChunkStorage chunkStorage) : base(settings, chunkStorage)
+        {
+        }
 
         public override LayerType LayerType => LayerType.ItemLayer;
     }
