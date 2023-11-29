@@ -18,6 +18,8 @@ namespace LevelView
         private LevelAPI _levelAPI;
         private IObjectViewFabric _objViewFabric;
 
+        private List<BlockLayerSyncronizer> blockSyncronizers = new();
+
         public LevelViewBuilder(ConstructFabric constructFabric)
         {
             _constructFabric = constructFabric;
@@ -36,9 +38,9 @@ namespace LevelView
             ReactiveTools.SubscribeCollection(
                 _levelAPI.BlockProtoCollection,
                 _levelAPI.BlockProtoCollection.added,
-                (blockProto) => SetupBlockProto(blockProto, _constructFabric)
+                (blockProto) => SetupBlockProto(blockProto)
             );
-            //TODO onRemoved
+            _levelAPI.BlockProtoCollection.removed += RemoveBlockProto;
 
             // Setup grid states
             ReactiveTools.SubscribeCollection(
@@ -49,12 +51,19 @@ namespace LevelView
             //TODO onRemoved
         }
 
-        private void SetupBlockProto(BlockProto blockProto, ConstructFabric constructFabric)
+
+        private void SetupBlockProto(BlockProto blockProto)
         {
             // Простая проверка на существование префаба
-            if (!constructFabric.HasRefId(blockProto.Name)) {
+            if (!_objViewFabric.HasPrefab(blockProto.Name)) {
                 Debug.LogError($"Missing block class {blockProto.Name}");
             }
+        }
+
+        private void RemoveBlockProto(BlockProto proto)
+        {
+            // Удаление описания блока не имеет смысла, но мы можем попробовать удалить пул объектов 
+            _objViewFabric.Unuse(proto.Name);
         }
 
         private void SetupGridState(GridState gridState, Transform parent)
@@ -83,8 +92,14 @@ namespace LevelView
                 gridState.layerAdded -= onLayerAdded;
                 gridState.layerRemoved -= onLayerRemoved;
                 gridState.OnDestroyAction -= onDestroy;
+                RemoveGridState(gridState, gridView.transform);
             };
             gridState.OnDestroyAction += onDestroy;
+        }
+
+        private void RemoveGridState(GridState gridState, Transform gridView)
+        {
+            //TODO do something
         }
 
         private void SetupDataLayer(DataLayer dataLayer, Transform parent, GridState gridState)
@@ -106,6 +121,10 @@ namespace LevelView
                     Debug.LogError($"Layer {dataLayer.LayerType} not supported");
                     break;
             }
+        }
+
+        private void RemoveDataLayer(){
+
         }
     }
 }

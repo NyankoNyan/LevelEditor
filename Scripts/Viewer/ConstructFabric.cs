@@ -19,11 +19,11 @@ namespace LevelView
         /// <exception cref="LevelAPIException"></exception>
         public void AddPrefab(ObjectSetup objectSetup)
         {
-            if (_prefabs.TryGetValue( objectSetup.id, out ObjectSetup currentOS )) {
-                if (objectSetup.Equals( currentOS )) {
+            if (_prefabs.TryGetValue( objectSetup.id, out ObjectSetup existedSetup )) {
+                if (objectSetup.Equals( existedSetup )) {
                     Debug.LogWarning( $"Prefab {objectSetup.id} already added" );
                 } else {
-                    throw new LevelAPIException( $"Prefab {objectSetup.id} conflicts with another prefab {currentOS.id}" );
+                    throw new LevelAPIException( $"Prefab {objectSetup.id} conflicts with another prefab {existedSetup.id}" );
                 }
             } else {
                 _prefabs.Add( objectSetup.id, objectSetup );

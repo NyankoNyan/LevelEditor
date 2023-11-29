@@ -21,16 +21,22 @@ namespace Level.IO
 
         public void LoadFullContent(LevelAPI levelAPI)
         {
+            //TODO Level/Server/Game settings 
+            //TODO Load Items
+
+            //Load block prototypes (settings)
             var blPrSerials = LoadData<ListWrapper<BlockProtoSerializable>>( LevelFileConsts.FILE_BLOCK_PROTO );
             foreach (var blPrSerial in blPrSerials.list) {
                 blPrSerial.Load( levelAPI.BlockProtoCollection );
             }
 
+            //Load grids settings
             var grSetSerials = LoadData<ListWrapper<GridSettingsSerializable>>( LevelFileConsts.FILE_GRID_SETTINGS );
             foreach (var grSetSerial in grSetSerials.list) {
                 grSetSerial.Load( levelAPI.GridSettingsCollection );
             }
-
+            
+            //Load grid states (blocks, props, items, actors, etc.)
             var grStateSerials = LoadData<ListWrapper<GridStateSerializable>>( LevelFileConsts.FILE_GRID_STATE );
             foreach (var grStateSerial in grStateSerials.list) {
                 grStateSerial.Load( levelAPI.GridStatesCollection, levelAPI.GridSettingsCollection );
