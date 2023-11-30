@@ -1,11 +1,12 @@
 using System;
+
 using UnityEngine;
 
 namespace Level.API
 {
     public class LevelAPIException : Exception
     {
-        public LevelAPIException(string msg) : base( msg )
+        public LevelAPIException(string msg) : base(msg)
         {
         }
     }
@@ -31,6 +32,8 @@ namespace Level.API
 
         private ChunkStorageFabric _chunkStorageFabric;
 
+        private UserManager _userManager;
+
         public LevelAPI(ChunkStorageFabric chunkStorageFabric = null)
         {
             if (chunkStorageFabric != null) {
@@ -41,7 +44,8 @@ namespace Level.API
 
             _blockProtoCollection = new BlockProtoCollection();
             _gridSettingsCollection = new GridSettingsCollection();
-            _gridStatesCollection = new GridStatesCollection( this );
+            _gridStatesCollection = new GridStatesCollection(this);
+            _userManager = new();
         }
 
         public void Destroy()
@@ -56,17 +60,18 @@ namespace Level.API
         public GridSettingsCollection GridSettingsCollection => _gridSettingsCollection;
         public BlockProtoCollection BlockProtoCollection => _blockProtoCollection;
         public GridStatesCollection GridStatesCollection => _gridStatesCollection;
+        public UserManager UserManager => _userManager;
 
         internal ChunkStorageFabric ChunkStorageFabric => _chunkStorageFabric;
 
         public void TODORefactorSaveLevel(Level.IO.ILevelSave levelSaver)
         {
-            levelSaver.SaveFullContent( this );
+            levelSaver.SaveFullContent(this);
         }
 
         public void TODORefactorLoadLevel(Level.IO.ILevelLoader levelLoader)
         {
-            levelLoader.LoadFullContent( this );
+            levelLoader.LoadFullContent(this);
         }
 
         #endregion Public API
@@ -77,72 +82,8 @@ namespace Level.API
         public static void Clear(Transform target)
         {
             while (target.childCount > 0) {
-                GameObject.DestroyImmediate( target.GetChild( 0 ).gameObject );
+                GameObject.DestroyImmediate(target.GetChild(0).gameObject);
             }
         }
     }
-
-    //public interface IObjectViewReceiver
-    //{
-    //    Action removed { get; set; }
-    //    Action<bool> visibilityChanged { get; set; }
-    //    bool Visible { get; }
-
-    //    void Remove();
-    //}
-
-    ///// <summary>
-    ///// Прослойка для доступа к единственному блоку.
-    ///// Объект блока как таковой в модели не существует.
-    ///// </summary>
-    //public class BlockViewAPI : IObjectViewReceiver
-    //{
-    //    private BlockLayer<BlockData> _blockLayer;
-    //    private int _flatCoord;
-
-    //    public BlockViewAPI(BlockLayer<BlockData> blockLayer, Vector3Int blockCoord, GridSettings gridSettings)
-    //    {
-    //        _blockLayer = blockLayer ?? throw new ArgumentNullException( nameof( blockLayer ) );
-    //        _flatCoord = GridState.BlockCoordToFlat( blockCoord, gridSettings.ChunkSize );
-
-    //        Action<DataLayerEventArgs> changed = (args) => {
-    //            if (args is BlockLayerLoadedEventArgs loadArgs) {
-    //                if (loadArgs.blockCoord == blockCoord) {
-    //                    BlockData blockData = blockLayer.GetData( loadArgs.blockCoord );
-    //                    if (blockData.blockId == 0) {
-    //                        removed?.Invoke();
-    //                    }
-    //                }
-    //            }
-    //        };
-    //        blockLayer.changed += changed;
-
-    //        Action<DataLayerSettings> layerRemoved = null;
-    //        layerRemoved = (layerSettings) => {
-    //            if (layerSettings.tag == _blockLayer.Tag) {
-    //                blockLayer.changed -= changed;
-    //                gridSettings.layerRemoved -= layerRemoved;
-
-    //                removed?.Invoke();
-    //            }
-    //        };
-    //        gridSettings.layerRemoved += layerRemoved;
-    //    }
-
-    //    public Action removed { get; set; }
-
-    //    public Action<bool> visibilityChanged
-    //    {
-    //        get => throw new NotImplementedException();
-    //        set => throw new NotImplementedException();
-    //    }
-
-    //    public bool Visible => throw new NotImplementedException();
-
-    //    public void Remove()
-    //    {
-    //        //BlockData blockData = default;
-    //        //_blockLayer.SetItem( _flatCoord, blockData );
-    //    }
-    //}
 }

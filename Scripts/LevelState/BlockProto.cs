@@ -93,6 +93,12 @@ namespace Level
         public bool lockXZ;
     }
 
+    public struct BlockProtoInfo
+    {
+        public uint id;
+        public BlockProtoSettings content;
+    }
+
     public struct BlockProtoCreateParams
     {
         public BlockProtoSettings blockProtoSettings;

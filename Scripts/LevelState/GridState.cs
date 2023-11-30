@@ -10,6 +10,12 @@ using UnityEngine.Assertions;
 
 namespace Level
 {
+    public struct GridStateInfo
+    {
+        public uint id;
+        public uint settingsId;
+    }
+
     /// <summary>
     /// Хранит текущее состояние пространственной сетки и её содержимое.
     /// Содержимое хранится в виде независимых слоёв, каждый из которых представляет свой тип данных.

@@ -17,6 +17,11 @@ namespace Level
         public List<DataLayerSettings> layers;
     }
 
+    public struct GridSettingsInfo{
+        public uint id;
+        public GridSettingsCreateParams content;
+    }
+
     public enum LayerType
     {
         BlockLayer,
