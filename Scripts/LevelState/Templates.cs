@@ -44,9 +44,7 @@ namespace Level
         public void Remove(TValue value)
         {
             _values.Remove( value.Key );
-            if (onRemove != null) {
-                onRemove( value );
-            }
+            onRemove?.Invoke(value);
         }
 
         public Dictionary<TKey, TValue>.ValueCollection Values => _values.Values;
@@ -65,9 +63,7 @@ namespace Level
             T value = new();
             _counter++;
             value.Init( createParams, _counter );
-            if (onCreate != null) {
-                onCreate( value );
-            }
+            onCreate?.Invoke(value);
             return value;
         }
 
@@ -75,9 +71,7 @@ namespace Level
         {
             T value = new();
             value.Init( createParams, counter );
-            if (onCreate != null) {
-                onCreate( value );
-            }
+            onCreate.Invoke(value);
             _counter = Math.Max( _counter, counter );
             return value;
         }

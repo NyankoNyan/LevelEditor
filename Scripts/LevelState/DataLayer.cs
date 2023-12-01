@@ -137,7 +137,7 @@ namespace Level
         public Action<Vector3Int> chunkAdded;
 
         private ChunkStorage _chunkStorage;
-        private Dictionary<Vector3Int, DataLayerContent<TData>> _loadedChunks;
+        private Dictionary<Vector3Int, DataLayerContent<TData>> _loadedChunks = new();
 
         public SimpleChunkLayer(DataLayerSettings settings, ChunkStorage chunkStorage) : base(settings)
         {

@@ -46,7 +46,7 @@ namespace Level.Samples
             PrepareFileStorage();
             CreateModelEnvironment();
             CreateViewEnvironment();
-            CreateAdditionalModelPart();
+            //CreateAdditionalModelPart();
         }
 
         /// <summary>

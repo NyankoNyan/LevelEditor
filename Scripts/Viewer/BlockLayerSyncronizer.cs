@@ -38,6 +38,10 @@ namespace LevelView
             _layerView.parent = _gridTransform;
             _layerView.localPosition = Vector3.zero;
             _layerView.localRotation = Quaternion.identity;
+
+            foreach(var chunkCoord in _viewDataLayer.LoadedChunks) {
+
+            }
         }
 
         protected override void OnDestroy()
