@@ -30,7 +30,7 @@ namespace LevelView
 
         protected override void OnInit()
         {
-            _viewDataLayer = (BlockLayer<ClientViewData>)_gridState.AddViewLayer(_chunkLayer.Tag + "_VIEW", _chunkLayer);
+            _viewDataLayer = (BigBlockLayer<ClientViewData>)_gridState.AddViewLayer(_chunkLayer.Tag + "_VIEW", _chunkLayer);
             _chunkLayer.chunkAdded += OnChunkAdded;
             _chunkLayer.chunkRemoved += OnChunkRemoved;
             _chunkLayer.changed += OnLayerChanged;
@@ -40,7 +40,7 @@ namespace LevelView
             _layerView.localRotation = Quaternion.identity;
 
             foreach(var chunkCoord in _viewDataLayer.LoadedChunks) {
-
+                SetupChunkView(chunkCoord);
             }
         }
 

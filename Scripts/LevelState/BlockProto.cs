@@ -6,9 +6,6 @@ namespace Level
     public class BlockProto : IHasKey<uint>, IInitializable<BlockProtoCreateParams>, IDestroy
     {
         public Action changed;
-        public Action<string, string> nameChanged;
-        public Action<string, string> tagChanged;
-        public Action<string, string> formFactorChanged;
 
         private uint _id;
         private BlockProtoSettings _settings;
@@ -22,7 +19,6 @@ namespace Level
                 if (value != _settings.name) {
                     string oldValue = _settings.name;
                     _settings.name = value;
-                    nameChanged?.Invoke( oldValue, value );
                     changed?.Invoke();
                 }
             }
@@ -35,7 +31,6 @@ namespace Level
                 if (value != _settings.layerTag) {
                     string oldValue = _settings.layerTag;
                     _settings.layerTag = value;
-                    tagChanged?.Invoke( oldValue, value );
                     changed?.Invoke();
                 }
             }
@@ -48,7 +43,6 @@ namespace Level
                 if (value != _settings.formFactor) {
                     string oldValue = _settings.formFactor;
                     _settings.formFactor = value;
-                    formFactorChanged?.Invoke( oldValue, value );
                     changed?.Invoke();
                 }
             }

@@ -10,7 +10,7 @@ namespace LevelView
         protected LevelAPI _level;
         protected GridState _gridState;
         protected ChunkLayer<TData, TGlobalDataKey> _chunkLayer;
-        protected BlockLayer<ClientViewData> _viewDataLayer;
+        protected BigBlockLayer<ClientViewData> _viewDataLayer;
         protected IObjectViewFabric _objViewFabric;
         protected Transform _gridTransform;
 

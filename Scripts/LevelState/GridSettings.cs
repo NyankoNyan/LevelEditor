@@ -24,8 +24,9 @@ namespace Level
 
     public enum LayerType
     {
-        BlockLayer,
-        PropsLayer,
+        BlockLayer = 0,
+        BigBlockLayer = 1,
+        PropsLayer = 2,
         ItemLayer,
         GlobalItemLayer
     }

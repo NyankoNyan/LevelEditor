@@ -18,7 +18,8 @@ namespace LevelView
         private LevelAPI _levelAPI;
         private IObjectViewFabric _objViewFabric;
 
-        private List<BlockLayerSyncronizer> blockSyncronizers = new();
+        private Dictionary<DataLayer, BlockLayerSyncronizer> _blockSyncronizers = new();
+
 
         public LevelViewBuilder(ConstructFabric constructFabric)
         {
@@ -48,7 +49,6 @@ namespace LevelView
                 _levelAPI.GridStatesCollection.added,
                 (gridState) => SetupGridState(gridState, root)
             );
-            //TODO onRemoved
         }
 
 
@@ -62,7 +62,8 @@ namespace LevelView
 
         private void RemoveBlockProto(BlockProto proto)
         {
-            // Удаление описания блока не имеет смысла, но мы можем попробовать удалить пул объектов 
+            // Удаление описания блока не имеет смысла для вьюхи, 
+            // но мы можем попробовать удалить пул объектов 
             _objViewFabric.Unuse(proto.Name);
         }
 
@@ -83,7 +84,8 @@ namespace LevelView
             }
 
             Action<GridState, string> onLayerRemoved = (gridState, layerTag) => {
-                //TODO something
+                var dataLayer = gridState.GetLayer(layerTag);
+                RemoveDataLayer(dataLayer, gridView.transform);
             };
             gridState.layerRemoved += onLayerRemoved;
 
@@ -99,10 +101,13 @@ namespace LevelView
 
         private void RemoveGridState(GridState gridState, Transform gridView)
         {
-            //TODO do something
+            foreach (var dataLayer in gridState.DataLayers) {
+                RemoveDataLayer(dataLayer, gridView.transform);
+            }
+            GameObject.Destroy(gridView.gameObject);
         }
 
-        private void SetupDataLayer(DataLayer dataLayer, Transform parent, GridState gridState)
+        private void SetupDataLayer(DataLayer dataLayer, Transform gridView, GridState gridState)
         {
             var layerSettings = gridState.GridSettings.Settings.layers.Single(x => x.tag == dataLayer.Tag);
             switch (dataLayer.LayerType) {
@@ -112,8 +117,9 @@ namespace LevelView
                         gridState,
                         (ChunkLayer<BlockData, Vector3Int>)dataLayer,
                         _objViewFabric,
-                        parent);
+                        gridView);
                     layerSyncronizer.Init();
+                    _blockSyncronizers.Add(dataLayer, layerSyncronizer);
                     //TODO add remove layer handler
                     break;
 
@@ -123,8 +129,18 @@ namespace LevelView
             }
         }
 
-        private void RemoveDataLayer(){
-
+        private void RemoveDataLayer(DataLayer dataLayer, Transform gridView)
+        {
+            switch (dataLayer.LayerType) {
+                case LayerType.BlockLayer:
+                    var layerSyncronizer = _blockSyncronizers[dataLayer];
+                    layerSyncronizer.Destroy();
+                    _blockSyncronizers.Remove(dataLayer);
+                    break;
+                default:
+                    Debug.LogError($"Layer {dataLayer.LayerType} not supported");
+                    break;
+            }
         }
     }
 }

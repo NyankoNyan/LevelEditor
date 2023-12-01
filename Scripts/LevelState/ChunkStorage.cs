@@ -1,9 +1,11 @@
 ﻿using Level.IO;
+
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
+
 using UnityEngine;
 
 namespace Level
@@ -28,20 +30,43 @@ namespace Level
     public class MockChunkStorageFabric : ChunkStorageFabric
     {
         private SimpleBlockChunkStorage<BlockData> _blockStorage;
+        private DynamicChunkStorage<BigBlockData> _bigBlockStorage;
 
         public override ChunkStorage GetChunkStorage(DataLayerSettings dataLayerSettings, GridState gridState)
         {
             switch (dataLayerSettings.layerType) {
                 case LayerType.BlockLayer:
                     if (_blockStorage == null) {
-                        _blockStorage = new SimpleBlockChunkStorage<BlockData>( dataLayerSettings.chunkSize );
+                        _blockStorage = new SimpleBlockChunkStorage<BlockData>(dataLayerSettings.chunkSize);
                     }
                     return _blockStorage;
-
+                case LayerType.BigBlockLayer:
+                    if (_bigBlockStorage == null) {
+                        _bigBlockStorage = new DynamicChunkStorage<BigBlockData>();
+                    }
+                    return _bigBlockStorage;
                 default:
                     throw new Exception();
             }
         }
+    }
+
+    public class DynamicChunkStorage<TData> : ChunkStorage
+    {
+        public override Vector3Int[] GetExistedChunks()
+        {
+            return new Vector3Int[0];
+        }
+
+        public override object LoadChunk(Vector3Int coord)
+        {
+            return new DataLayerDynamicContent<TData>();
+        }
+
+        public override void SaveChunk(Vector3Int coord, object currentData)
+        {
+        }
+
     }
 
     public class SimpleBlockChunkStorage<TData> : ChunkStorage
@@ -61,7 +86,7 @@ namespace Level
         public override object LoadChunk(Vector3Int coord)
         {
             int flatSize = _size.x * _size.y * _size.z;
-            DataLayerStaticContent<TData> content = new( flatSize );
+            DataLayerStaticContent<TData> content = new(flatSize);
             return content;
         }
 
@@ -80,12 +105,16 @@ namespace Level
         }
 
         public override ChunkStorage GetChunkStorage(DataLayerSettings dataLayerSettings, GridState gridState)
-        {          
+        {
+            string gridFolder = _folder + "\\" + gridState.Key;
             if (dataLayerSettings.layerType == LayerType.BlockLayer) {
-                string gridFolder = _folder + "\\" + gridState.Key;
                 string folder = gridFolder + "\\" + LevelFileConsts.LAYER_BLOCKS + '_' + dataLayerSettings.tag;
                 int flatSize = gridState.GridSettings.ChunkSize.x * gridState.GridSettings.ChunkSize.y * gridState.GridSettings.ChunkSize.z;
-                var blockStorage = new FileBlockChunkStorage<BlockData>( folder, flatSize );
+                var blockStorage = new FileBlockChunkStorage<BlockData>(folder, flatSize);
+                return blockStorage;
+            } else if (dataLayerSettings.layerType == LayerType.BigBlockLayer) {
+                string folder = gridFolder + "\\" + LevelFileConsts.LAYER_BIG_BLOCKS + '_' + dataLayerSettings.tag;
+                var blockStorage = new FileDynamicChunkStorage<BigBlockData>(folder);
                 return blockStorage;
             } else {
                 throw new Exception();
@@ -112,11 +141,11 @@ namespace Level
 
         public override object LoadChunk(Vector3Int coord)
         {
-            DataLayerStaticContent<TData> content = new( _chunkDataSize );
-            if (_fileMap.TryGetValue( coord, out string filename )) {
+            DataLayerStaticContent<TData> content = new(_chunkDataSize);
+            if (_fileMap.TryGetValue(coord, out string filename)) {
                 if (content is DataLayerStaticContent<BlockData> blockContent) {
-                    var serializable = JsonDataIO.LoadData<BlockChunkContertSerializable>( _directory, filename );
-                    serializable.Load( blockContent );
+                    var serializable = JsonDataIO.LoadData<BlockChunkConvertSerializable>(_directory, filename);
+                    serializable.Load(blockContent);
                 }
             }
             return content;
@@ -125,27 +154,65 @@ namespace Level
         public override void SaveChunk(Vector3Int coord, object currentData)
         {
             var content = currentData as DataLayerStaticContent<BlockData>;
-            var serializable = (BlockChunkContertSerializable)content;
+            var serializable = (BlockChunkConvertSerializable)content;
             string filename = $"{coord.x}_{coord.y}_{coord.z}.json";
-            JsonDataIO.SaveData( serializable, _directory, filename, false );
+            JsonDataIO.SaveData(serializable, _directory, filename, false);
         }
 
         private void CollectFilesNames()
         {
-            if (Directory.Exists( _directory )) {
-                string[] files = Directory.GetFiles( _directory );
-                var re = new Regex( @".*\\?((\d+)_(\d+)_(\d+).json)$" );
+            //TODO wtf? Where is usege?
+            if (Directory.Exists(_directory)) {
+                string[] files = Directory.GetFiles(_directory);
+                var re = new Regex(@".*\\?((\d+)_(\d+)_(\d+).json)$");
                 foreach (string filename in files) {
-                    var match = re.Match( filename );
+                    var match = re.Match(filename);
                     if (match.Success) {
                         Vector3Int blockCoord = new(
-                            int.Parse( match.Groups[2].Value ),
-                            int.Parse( match.Groups[3].Value ),
-                            int.Parse( match.Groups[4].Value ) );
-                        _fileMap.Add( blockCoord, match.Groups[1].Value );
+                            int.Parse(match.Groups[2].Value),
+                            int.Parse(match.Groups[3].Value),
+                            int.Parse(match.Groups[4].Value));
+                        _fileMap.Add(blockCoord, match.Groups[1].Value);
                     }
                 }
             }
         }
+    }
+
+    public class FileDynamicChunkStorage<TData> : ChunkStorage
+    {
+        private string _directory;
+        private Dictionary<Vector3Int, string> _fileMap = new();
+
+        public FileDynamicChunkStorage(string directory)
+        {
+            _directory = directory;
+        }
+
+        public override Vector3Int[] GetExistedChunks()
+        {
+            return _fileMap.Keys.ToArray();
+        }
+
+        public override object LoadChunk(Vector3Int coord)
+        {
+            DataLayerDynamicContent<TData> content = new();
+            if (_fileMap.TryGetValue(coord, out string filename)) {
+                if (content is DataLayerDynamicContent<BigBlockData> blockContent) {
+                    var serializable = JsonDataIO.LoadData<BigBlockChunkContentSerializable>(_directory, filename);
+                    serializable.Load(blockContent);
+                }
+            }
+            return content;
+        }
+
+        public override void SaveChunk(Vector3Int coord, object currentData)
+        {
+            var content = currentData as DataLayerDynamicContent<BigBlockData>;
+            var serializable = (BigBlockChunkContentSerializable)content;
+            string filename = $"{coord.x}_{coord.y}_{coord.z}.json";
+            JsonDataIO.SaveData(serializable, _directory, filename, false);
+        }
+
     }
 }

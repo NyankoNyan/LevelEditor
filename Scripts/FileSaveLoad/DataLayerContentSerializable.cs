@@ -4,14 +4,14 @@ using System.Linq;
 namespace Level.IO
 {
     [Serializable]
-    public class BlockChunkContertSerializable
+    public class BlockChunkConvertSerializable
     {
         public ushort[] blockDataIds;
         public byte[] blockDataRotations;
 
-        public static explicit operator BlockChunkContertSerializable(DataLayerStaticContent<BlockData> content)
+        public static explicit operator BlockChunkConvertSerializable(DataLayerStaticContent<BlockData> content)
         {
-            BlockChunkContertSerializable result = new();
+            BlockChunkConvertSerializable result = new();
             BlockData[] data = content.ToArray();
             result.blockDataIds = new ushort[data.Length];
             result.blockDataRotations = new byte[data.Length];
@@ -25,7 +25,7 @@ namespace Level.IO
         public void Load(DataLayerStaticContent<BlockData> content)
         {
             for (int i = 0; i < blockDataIds.Length; i++) {
-                content[i] = new BlockData( blockDataIds[i], blockDataRotations[i] );
+                content[i] = new BlockData(blockDataIds[i], blockDataRotations[i]);
             }
         }
     }

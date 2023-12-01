@@ -17,8 +17,16 @@ namespace Level.Samples
     /// </summary>
     public class TestLevelEditor : MonoBehaviour
     {
-        [SerializeField] private string _levelFolder = @"Level\test_level";
-        [SerializeField] private GameObject _floorBlockPrefab;
+        [SerializeField]
+        private string _levelFolder = @"Level\test_level";
+        [SerializeField]
+        private GameObject _floorBlockPrefab;
+
+        [SerializeField]
+        private bool _testViewCreationFromModel = true;
+        [SerializeField]
+        private bool _testReactiveViewCreation = true;
+
 
         private LevelAPI _level;
 
@@ -44,9 +52,13 @@ namespace Level.Samples
         private void StartTest()
         {
             PrepareFileStorage();
-            CreateModelEnvironment();
+            if (_testViewCreationFromModel) {
+                CreateModelEnvironment();
+            }
             CreateViewEnvironment();
-            //CreateAdditionalModelPart();
+            if (_testReactiveViewCreation) {
+                CreateAdditionalModelPart();
+            }
         }
 
         /// <summary>
@@ -87,7 +99,8 @@ namespace Level.Samples
             }
         }
 
-        void CreateAdditionalModelPart(){
+        void CreateAdditionalModelPart()
+        {
             // Добавляем описание блоков
             var blockProto = _level.BlockProtoCollection.Add(new BlockProtoSettings() {
                 name = "test_block_2",

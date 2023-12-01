@@ -19,10 +19,9 @@ namespace Level
 
         IEnumerator IEnumerable.GetEnumerator() => GetEnumerator1();
 
-        public T this[int id]
-        {
-            get => GetData( id );
-            set => SetData( id, value );
+        public T this[int id] {
+            get => GetData(id);
+            set => SetData(id, value);
         }
     }
 
@@ -59,12 +58,14 @@ namespace Level
 
         protected override void SetData(int id, T value)
         {
-            _data[id] = value;
+            if (!_data.TryAdd(id, value)) {
+                _data[id] = value;
+            }
         }
 
         public void RemoveData(int id)
         {
-            _data.Remove( id );
+            _data.Remove(id);
         }
 
         public override IEnumerator<T> GetEnumerator() => _data.Values.GetEnumerator();

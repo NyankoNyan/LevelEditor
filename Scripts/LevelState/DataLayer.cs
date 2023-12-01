@@ -190,7 +190,6 @@ namespace Level
         }
 
         public abstract TData GetData(TGlobalDataKey key);
-
         public abstract void SetData(TGlobalDataKey key, TData data);
     }
 }
