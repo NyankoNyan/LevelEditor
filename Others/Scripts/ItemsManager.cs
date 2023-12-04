@@ -1,8 +1,8 @@
+using LevelView;
+
 using Unity.Netcode;
 
 using UnityEngine;
-using Level;
-using LevelView;
 
 namespace Items
 {
@@ -12,10 +12,10 @@ namespace Items
     public class ItemsManager : MonoBehaviour
     {
         [SerializeField]
-        bool _useNetwork;
+        private bool _useNetwork;
 
-        ItemsManagerNetwork _network;
-        LevelStorage _levelStorage;
+        private ItemsManagerNetwork _network;
+        private LevelStorage _levelStorage;
 
         private void Awake()
         {
@@ -27,7 +27,7 @@ namespace Items
             _levelStorage = LevelStorage.Instance;
         }
 
-        #region API 
+        #region API
 
         public GameObject CreateItem(string name)
         {
@@ -35,9 +35,8 @@ namespace Items
             return go;
         }
 
-        public GameObject RemoveItem(GameObject item)
+        public void RemoveItem(GameObject item)
         {
-
         }
 
         public void AttachItem(GameObject item, GameObject targetItem)
@@ -65,26 +64,23 @@ namespace Items
             }
         }
 
-        #endregion
+        #endregion API
     }
 
     public class ItemsManagerNetwork : NetworkBehaviour
     {
         public void DropItemRequest(ulong netId)
         {
-
         }
 
         [ServerRpc]
         public void DropItemRequestServerRpc()
         {
-
         }
 
         [ClientRpc]
         public void DropItemResponceClientRpc()
         {
-
         }
     }
 }

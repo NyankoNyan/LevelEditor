@@ -39,7 +39,7 @@ namespace LevelView
             _layerView.localPosition = Vector3.zero;
             _layerView.localRotation = Quaternion.identity;
 
-            foreach(var chunkCoord in _viewDataLayer.LoadedChunks) {
+            foreach (var chunkCoord in _viewDataLayer.LoadedChunks) {
                 SetupChunkView(chunkCoord);
             }
         }

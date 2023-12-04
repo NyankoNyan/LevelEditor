@@ -1,5 +1,5 @@
 using System;
-using System.Collections;
+using System.Collections.Generic;
 
 using UnityEngine;
 
@@ -14,15 +14,23 @@ namespace Level
     public interface IDynamicSettings
     {
         public object GetComponentValue(string name);
+
         public void SetComponentValue(string name, object value);
+
         public string CheckComponentValue(string name, object value);
+
         public string GetComponentType(string name);
+
         public IEnumerable<string> GetComponents();
+
         public DynamicFieldRights GetUserRights(string userId, string name);
+
         public Action<string> changed { get; set; }
         public Action locked { get; set; }
         public bool IsLocked { get; }
+
         public bool TryLock();
+
         public void Unlock();
     }
 
@@ -64,10 +72,13 @@ namespace Level
                 case "name":
                 case "form_factor":
                     return "string";
+
                 case "lock_x_z":
                     return "bool";
+
                 case "size":
                     return "Vector3Int";
+
                 default:
                     return null;
             }
@@ -78,14 +89,19 @@ namespace Level
             switch (name) {
                 case "tag":
                     return _blockProto.Tag;
+
                 case "name":
                     return _blockProto.Name;
+
                 case "form_factor":
                     return _blockProto.FormFactor;
+
                 case "lock_x_z":
                     return _blockProto.Settings.lockXZ;
+
                 case "size":
                     return _blockProto.Size;
+
                 default:
                     return null;
             }
@@ -99,27 +115,30 @@ namespace Level
                 case "form_factor":
                 case "size":
                     return new DynamicFieldRights() { read = true, write = true };
+
                 case "lock_x_z":
                     return new DynamicFieldRights() { read = true };
+
                 default:
                     return default;
             }
         }
 
-
         public void SetComponentValue(string name, object value)
         {
-
             switch (name) {
                 case "tag":
                     _blockProto.Tag = (string)value;
                     break;
+
                 case "name":
                     _blockProto.Name = (string)value;
                     break;
+
                 case "form_factor":
                     _blockProto.FormFactor = (string)value;
                     break;
+
                 case "lock_x_z":
                     throw new NotImplementedException();
                 case "size":
@@ -127,7 +146,6 @@ namespace Level
                     break;
             }
         }
-
 
         private void OnChanged()
         {
@@ -161,6 +179,7 @@ namespace Level
                         return $"Empty value of {name}";
                     }
                     break;
+
                 case "size":
                     var size = (Vector3Int)value;
                     if (size.x <= 0 || size.y <= 0 || size.z <= 0) {
@@ -178,7 +197,6 @@ namespace Level
 
         public void Unlock()
         {
-
         }
     }
 }
