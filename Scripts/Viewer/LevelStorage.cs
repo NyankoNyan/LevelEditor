@@ -37,9 +37,9 @@ namespace LevelView
             _levelAPI = _levelAPIFabric.Create(_levelSettings);
         }
 
-        public void LoadAll(ILevelLoader levelLoader)
+        public void LoadAll()
         {
-            levelLoader.LoadFullContent(_levelAPI);
+            _levelAPI.LoadLevel();
         }
     }
 }

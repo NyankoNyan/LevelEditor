@@ -1,6 +1,7 @@
 using Level.API;
-using Level.IO;
+
 using LevelView;
+
 using UnityEngine;
 
 namespace Level.Builder
@@ -20,59 +21,58 @@ namespace Level.Builder
         //[SerializeField] private GridInstanceBuilderCollector builderGridInstanceCollector;
         [SerializeField] private bool jsonPrettyPrint;
 
+        [SerializeField] private LevelSettings levelSettings = new() { levelStoreFolder = "Levels", chunkStorageStrategy = ChunkStorageStrategy.AllTogether };
+
         public void ExportLevel()
         {
             ClearFolder();
 
-            var level = new LevelAPIFabric().Create();
+            var level = new LevelAPIFabric().Create(levelSettings);
 
-            BuildLevelState( level );
+            BuildLevelState(level);
 
-            var levelSaver = new FileLevelSaver( levelFolder, jsonPrettyPrint );
-            level.SaveLevel( levelSaver );
+            level.SaveLevel();
         }
 
         public void ImportLevel()
         {
             // Clear all
             while (transform.childCount > 0) {
-                DestroyImmediate( transform.GetChild( 0 ).gameObject );
+                DestroyImmediate(transform.GetChild(0).gameObject);
             }
 
-            builderGridSettings = new GameObject( "GridSettings", typeof( GridSettingsBuilder ) ).GetComponent<GridSettingsBuilder>();
+            builderGridSettings = new GameObject("GridSettings", typeof(GridSettingsBuilder)).GetComponent<GridSettingsBuilder>();
             builderGridSettings.transform.parent = transform;
 
-            builderBlockProtos = new GameObject( "BlockProtos", typeof( BlockProtosBuilder ) ).GetComponent<BlockProtosBuilder>();
+            builderBlockProtos = new GameObject("BlockProtos", typeof(BlockProtosBuilder)).GetComponent<BlockProtosBuilder>();
             builderBlockProtos.transform.parent = transform;
 
             //builderGridInstanceCollector = new GameObject( "Grids", typeof( GridInstanceBuilderCollector ) ).GetComponent<GridInstanceBuilderCollector>();
             //builderGridInstanceCollector.transform.parent = transform;
 
-            var level = new LevelAPIFabric().Create();
-            var levelLoader = new FileLevelLoader( levelFolder );
+            var level = new LevelAPIFabric().Create(levelSettings);
+            level.LoadLevel();
 
-            levelLoader.LoadFullContent( level );
-
-            builderGridSettings.Import( level.GridSettingsCollection );
-            builderBlockProtos.Import( level.BlockProtoCollection );
+            builderGridSettings.Import(level.GridSettingsCollection);
+            builderBlockProtos.Import(level.BlockProtoCollection);
             //builderGridInstanceCollector.Import( level.GridStatesCollection, level.BlockProtoCollection );
         }
 
         private void ClearFolder()
         {
-            System.IO.DirectoryInfo di = new System.IO.DirectoryInfo( levelFolder );
+            System.IO.DirectoryInfo di = new System.IO.DirectoryInfo(levelFolder);
             foreach (var file in di.GetFiles()) {
                 file.Delete();
             }
             foreach (var dir in di.GetDirectories()) {
-                dir.Delete( true );
+                dir.Delete(true);
             }
         }
 
         private void BuildLevelState(LevelAPI level)
         {
-            builderGridSettings.Export( level.GridSettingsCollection );
-            builderBlockProtos.Export( level.BlockProtoCollection );
+            builderGridSettings.Export(level.GridSettingsCollection);
+            builderBlockProtos.Export(level.BlockProtoCollection);
             //builderGridInstanceCollector.Export( level.GridStatesCollection, level.BlockProtoCollection );
         }
 
@@ -83,11 +83,11 @@ namespace Level.Builder
         public void Check()
         {
             if (!builderGridSettings) {
-                Debug.LogError( $"{this}: Missing {nameof( builderGridSettings )}" );
+                Debug.LogError($"{this}: Missing {nameof(builderGridSettings)}");
             }
 
             if (!builderBlockProtos) {
-                Debug.LogError( $"{this}: Missing {nameof( builderBlockProtos )}" );
+                Debug.LogError($"{this}: Missing {nameof(builderBlockProtos)}");
             }
 
             //if (!builderGridInstanceCollector) {
@@ -98,15 +98,15 @@ namespace Level.Builder
         public void RebuildView()
         {
             var level = new LevelAPIFabric().Create();
-            BuildLevelState( level );
-            levelViewer.SetModel( level );
+            BuildLevelState(level);
+            levelViewer.SetModel(level);
         }
 
         public void RebuildViewRective()
         {
             var level = new LevelAPIFabric().Create();
-            levelViewer.SetModel( level );
-            BuildLevelState( level );
+            levelViewer.SetModel(level);
+            BuildLevelState(level);
         }
     }
 }

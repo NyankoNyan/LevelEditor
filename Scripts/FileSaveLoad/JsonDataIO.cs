@@ -1,3 +1,5 @@
+using System.IO;
+
 using UnityEngine;
 
 namespace Level.IO
@@ -13,9 +15,9 @@ namespace Level.IO
         /// <returns></returns>
         public static T LoadData<T>(string folder, string file)
         {
-            string fullPath = FileFullName( folder, file );
-            string json = File.ReadAllText( fullPath, LevelFileConsts.ENCODING );
-            return JsonUtility.FromJson<T>( json );
+            string fullPath = FileFullName(folder, file);
+            string json = File.ReadAllText(fullPath, LevelFileConsts.ENCODING);
+            return JsonUtility.FromJson<T>(json);
         }
 
         /// <summary>
@@ -27,9 +29,9 @@ namespace Level.IO
         /// <param name="prettyPrint">When true, file will be human readable</param>
         public static void SaveData(object obj, string folder, string file, bool prettyPrint)
         {
-            string json = JsonUtility.ToJson( obj, prettyPrint );
-            string fullPath = FileFullName( folder, file );
-            File.WriteAllText( fullPath, json, LevelFileConsts.ENCODING );
+            string json = JsonUtility.ToJson(obj, prettyPrint);
+            string fullPath = FileFullName(folder, file);
+            File.WriteAllText(fullPath, json, LevelFileConsts.ENCODING);
         }
 
         public static string FileFullName(string folder, string file)

@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -12,7 +13,6 @@ namespace Level.IO
     public interface ILevelSave
     {
         void SaveFullContent(LevelAPI level);
-        void SetChunkStorageFabric(ChunkStorageFabric chunkStorageFabric);
     }
 
     internal static class LevelFileConsts
@@ -45,7 +45,6 @@ namespace Level.IO
         private ChunkStorageFabric _chunkStorageFabric;
         private List<ChunkStorage> _chunkStorages = new();
 
-
         public FileLevelSaver(string filePath, bool prettyPrint, ChunkStorageFabric chunkStorageFabric)
         {
             _filePath = filePath;
@@ -59,7 +58,6 @@ namespace Level.IO
             _chunkStorages.Add(storage);
         }
 
-
         public void SaveFullContent(LevelAPI level)
         {
             CheckDirectory(_filePath);
@@ -67,8 +65,8 @@ namespace Level.IO
             SaveData(new ListWrapper<GridSettingsSerializable>(level.GridSettingsCollection.Select(x => (GridSettingsSerializable)x).ToArray()), LevelFileConsts.FILE_GRID_SETTINGS);
             SaveData(new ListWrapper<GridStateSerializable>(level.GridStatesCollection.Select(x => (GridStateSerializable)x).ToArray()), LevelFileConsts.FILE_GRID_STATE);
 
-            foreach(var chunkStorage in _chunkStorages){
-                foreach(Vector3Int chunkCoord in chunkStorage.GetLoadedChunks()){
+            foreach (var chunkStorage in _chunkStorages) {
+                foreach (Vector3Int chunkCoord in chunkStorage.GetLoadedChunks()) {
                     //TODO Save chunk
                     // chunkStorage.SaveChunk(chunkCoord);
                 }
