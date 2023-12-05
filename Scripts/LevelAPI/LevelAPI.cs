@@ -1,5 +1,7 @@
 using System;
 
+using Level.IO;
+
 using UnityEngine;
 
 namespace Level.API
@@ -13,10 +15,24 @@ namespace Level.API
 
     public class LevelAPIFabric
     {
-        public LevelAPI Create()
+        public LevelAPI Create(LevelSettings gameSettings = default)
         {
-            return new LevelAPI();
+            return new LevelAPI(gameSettings);
         }
+    }
+
+    public enum ChunkStorageStrategy
+    {
+        DontSave = 0,
+        AllTogether = 1,
+        DynamicSaveLoad = 2
+    }
+
+    [Serializable]
+    public struct LevelSettings
+    {
+        public ChunkStorageStrategy chunkStorageStrategy;
+        public string levelStoreFolder;
     }
 
     /// <summary>
@@ -33,13 +49,27 @@ namespace Level.API
         private ChunkStorageFabric _chunkStorageFabric;
 
         private UserManager _userManager;
+        private LevelSettings _settings;
+        private ILevelLoader _levelLoader;
+        private ILevelSave _levelSaver;
 
-        public LevelAPI(ChunkStorageFabric chunkStorageFabric = null)
+
+        internal LevelAPI(LevelSettings settings)
         {
-            if (chunkStorageFabric != null) {
-                _chunkStorageFabric = chunkStorageFabric;
-            } else {
-                _chunkStorageFabric = new MockChunkStorageFabric();
+            _settings = settings;
+
+            switch (_settings.chunkStorageStrategy) {
+                case ChunkStorageStrategy.DontSave:
+                    _chunkStorageFabric = new MockChunkStorageFabric();
+                    break;
+                case ChunkStorageStrategy.AllTogether:
+                case ChunkStorageStrategy.DynamicSaveLoad:
+                    _chunkStorageFabric = new FileChunkStorageFabric(_settings.levelStoreFolder + "\\" + LevelFileConsts.DIR_CHUNKS);
+                    _levelLoader = new FileLevelLoader(_settings.levelStoreFolder, _chunkStorageFabric);
+                    _levelSaver = new FileLevelSaver(_settings.levelStoreFolder, false, _chunkStorageFabric);
+                    break;
+                default:
+                    throw new Exception($"Unknown chunk storage strategy {_settings.chunkStorageStrategy}");
             }
 
             _blockProtoCollection = new BlockProtoCollection();
@@ -61,17 +91,24 @@ namespace Level.API
         public BlockProtoCollection BlockProtoCollection => _blockProtoCollection;
         public GridStatesCollection GridStatesCollection => _gridStatesCollection;
         public UserManager UserManager => _userManager;
+        public LevelSettings LevelSettings => _settings;
 
         internal ChunkStorageFabric ChunkStorageFabric => _chunkStorageFabric;
 
-        public void TODORefactorSaveLevel(Level.IO.ILevelSave levelSaver)
+        public void SaveLevel()
         {
-            levelSaver.SaveFullContent(this);
+            if (_settings.chunkStorageStrategy == ChunkStorageStrategy.DontSave) {
+                throw new LevelAPIException($"Level saving not available");
+            }
+            _levelSaver.SaveFullContent(this);
         }
 
-        public void TODORefactorLoadLevel(Level.IO.ILevelLoader levelLoader)
+        public void LoadLevel()
         {
-            levelLoader.LoadFullContent(this);
+            if (_settings.chunkStorageStrategy == ChunkStorageStrategy.DontSave) {
+                throw new LevelAPIException($"Level loading not available");
+            }
+            _levelLoader.LoadFullContent(this);
         }
 
         #endregion Public API

@@ -29,7 +29,7 @@ namespace Level.Builder
             BuildLevelState( level );
 
             var levelSaver = new FileLevelSaver( levelFolder, jsonPrettyPrint );
-            level.TODORefactorSaveLevel( levelSaver );
+            level.SaveLevel( levelSaver );
         }
 
         public void ImportLevel()

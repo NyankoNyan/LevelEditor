@@ -15,15 +15,19 @@ namespace Level
     /// </summary>
     public abstract class ChunkStorage
     {
+        protected HashSet<Vector3Int> _loadedChunks = new();
         public abstract object LoadChunk(Vector3Int coord);
-
         public abstract void SaveChunk(Vector3Int coord, object currentData);
-
         public abstract Vector3Int[] GetExistedChunks();
+        public Vector3Int[] GetLoadedChunks()
+        {
+            return _loadedChunks.ToArray();
+        }
     }
 
     public abstract class ChunkStorageFabric
     {
+        public Action<ChunkStorage> created;
         public abstract ChunkStorage GetChunkStorage(DataLayerSettings dataLayerSettings, GridState gridState);
     }
 
@@ -66,7 +70,6 @@ namespace Level
         public override void SaveChunk(Vector3Int coord, object currentData)
         {
         }
-
     }
 
     public class SimpleBlockChunkStorage<TData> : ChunkStorage
@@ -111,10 +114,12 @@ namespace Level
                 string folder = gridFolder + "\\" + LevelFileConsts.LAYER_BLOCKS + '_' + dataLayerSettings.tag;
                 int flatSize = gridState.GridSettings.ChunkSize.x * gridState.GridSettings.ChunkSize.y * gridState.GridSettings.ChunkSize.z;
                 var blockStorage = new FileBlockChunkStorage<BlockData>(folder, flatSize);
+                created?.Invoke(blockStorage);
                 return blockStorage;
             } else if (dataLayerSettings.layerType == LayerType.BigBlockLayer) {
                 string folder = gridFolder + "\\" + LevelFileConsts.LAYER_BIG_BLOCKS + '_' + dataLayerSettings.tag;
                 var blockStorage = new FileDynamicChunkStorage<BigBlockData>(folder);
+                created.Invoke(blockStorage);
                 return blockStorage;
             } else {
                 throw new Exception();
@@ -128,6 +133,9 @@ namespace Level
         private int _chunkDataSize;
         private Dictionary<Vector3Int, string> _fileMap = new();
 
+        private bool _existedInitialized;
+
+
         public FileBlockChunkStorage(string directory, int chunkDataSize)
         {
             _directory = directory;
@@ -136,6 +144,10 @@ namespace Level
 
         public override Vector3Int[] GetExistedChunks()
         {
+            if (!_existedInitialized) {
+                CollectFilesNames();
+                _existedInitialized = true;
+            }
             return _fileMap.Keys.ToArray();
         }
 
@@ -146,6 +158,7 @@ namespace Level
                 if (content is DataLayerStaticContent<BlockData> blockContent) {
                     var serializable = JsonDataIO.LoadData<BlockChunkConvertSerializable>(_directory, filename);
                     serializable.Load(blockContent);
+                    _loadedChunks.Add(coord);
                 }
             }
             return content;
@@ -157,11 +170,13 @@ namespace Level
             var serializable = (BlockChunkConvertSerializable)content;
             string filename = $"{coord.x}_{coord.y}_{coord.z}.json";
             JsonDataIO.SaveData(serializable, _directory, filename, false);
+            if (!_fileMap.ContainsKey(coord)) {
+                _fileMap.Add(coord, filename);
+            }
         }
 
         private void CollectFilesNames()
         {
-            //TODO wtf? Where is usege?
             if (Directory.Exists(_directory)) {
                 string[] files = Directory.GetFiles(_directory);
                 var re = new Regex(@".*\\?((\d+)_(\d+)_(\d+).json)$");

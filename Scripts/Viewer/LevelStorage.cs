@@ -1,19 +1,23 @@
 ﻿using Level.API;
 using Level.IO;
+
 using System;
+
 using UnityEngine;
 
 namespace LevelView
 {
     public class LevelStorage : MonoBehaviour
     {
-        public static LevelStorage Instance
-        {
+        [SerializeField]
+        LevelSettings _levelSettings;
+
+        public static LevelStorage Instance {
             get {
                 if (!_instance) {
                     _instance = FindObjectOfType<LevelStorage>();
                     if (!_instance) {
-                        throw new Exception( $"Missing {nameof( LevelStorage )} in scene" );
+                        throw new Exception($"Missing {nameof(LevelStorage)} in scene");
                     }
                 }
                 return _instance;
@@ -30,12 +34,12 @@ namespace LevelView
         private void Awake()
         {
             _levelAPIFabric = new LevelAPIFabric();
-            _levelAPI = _levelAPIFabric.Create();
+            _levelAPI = _levelAPIFabric.Create(_levelSettings);
         }
 
         public void LoadAll(ILevelLoader levelLoader)
         {
-            levelLoader.LoadFullContent( _levelAPI );
+            levelLoader.LoadFullContent(_levelAPI);
         }
     }
 }
