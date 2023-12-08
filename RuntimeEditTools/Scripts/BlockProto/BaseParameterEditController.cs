@@ -1,11 +1,10 @@
 ﻿using UnityEngine.Assertions;
-using UnityEngine.Events;
 
 namespace RuntimeEditTools
 {
     internal abstract class BaseParameterEditController
     {
-        public UnityAction onBack;
+        public Action onBack;
 
         protected ParametersListFacade _facade;
         protected EditConnector _currentEditConnector;

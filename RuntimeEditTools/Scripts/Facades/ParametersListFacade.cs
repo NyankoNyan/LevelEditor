@@ -149,10 +149,10 @@ namespace RuntimeEditTools
         private Dictionary<string, IParamElement> _elements = new();
         private string _focusedElementId;
 
-        internal UnityAction<string, EditConnector> OnParameterFocused { get; set; }
-        internal UnityAction<string> OnParameterUnfocused { get; set; }
+        internal Action<string, EditConnector> OnParameterFocused { get; set; }
+        internal Action<string> OnParameterUnfocused { get; set; }
 
-        public UnityAction OnBack { get; set; }
+        public Action OnBack { get; set; }
 
         public Dictionary<string, IParamElement> Elements => _elements;
 

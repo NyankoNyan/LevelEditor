@@ -8,7 +8,7 @@ using UnityEngine.Assertions;
 namespace Level
 {
     [Serializable]
-    public struct DataLayerSettings
+    public struct DataLayerSettings : IEquatable<DataLayerSettings>
     {
         public LayerType layerType;
         public Vector3Int chunkSize;
@@ -22,6 +22,15 @@ namespace Level
             tag = original.tag;
             hasViewLayer = original.hasViewLayer;
         }
+
+        public bool Equals(DataLayerSettings other)
+        {
+            return layerType == other.layerType
+                && tag == other.tag
+                && chunkSize == other.chunkSize
+                && hasViewLayer == other.hasViewLayer;
+        }
+
     }
 
     public abstract class DataLayerEventArgs
