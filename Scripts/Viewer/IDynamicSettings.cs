@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 using UnityEngine;
 
@@ -324,7 +325,6 @@ namespace Level
                             }
                         }
                     }
-
                 }
             }
         }
@@ -333,8 +333,11 @@ namespace Level
     public abstract class DynamicWrapperBase : IDynamicWrapper
     {
         protected delegate string CheckComponentValueDelegate(object value);
+
         protected delegate object GetComponentDelegate();
+
         protected delegate void SetComponentDelegate(object value);
+
         protected struct FieldInfo
         {
             public string name;
@@ -502,6 +505,5 @@ namespace Level
             }
             return null;
         }
-
     }
 }

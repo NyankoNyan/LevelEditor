@@ -36,7 +36,7 @@ namespace LevelView
             }
 
             // Setup grid settings
-            ReactiveTools.SubscribeCollection(
+            _levelAPI.BlockProtoCollection.added = ReactiveTools.SubscribeCollection(
                 _levelAPI.BlockProtoCollection,
                 _levelAPI.BlockProtoCollection.added,
                 (blockProto) => SetupBlockProto(blockProto)
@@ -44,7 +44,7 @@ namespace LevelView
             _levelAPI.BlockProtoCollection.removed += RemoveBlockProto;
 
             // Setup grid states
-            ReactiveTools.SubscribeCollection(
+            _levelAPI.GridStatesCollection.added = ReactiveTools.SubscribeCollection(
                 _levelAPI.GridStatesCollection,
                 _levelAPI.GridStatesCollection.added,
                 (gridState) => SetupGridState(gridState, root)
@@ -80,7 +80,7 @@ namespace LevelView
             };
             gridState.layerAdded += onLayerAdded;
             foreach (var dataLayer in gridState.DataLayers) {
-                SetupDataLayer(dataLayer, parent, gridState);
+                SetupDataLayer(dataLayer, gridView.transform, gridState);
             }
 
             Action<GridState, string> onLayerRemoved = (gridState, layerTag) => {

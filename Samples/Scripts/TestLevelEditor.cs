@@ -20,15 +20,27 @@ namespace Level.Samples
         [SerializeField]
         private string _levelFolder = @"Level\test_level";
         [SerializeField]
-        private GameObject _floorBlockPrefab;
+        private GameObject _dirtBlockPrefab;
+        [SerializeField]
+        private GameObject _stoneBlockPrefab;
 
         [SerializeField]
         private bool _testViewCreationFromModel = true;
         [SerializeField]
         private bool _testReactiveViewCreation = true;
 
+        [SerializeField]
+        private Vector3Int _dirtFrom = new Vector3Int(-50, 1, -50);
+        [SerializeField]
+        private Vector3Int _dirtTo = new Vector3Int(50, 1, 50);
+        [SerializeField]
+        private Vector3Int _stoneFrom = new Vector3Int(-50, 0, -50);
+        [SerializeField]
+        private Vector3Int _stoneTo = new Vector3Int(50, 0, 50);
+
 
         private LevelAPI _level;
+        private LevelViewBuilder _levelViewBuilder;
 
         private void Start()
         {
@@ -46,7 +58,7 @@ namespace Level.Samples
         /// </summary>
         private void CheckSelf()
         {
-            Assert.IsNotNull(_floorBlockPrefab);
+            Assert.IsNotNull(_dirtBlockPrefab);
         }
 
         private void StartTest()
@@ -92,9 +104,11 @@ namespace Level.Samples
             var grid = _level.GridStatesCollection.Add(gridSettings.Key);
             // Добавляем блоки пола
             BlockData blockFloor = new BlockData((ushort)blockProto.Key, 0);
-            for (int x = -50; x <= 50; x++) {
-                for (int z = -50; z <= 50; z++) {
-                    grid.AddBlock<BlockData, Vector3Int>("blocks", new Vector3Int(x, 0, z), blockFloor);
+            for (int x = _dirtFrom.x; x <= _dirtTo.x; x++) {
+                for (int y = _dirtFrom.y; y <= _dirtTo.y; y++) {
+                    for (int z = _dirtFrom.z; z <= _dirtTo.z; z++) {
+                        grid.AddBlock<BlockData, Vector3Int>("blocks", new Vector3Int(x, y, z), blockFloor);
+                    }
                 }
             }
         }
@@ -126,10 +140,13 @@ namespace Level.Samples
             // Добавляем сетку (инстанцию)
             var grid = _level.GridStatesCollection.Add(gridSettings.Key);
             // Добавляем блоки сверху пола
+            // Добавляем блоки пола
             BlockData blockFloor = new BlockData((ushort)blockProto.Key, 0);
-            for (int x = -50; x <= 50; x++) {
-                for (int z = -50; z <= 50; z++) {
-                    grid.AddBlock<BlockData, Vector3Int>("blocks", new Vector3Int(x, 1, z), blockFloor);
+            for (int x = _stoneFrom.x; x <= _stoneTo.x; x++) {
+                for (int y = _stoneFrom.y; y <= _stoneTo.y; y++) {
+                    for (int z = _stoneFrom.z; z <= _stoneTo.z; z++) {
+                        grid.AddBlock<BlockData, Vector3Int>("blocks", new Vector3Int(x, y, z), blockFloor);
+                    }
                 }
             }
         }
@@ -141,15 +158,20 @@ namespace Level.Samples
                 new ObjectSetup(){
                     id = "test_block_1_default",
                     refId = "test_block_1",
-                    prefab = _floorBlockPrefab
+                    prefab = _dirtBlockPrefab
+                },
+                new ObjectSetup() {
+                    id = "test_block_2_default",
+                    refId = "test_block_2",
+                    prefab = _stoneBlockPrefab
                 }
             };
 
             ConstructFabric constructFabric = new();
             constructFabric.AddPrefabs(objectSetups);
 
-            LevelViewBuilder levelViewBuilder = new(constructFabric);
-            levelViewBuilder.Build(_level, transform, false);
+            _levelViewBuilder = new(constructFabric);
+            _levelViewBuilder.Build(_level, transform, false);
         }
 
         /// <summary>

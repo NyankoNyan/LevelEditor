@@ -148,9 +148,22 @@ namespace Level
         private ChunkStorage _chunkStorage;
         private Dictionary<Vector3Int, DataLayerContent<TData>> _loadedChunks = new();
 
+        private bool _inTransaction;
+        private List<ChunkDataKey> _transactionLog;
+
         public SimpleChunkLayer(DataLayerSettings settings, ChunkStorage chunkStorage) : base(settings)
         {
             _chunkStorage = chunkStorage;
+        }
+
+        public void StartTransaction()
+        {
+
+        }
+
+        public void StopTransaction()
+        {
+
         }
 
         public TData GetData(ChunkDataKey key)

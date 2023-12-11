@@ -363,7 +363,14 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _levelFolder: Level\test_level_1
-  _floorBlockPrefab: {fileID: 2319810484223604727, guid: ec203f8487a4d8147ad58d1d9b38d3ff, type: 3}
+  _dirtBlockPrefab: {fileID: 2319810484223604727, guid: ec203f8487a4d8147ad58d1d9b38d3ff, type: 3}
+  _stoneBlockPrefab: {fileID: 2319810484223604727, guid: 8d0741f88188a4b47b8ae6215cc53b23, type: 3}
+  _testViewCreationFromModel: 0
+  _testReactiveViewCreation: 1
+  _dirtFrom: {x: -50, y: 1, z: -50}
+  _dirtTo: {x: 50, y: 1, z: 50}
+  _stoneFrom: {x: -50, y: 0, z: -50}
+  _stoneTo: {x: 50, y: 0, z: 50}
 --- !u!4 &1572449261
 Transform:
   m_ObjectHideFlags: 0
@@ -408,6 +415,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c3888ef6b57feae449c039f60bfda4e9, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  _levelSettings:
+    chunkStorageStrategy: 0
+    levelStoreFolder: Level\test_level_1
 --- !u!4 &1920668819
 Transform:
   m_ObjectHideFlags: 0

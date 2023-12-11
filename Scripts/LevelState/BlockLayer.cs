@@ -131,11 +131,12 @@ namespace Level
 
         public Vector3Int GetChunkOfGlobalBlock(Vector3Int blockCoord)
         {
-            return new Vector3Int(
-                blockCoord.x / _size.x - ( blockCoord.x < 0 ? 1 : 0 ),
-                blockCoord.y / _size.y - ( blockCoord.y < 0 ? 1 : 0 ),
-                blockCoord.z / _size.z - ( blockCoord.z < 0 ? 1 : 0 )
-                );
+            Vector3Int result = default;
+            for(int i = 0; i < 3; i++) {
+                int signOne = blockCoord[i] < 0 ? 1 : 0;
+                result[i] = (blockCoord[i] + signOne) / _size[i] - signOne;
+            }
+            return result;
         }
 
         public Vector3Int LocalCoordOfGlobalBlock(Vector3Int blockCoord)
@@ -164,11 +165,7 @@ namespace Level
 
         public override void SetData(Vector3Int key, TData data)
         {
-            Vector3Int chunkCoord = new Vector3Int(
-                key.x / _size.x - ( key.x < 0 ? 1 : 0 ),
-                key.y / _size.y - ( key.y < 0 ? 1 : 0 ),
-                key.z / _size.z - ( key.z < 0 ? 1 : 0 )
-                );
+            Vector3Int chunkCoord = GetChunkOfGlobalBlock(key);
             Vector3Int blockCoord = key - Vector3Int.Scale( chunkCoord, _size );
             ushort id = (ushort)GridState.BlockCoordToFlat( blockCoord, _size );
 

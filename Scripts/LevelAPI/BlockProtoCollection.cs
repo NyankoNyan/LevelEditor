@@ -12,25 +12,27 @@ namespace Level.API
     /// </summary>
     public class BlockProtoCollection : IEnumerable<BlockProto>
     {
-        // TODO Протянуть события
         public Action<BlockProto> added;
-
         public Action<BlockProto> removed;
 
-        private BlockProtoRegistry _blockProtoRegistry;
-        private BlockProtoFabric _blockProtoFabric;
+        private readonly BlockProtoRegistry _blockProtoRegistry;
+        private readonly BlockProtoFabric _blockProtoFabric;
 
         public BlockProtoCollection()
         {
             _blockProtoRegistry = new();
             _blockProtoFabric = new();
 
-            _blockProtoFabric.onCreate += gs => _blockProtoRegistry.Add( gs );
+            _blockProtoFabric.onCreate += OnCreateFab;
+            _blockProtoRegistry.onAdd += OnAddReg;
+            _blockProtoRegistry.onRemove += OnRemoveReg;
         }
 
         public void Destroy()
         {
-            //TODO dispose
+            _blockProtoFabric.onCreate -= OnCreateFab;
+            _blockProtoRegistry.onAdd -= OnAddReg;
+            _blockProtoRegistry.onRemove -= OnRemoveReg;
         }
 
         /// <summary>
@@ -112,5 +114,9 @@ namespace Level.API
         private IEnumerator<BlockProto> GetEnumerator1() => this.GetEnumerator();
 
         IEnumerator IEnumerable.GetEnumerator() => GetEnumerator1();
+
+        private void OnCreateFab(BlockProto blockProto) => _blockProtoRegistry.Add(blockProto);
+        private void OnAddReg(BlockProto blockProto) => added?.Invoke(blockProto);
+        private void OnRemoveReg(BlockProto blockProto) => removed?.Invoke(blockProto);
     }
 }

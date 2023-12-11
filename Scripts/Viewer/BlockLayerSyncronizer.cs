@@ -39,7 +39,7 @@ namespace LevelView
             _layerView.localPosition = Vector3.zero;
             _layerView.localRotation = Quaternion.identity;
 
-            foreach (var chunkCoord in _viewDataLayer.LoadedChunks) {
+            foreach (var chunkCoord in _chunkLayer.LoadedChunks) {
                 SetupChunkView(chunkCoord);
             }
         }
@@ -94,7 +94,9 @@ namespace LevelView
 
             for (int i = 0; i < content.Size; i++) {
                 BlockData data = content[i];
-                AddBlock(blockLayer.BlockGlobalCoord(chunkCoord, i), data);
+                if (data.blockId != 0) {
+                    AddBlock(blockLayer.BlockGlobalCoord(chunkCoord, i), data);
+                }
             }
         }
 

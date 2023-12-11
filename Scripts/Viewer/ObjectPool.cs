@@ -25,7 +25,7 @@ namespace LevelView
             _fabric = fabric ?? throw new ArgumentNullException(nameof(fabric));
             _root = root;
 
-            if (!_fabric.HasPrefab(prefabId)) {
+            if (!_fabric.HasRefId(prefabId)) {
                 throw new ArgumentException($"{prefabId} not found");
             }
         }

@@ -1,4 +1,6 @@
-﻿using UnityEngine.Assertions;
+﻿using System;
+
+using UnityEngine.Assertions;
 
 namespace RuntimeEditTools
 {
@@ -14,8 +16,8 @@ namespace RuntimeEditTools
 
         public BaseParameterEditController(ParametersListFacade facade, Keyboard keyboard)
         {
-            Assert.IsNotNull( facade );
-            Assert.IsNotNull( keyboard );
+            Assert.IsNotNull(facade);
+            Assert.IsNotNull(keyboard);
 
             _facade = facade;
             _keyboard = keyboard;
@@ -26,13 +28,13 @@ namespace RuntimeEditTools
 
         public void Init()
         {
-            _facade.Init( _connector );
+            _facade.Init(_connector);
             _facade.OnBack += OnBackReceiver;
         }
 
         public void Show(bool show)
         {
-            _facade.gameObject.SetActive( show );
+            _facade.gameObject.SetActive(show);
         }
 
         public void Destroy()
@@ -64,7 +66,7 @@ namespace RuntimeEditTools
             if (key == Keyboard.BACKSPACE) {
                 string value = (string)_currentEditConnector.Value;
                 if (value.Length > 0) {
-                    value = value.Substring( 0, value.Length - 1 );
+                    value = value.Substring(0, value.Length - 1);
                 }
                 _currentEditConnector.Value = value;
             } else {
