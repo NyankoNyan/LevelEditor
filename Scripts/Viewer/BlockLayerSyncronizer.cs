@@ -64,7 +64,7 @@ namespace LevelView
                 foreach (var blockCoord in changeArgs.removed) {
                     RemoveBlock(blockCoord);
                 }
-                foreach (var blockInfo in changeArgs.added) {
+                foreach (var blockInfo in changeArgs.changed) {
                     AddBlock(blockInfo.globalCoord, blockInfo.blockData);
                 }
             }

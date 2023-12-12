@@ -30,7 +30,6 @@ namespace Level
                 && chunkSize == other.chunkSize
                 && hasViewLayer == other.hasViewLayer;
         }
-
     }
 
     public abstract class DataLayerEventArgs
@@ -44,23 +43,40 @@ namespace Level
         }
     }
 
-    public class BlockLayerChangedEventArgs : DataLayerEventArgs
+    public class ChunkLayerChangedEventArgs<TData> : DataLayerEventArgs
     {
-        public IEnumerable<Info> added;
-        public IEnumerable<Vector3Int> removed;
+        public IEnumerable<Info> changed;
 
-        public BlockLayerChangedEventArgs(
+        public ChunkLayerChangedEventArgs(
             DataLayer dataLayer,
-            IEnumerable<Info> added = null,
-            IEnumerable<Vector3Int> removed = null) : base(dataLayer)
+            IEnumerable<Info> changed = null) : base(dataLayer)
         {
-            this.added = added;
-            this.removed = removed;
+            this.changed = changed;
         }
 
         public struct Info
         {
-            public Vector3Int globalCoord;
+            public ChunkDataKey key;
+            public TData data;
+        }
+    }
+
+    public class BlockLayerChangedEventArgs : DataLayerEventArgs
+    {
+        public IEnumerable<Info> changed;
+
+        public BlockLayerChangedEventArgs(
+            DataLayer dataLayer,
+            IEnumerable<Info> changed = null) : base(dataLayer)
+        {
+            this.changed = changed;
+        }
+
+        public struct Info
+        {
+            //public Vector3Int globalCoord;
+            public ChunkDataKey dataKey;
+
             public BlockData blockData;
         }
     }
@@ -115,10 +131,11 @@ namespace Level
         public Action<TData> added;
         public Action<TData> removed;
         protected Dictionary<uint, TData> _data = new();
+
         public IndexLayer(DataLayerSettings settings) : base(settings)
         {
-
         }
+
         public void Add(uint id, TData value)
         {
             if (!_data.TryAdd(id, value)) {
@@ -149,7 +166,7 @@ namespace Level
         private Dictionary<Vector3Int, DataLayerContent<TData>> _loadedChunks = new();
 
         private bool _inTransaction;
-        private List<ChunkDataKey> _transactionLog;
+        private HashSet<ChunkDataKey> _transactionLog;
 
         public SimpleChunkLayer(DataLayerSettings settings, ChunkStorage chunkStorage) : base(settings)
         {
@@ -158,12 +175,30 @@ namespace Level
 
         public void StartTransaction()
         {
-
+            if (_inTransaction) {
+                throw new Exception();
+            }
+            _inTransaction = true;
+            _transactionLog = new();
         }
 
         public void StopTransaction()
         {
-
+            if (_transactionLog != null) {
+                // TODO remove this strong shit
+                var args = new ChunkLayerChangedEventArgs<TData>(
+                    this,
+                    _transactionLog.Select(x =>
+                        new ChunkLayerChangedEventArgs<TData>.Info() {
+                            key = x,
+                            data = GetData(x)
+                        }
+                    )
+                );
+                changed?.Invoke(args);
+                _transactionLog = null;
+            }
+            _inTransaction = false;
         }
 
         public TData GetData(ChunkDataKey key)
@@ -176,6 +211,22 @@ namespace Level
         {
             var chunkData = GetChunkData(key.chunkCoord);
             chunkData[key.dataId] = data;
+            if (_inTransaction) {
+                _transactionLog.Add(key);
+            } else {
+                // TODO Слишком мощно для одного параметра
+                changed?.Invoke(
+                    new ChunkLayerChangedEventArgs<TData>(
+                        this,
+                        new ChunkLayerChangedEventArgs<TData>.Info[] {
+                            new ChunkLayerChangedEventArgs<TData>.Info() {
+                                key = key,
+                                data = data
+                            }
+                        }
+                    )
+                );
+            }
         }
 
         public void PreloadChunks(Vector3Int[] chunkCoords)
@@ -212,6 +263,7 @@ namespace Level
         }
 
         public abstract TData GetData(TGlobalDataKey key);
+
         public abstract void SetData(TGlobalDataKey key, TData data);
     }
 }
