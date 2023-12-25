@@ -1,4 +1,5 @@
 ﻿using System;
+
 using UnityEngine;
 
 namespace Level
@@ -12,8 +13,7 @@ namespace Level
 
         public uint Key => _id;
 
-        public string Name
-        {
+        public string Name {
             get => _settings.name;
             set {
                 if (value != _settings.name) {
@@ -24,8 +24,7 @@ namespace Level
             }
         }
 
-        public string Tag
-        {
+        public string Tag {
             get => _settings.layerTag;
             set {
                 if (value != _settings.layerTag) {
@@ -36,8 +35,7 @@ namespace Level
             }
         }
 
-        public string FormFactor
-        {
+        public string FormFactor {
             get => _settings.formFactor;
             set {
                 if (value != _settings.formFactor) {
@@ -48,8 +46,7 @@ namespace Level
             }
         }
 
-        public Vector3Int Size
-        {
+        public Vector3Int Size {
             get => _settings.size;
             set {
                 if (value != _settings.size) {
@@ -59,9 +56,20 @@ namespace Level
             }
         }
 
-        public BlockProtoSettings Settings => _settings;
+        public BlockProtoSettings Settings {
+            get => _settings;
+            set {
+                if (!_settings.Equals(value)) {
+                    _settings = value;
+                    changed?.Invoke();
+                }
+            }
+        }
 
         public Action OnDestroyAction { get; set; }
+
+        public BlockProtoInfo Info =>
+            new BlockProtoInfo() { id = _id, content = _settings };
 
         public void Destroy()
         {
@@ -78,13 +86,22 @@ namespace Level
     }
 
     [Serializable]
-    public struct BlockProtoSettings
+    public struct BlockProtoSettings : IEquatable<BlockProtoSettings>
     {
         public string name;
         public string formFactor;
         public string layerTag;
         public Vector3Int size;
         public bool lockXZ;
+
+        public bool Equals(BlockProtoSettings other)
+        {
+            return name == other.name
+                && formFactor == other.formFactor
+                && layerTag == other.layerTag
+                && size == other.size
+                && lockXZ == other.lockXZ;
+        }
     }
 
     public struct BlockProtoInfo
