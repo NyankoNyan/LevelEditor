@@ -1,9 +1,9 @@
-using Level.API;
-
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
+
+using Level.API;
 
 using UnityEngine;
 using UnityEngine.Assertions;
@@ -126,7 +126,7 @@ namespace Level
         /// <param name="chunkKey"></param>
         /// <param name="blockData"></param>
         /// <exception cref="LevelAPIException"></exception>
-        public void AddBlock(string layerTag, ChunkDataKey chunkKey, object blockData)
+        public void SetBlock(string layerTag, ChunkDataKey chunkKey, object blockData)
         {
             var layer = GetLayer(layerTag);
             if (layer == null)
@@ -139,7 +139,7 @@ namespace Level
             }
         }
 
-        public void AddBlock<TData, TGlobalKey>(string layerTag, TGlobalKey key, TData data)
+        public void SetBlock<TData, TGlobalKey>(string layerTag, TGlobalKey key, TData data)
         {
             var layer = GetLayer(layerTag);
             if (layer == null) {

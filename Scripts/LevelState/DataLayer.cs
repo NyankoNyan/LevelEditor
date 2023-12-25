@@ -238,6 +238,8 @@ namespace Level
 
         public Vector3Int[] LoadedChunks => _loadedChunks.Keys.ToArray();
 
+        public Vector3Int[] ExistedChunks => _chunkStorage.GetExistedChunks().Union(_loadedChunks.Keys).Distinct().ToArray();
+
         public DataLayerContent<TData> GetChunkData(Vector3Int coord)
         {
             DataLayerContent<TData> data;

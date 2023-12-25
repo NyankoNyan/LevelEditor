@@ -53,7 +53,6 @@ namespace Level.API
         private ILevelLoader _levelLoader;
         private ILevelSave _levelSaver;
 
-
         internal LevelAPI(LevelSettings settings)
         {
             _settings = settings;
@@ -62,12 +61,14 @@ namespace Level.API
                 case ChunkStorageStrategy.DontSave:
                     _chunkStorageFabric = new MockChunkStorageFabric();
                     break;
+
                 case ChunkStorageStrategy.AllTogether:
                 case ChunkStorageStrategy.DynamicSaveLoad:
-                    _chunkStorageFabric = new FileChunkStorageFabric(_settings.levelStoreFolder + "\\" + LevelFileConsts.DIR_CHUNKS);
+                    _chunkStorageFabric = new FileChunkStorageFabric(_settings.levelStoreFolder + "\\" + LevelFileNames.DIR_CHUNKS);
                     _levelLoader = new FileLevelLoader(_settings.levelStoreFolder, _chunkStorageFabric);
-                    _levelSaver = new FileLevelSaver(_settings.levelStoreFolder, false, _chunkStorageFabric);
+                    _levelSaver = new FileLevelSaver(_settings.levelStoreFolder, true, _chunkStorageFabric);
                     break;
+
                 default:
                     throw new Exception($"Unknown chunk storage strategy {_settings.chunkStorageStrategy}");
             }
@@ -95,20 +96,20 @@ namespace Level.API
 
         internal ChunkStorageFabric ChunkStorageFabric => _chunkStorageFabric;
 
-        public void SaveLevel()
+        public void SaveLevel(string levelPath = null)
         {
             if (_settings.chunkStorageStrategy == ChunkStorageStrategy.DontSave) {
                 throw new LevelAPIException($"Level saving not available");
             }
-            _levelSaver.SaveFullContent(this);
+            _levelSaver.SaveFullContent(this, levelPath);
         }
 
-        public void LoadLevel()
+        public void LoadLevel(string levelPath = null)
         {
             if (_settings.chunkStorageStrategy == ChunkStorageStrategy.DontSave) {
                 throw new LevelAPIException($"Level loading not available");
             }
-            _levelLoader.LoadFullContent(this);
+            _levelLoader.LoadFullContent(this, levelPath);
         }
 
         #endregion Public API

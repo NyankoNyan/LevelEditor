@@ -41,6 +41,7 @@ namespace LevelView
         public GameObject Create(string prefabId)
         {
             GameObject obj = _constructMetaStorage.Pop(prefabId);
+            _objectReg.Add(obj, prefabId);
             return obj;
         }
 
@@ -55,9 +56,9 @@ namespace LevelView
 
         public void Remove(GameObject gameObject)
         {
-            if (_objectReg.TryGetValue(gameObject, out string setupId)) {
+            if (_objectReg.TryGetValue(gameObject, out string prefabId)) {
                 _objectReg.Remove(gameObject);
-                _constructMetaStorage.Push(setupId, gameObject);
+                _constructMetaStorage.Push(prefabId, gameObject);
             } else {
                 throw new LevelAPIException($"Not found registration for object {gameObject} ");
             }

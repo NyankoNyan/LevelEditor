@@ -1,10 +1,10 @@
-﻿using Level.IO;
-
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
+
+using Level.IO;
 
 using UnityEngine;
 
@@ -16,9 +16,13 @@ namespace Level
     public abstract class ChunkStorage
     {
         protected HashSet<Vector3Int> _loadedChunks = new();
+
         public abstract object LoadChunk(Vector3Int coord);
+
         public abstract void SaveChunk(Vector3Int coord, object currentData);
+
         public abstract Vector3Int[] GetExistedChunks();
+
         public Vector3Int[] GetLoadedChunks()
         {
             return _loadedChunks.ToArray();
@@ -28,6 +32,7 @@ namespace Level
     public abstract class ChunkStorageFabric
     {
         public Action<ChunkStorage> created;
+
         public abstract ChunkStorage GetChunkStorage(DataLayerSettings dataLayerSettings, GridState gridState);
     }
 
@@ -44,11 +49,13 @@ namespace Level
                         _blockStorage = new SimpleBlockChunkStorage<BlockData>(dataLayerSettings.chunkSize);
                     }
                     return _blockStorage;
+
                 case LayerType.BigBlockLayer:
                     if (_bigBlockStorage == null) {
                         _bigBlockStorage = new DynamicChunkStorage<BigBlockData>();
                     }
                     return _bigBlockStorage;
+
                 default:
                     throw new Exception();
             }
@@ -109,15 +116,14 @@ namespace Level
 
         public override ChunkStorage GetChunkStorage(DataLayerSettings dataLayerSettings, GridState gridState)
         {
-            string gridFolder = _folder + "\\" + gridState.Key;
+            string folder = _folder + "\\" + LevelFileNames.GetDataLayerSubFolder(dataLayerSettings, gridState);
+
             if (dataLayerSettings.layerType == LayerType.BlockLayer) {
-                string folder = gridFolder + "\\" + LevelFileConsts.LAYER_BLOCKS + '_' + dataLayerSettings.tag;
                 int flatSize = gridState.GridSettings.ChunkSize.x * gridState.GridSettings.ChunkSize.y * gridState.GridSettings.ChunkSize.z;
                 var blockStorage = new FileBlockChunkStorage<BlockData>(folder, flatSize);
                 created?.Invoke(blockStorage);
                 return blockStorage;
             } else if (dataLayerSettings.layerType == LayerType.BigBlockLayer) {
-                string folder = gridFolder + "\\" + LevelFileConsts.LAYER_BIG_BLOCKS + '_' + dataLayerSettings.tag;
                 var blockStorage = new FileDynamicChunkStorage<BigBlockData>(folder);
                 created.Invoke(blockStorage);
                 return blockStorage;
@@ -134,7 +140,6 @@ namespace Level
         private Dictionary<Vector3Int, string> _fileMap = new();
 
         private bool _existedInitialized;
-
 
         public FileBlockChunkStorage(string directory, int chunkDataSize)
         {
@@ -156,7 +161,7 @@ namespace Level
             DataLayerStaticContent<TData> content = new(_chunkDataSize);
             if (_fileMap.TryGetValue(coord, out string filename)) {
                 if (content is DataLayerStaticContent<BlockData> blockContent) {
-                    var serializable = JsonDataIO.LoadData<BlockChunkConvertSerializable>(_directory, filename);
+                    var serializable = JsonDataIO.LoadData<BlockChunkConvertSerializable>(_directory, filename + ".json");
                     serializable.Load(blockContent);
                     _loadedChunks.Add(coord);
                 }
@@ -167,9 +172,7 @@ namespace Level
         public override void SaveChunk(Vector3Int coord, object currentData)
         {
             var content = currentData as DataLayerStaticContent<BlockData>;
-            var serializable = (BlockChunkConvertSerializable)content;
-            string filename = $"{coord.x}_{coord.y}_{coord.z}.json";
-            JsonDataIO.SaveData(serializable, _directory, filename, false);
+            var filename = FileLevelSaver.SaveChunk(_directory, coord, content, false);
             if (!_fileMap.ContainsKey(coord)) {
                 _fileMap.Add(coord, filename);
             }
@@ -228,6 +231,5 @@ namespace Level
             string filename = $"{coord.x}_{coord.y}_{coord.z}.json";
             JsonDataIO.SaveData(serializable, _directory, filename, false);
         }
-
     }
 }

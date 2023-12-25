@@ -16,7 +16,7 @@ namespace Level.IO
         public static T LoadData<T>(string folder, string file)
         {
             string fullPath = FileFullName(folder, file);
-            string json = File.ReadAllText(fullPath, LevelFileConsts.ENCODING);
+            string json = File.ReadAllText(fullPath, LevelFileNames.ENCODING);
             return JsonUtility.FromJson<T>(json);
         }
 
@@ -31,12 +31,12 @@ namespace Level.IO
         {
             string json = JsonUtility.ToJson(obj, prettyPrint);
             string fullPath = FileFullName(folder, file);
-            File.WriteAllText(fullPath, json, LevelFileConsts.ENCODING);
+            File.WriteAllText(fullPath, json, LevelFileNames.ENCODING);
         }
 
         public static string FileFullName(string folder, string file)
         {
-            return $"{folder}/{file}{LevelFileConsts.JSON_EXTENSION}";
+            return $"{folder}/{file}{LevelFileNames.JSON_EXTENSION}";
         }
     }
 }

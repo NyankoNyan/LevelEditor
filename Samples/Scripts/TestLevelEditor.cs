@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using System.Linq;
 
 using Level.API;
 
@@ -19,25 +20,39 @@ namespace Level.Samples
     {
         [SerializeField]
         private string _levelFolder = @"Level\test_level";
+
         [SerializeField]
         private GameObject _dirtBlockPrefab;
+
         [SerializeField]
         private GameObject _stoneBlockPrefab;
 
         [SerializeField]
         private bool _testViewCreationFromModel = true;
+
         [SerializeField]
         private bool _testReactiveViewCreation = true;
 
         [SerializeField]
+        private bool _testReactiveViewRemoving = true;
+
+        [SerializeField]
+        private bool _testSave = true;
+
+        [SerializeField]
+        private bool _testLoad = true;
+
+        [SerializeField]
         private Vector3Int _dirtFrom = new Vector3Int(-50, 1, -50);
+
         [SerializeField]
         private Vector3Int _dirtTo = new Vector3Int(50, 1, 50);
+
         [SerializeField]
         private Vector3Int _stoneFrom = new Vector3Int(-50, 0, -50);
+
         [SerializeField]
         private Vector3Int _stoneTo = new Vector3Int(50, 0, 50);
-
 
         private LevelAPI _level;
         private LevelViewBuilder _levelViewBuilder;
@@ -63,13 +78,22 @@ namespace Level.Samples
 
         private void StartTest()
         {
-            PrepareFileStorage();
             if (_testViewCreationFromModel) {
                 CreateModelEnvironment();
+            }
+            if (_testLoad) {
+                Load();
             }
             CreateViewEnvironment();
             if (_testReactiveViewCreation) {
                 CreateAdditionalModelPart();
+            }
+            if (_testReactiveViewRemoving) {
+                RemoveAdditionalModelPart();
+            }
+            if (_testSave) {
+                PrepareFileStorage();
+                Save();
             }
         }
 
@@ -107,13 +131,13 @@ namespace Level.Samples
             for (int x = _dirtFrom.x; x <= _dirtTo.x; x++) {
                 for (int y = _dirtFrom.y; y <= _dirtTo.y; y++) {
                     for (int z = _dirtFrom.z; z <= _dirtTo.z; z++) {
-                        grid.AddBlock<BlockData, Vector3Int>("blocks", new Vector3Int(x, y, z), blockFloor);
+                        grid.SetBlock<BlockData, Vector3Int>("blocks", new Vector3Int(x, y, z), blockFloor);
                     }
                 }
             }
         }
 
-        void CreateAdditionalModelPart()
+        private void CreateAdditionalModelPart()
         {
             // Добавляем описание блоков
             var blockProto = _level.BlockProtoCollection.Add(new BlockProtoSettings() {
@@ -145,7 +169,20 @@ namespace Level.Samples
             for (int x = _stoneFrom.x; x <= _stoneTo.x; x++) {
                 for (int y = _stoneFrom.y; y <= _stoneTo.y; y++) {
                     for (int z = _stoneFrom.z; z <= _stoneTo.z; z++) {
-                        grid.AddBlock<BlockData, Vector3Int>("blocks", new Vector3Int(x, y, z), blockFloor);
+                        grid.SetBlock<BlockData, Vector3Int>("blocks", new Vector3Int(x, y, z), blockFloor);
+                    }
+                }
+            }
+        }
+
+        private void RemoveAdditionalModelPart()
+        {
+            BlockData emptyBlock = default;
+            var grid = _level.GridStatesCollection.Single(x => x.GridSettings.Name == "Additional block grid");
+            for (int x = _stoneFrom.x; x <= _stoneTo.x; x++) {
+                for (int y = _stoneFrom.y; y <= _stoneTo.y; y++) {
+                    for (int z = _stoneFrom.z; z <= _stoneTo.z; z++) {
+                        grid.SetBlock("blocks", new Vector3Int(x, y, z), emptyBlock);
                     }
                 }
             }
@@ -174,6 +211,16 @@ namespace Level.Samples
             _levelViewBuilder.Build(_level, transform, false);
         }
 
+        private void Save()
+        {
+            _level.SaveLevel(_levelFolder);
+        }
+
+        private void Load()
+        {
+            _level.LoadLevel(_levelFolder);
+        }
+
         /// <summary>
         /// Подготавливает папку для хранения сейвов.
         /// </summary>
@@ -192,7 +239,7 @@ namespace Level.Samples
                 //Check
                 foreach (var dir in Directory.GetDirectories(folder)) {
                     try {
-                        Directory.Delete(dir);
+                        Directory.Delete(dir, true);
                     } catch (Exception e) {
                         throw new Exception($"Can't delete folder {dir}", e);
                     }

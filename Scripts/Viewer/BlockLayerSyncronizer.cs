@@ -60,12 +60,18 @@ namespace LevelView
 
         private void OnLayerChanged(DataLayerEventArgs args)
         {
-            if (args is BlockLayerChangedEventArgs changeArgs) {
-                foreach (var blockCoord in changeArgs.removed) {
-                    RemoveBlock(blockCoord);
-                }
-                foreach (var blockInfo in changeArgs.changed) {
-                    AddBlock(blockInfo.globalCoord, blockInfo.blockData);
+            //if (args is BlockLayerChangedEventArgs changeArgs) {
+            //    foreach (var info in changeArgs.changed) {
+            //        var blockLayer = (BlockLayer<BlockData>)args.dataLayer;
+            //        Vector3Int globalBlockCoord = blockLayer.BlockGlobalCoord(info.dataKey.chunkCoord, info.dataKey.dataId);
+            //        ChangeBlockTo(globalBlockCoord, info.blockData);
+            //    }
+            //}else 
+            if(args is ChunkLayerChangedEventArgs<BlockData> chunkArgs) {
+                foreach(var info in chunkArgs.changed) {
+                    var blockLayer = (BlockLayer<BlockData>)args.dataLayer;
+                    Vector3Int globalBlockCoord = blockLayer.BlockGlobalCoord(info.key.chunkCoord, info.key.dataId);
+                    ChangeBlockTo(globalBlockCoord, info.data);
                 }
             }
         }
@@ -145,12 +151,23 @@ namespace LevelView
 
         private void RemoveBlock(Vector3Int globalBlockCoord)
         {
-            if (!_viewsGlobalIndex.TryGetValue(globalBlockCoord, out GameObject blockView)) {
+            if (_viewsGlobalIndex.TryGetValue(globalBlockCoord, out GameObject blockView)) {
                 _objViewFabric.Remove(blockView);
                 _viewsGlobalIndex.Remove(globalBlockCoord);
                 _viewsGlobalReverseIndex.Remove(blockView);
             } else {
                 throw new LevelAPIException($"Missing block view with coord {globalBlockCoord}");
+            }
+        }
+
+        private void ChangeBlockTo(Vector3Int globalBlockCoord, BlockData blockData)
+        {
+            try {
+                RemoveBlock(globalBlockCoord);
+            } catch { }
+
+            if (blockData.blockId != 0) {
+                AddBlock(globalBlockCoord, blockData);
             }
         }
 

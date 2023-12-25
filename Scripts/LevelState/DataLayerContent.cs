@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace Level
 {
@@ -40,7 +41,7 @@ namespace Level
             _data = new T[size];
         }
 
-        public override IEnumerator<T> GetEnumerator() => (IEnumerator<T>)_data.GetEnumerator();
+        public override IEnumerator<T> GetEnumerator() => _data.Select(x => x).GetEnumerator();
 
         protected override T GetData(int id) => _data[id];
 
