@@ -1,100 +1,107 @@
-﻿using Level.API;
-using System;
+﻿using System.Collections.Generic;
+
+using Level.API;
+
 using UnityEngine;
-using UnityEngine.Events;
 
 namespace LevelView
 {
+//TODO Rename file
+
     /// <summary>
-    /// Возвращает новенькие монобехи, запрошенные по идентификатору
+    /// Возвращает новые (или хорошо забытые старые) монобехи, запрошенные по идентификатору
     /// </summary>
     public interface IObjectViewFabric
     {
-        ObjectView Create(string prefabId, IObjectViewReceiver receiver);
+        GameObject Create(string prefabId);
+
+        void Remove(GameObject gameObject);
+
+        bool HasPrefab(string prefabId);
+
+        /// <summary>
+        /// Помечает префаб как неиспользуемый
+        /// </summary>
+        /// <param name="prefabId"></param>
+        void Unuse(string prefabId);
     }
 
     public class ObjectViewFabric : IObjectViewFabric
     {
-        ConstructMetaStorage _constructMetaStorage;
+        private readonly ConstructFabric _constructFabric;
+        private readonly ConstructMetaStorage _constructMetaStorage;
+        private readonly Dictionary<GameObject, string> _objectReg = new();
 
-        public ObjectViewFabric(IConstructFabric constructFabric)
+        public ObjectViewFabric(ConstructFabric constructFabric)
         {
-            _constructMetaStorage = new( constructFabric );
+            _constructFabric = constructFabric;
+            _constructMetaStorage = new(constructFabric);
         }
 
-        public ObjectView Create(string prefabId, IObjectViewReceiver receiver)
+        public GameObject Create(string prefabId)
         {
-            ObjectView obj = _constructMetaStorage.Pop( prefabId );
-            obj.Init( receiver );
-
-            UnityAction onRemove = null;
-            onRemove = () => {
-                _constructMetaStorage.Push( prefabId, obj );
-                receiver.removed -= onRemove;
-            };
-            receiver.removed += onRemove;
-
+            GameObject obj = _constructMetaStorage.Pop(prefabId);
+            _objectReg.Add(obj, prefabId);
             return obj;
         }
 
-        public void CreateAsync(string prefabId, UnityAction<ObjectView> callback)
+        public bool HasPrefab(string prefabId)
         {
-            throw new NotImplementedException();
+            return _constructFabric.HasRefId(prefabId);
         }
 
-        public bool IsLoaded(string prefabId)
-            => _constructMetaStorage.IsLoaded( prefabId );
-    }
 
+        public bool IsLoaded(string prefabId)
+            => _constructMetaStorage.IsLoaded(prefabId);
+
+        public void Remove(GameObject gameObject)
+        {
+            if (_objectReg.TryGetValue(gameObject, out string prefabId)) {
+                _objectReg.Remove(gameObject);
+                _constructMetaStorage.Push(prefabId, gameObject);
+            } else {
+                throw new LevelAPIException($"Not found registration for object {gameObject} ");
+            }
+        }
+
+        public void Unuse(string prefabId)
+        {
+            _constructMetaStorage.RemovePool(prefabId);
+        }
+
+    }
 
     /// <summary>
     /// For editor
     /// </summary>
     public class ObjectViewFabricNonPool : IObjectViewFabric
     {
-        private IConstructFabric _constructFabric;
+        private readonly ConstructFabric _constructFabric;
 
-        public ObjectViewFabricNonPool(IConstructFabric constructFabric)
+        public ObjectViewFabricNonPool(ConstructFabric constructFabric)
         {
             _constructFabric = constructFabric;
         }
 
-        public ObjectView Create(string prefabId, IObjectViewReceiver receiver)
+        public GameObject Create(string prefabId)
         {
-            return _constructFabric.Create( prefabId );
+            return _constructFabric.Create(prefabId);
+        }
+
+        public bool HasPrefab(string prefabId)
+        {
+            return _constructFabric.HasRefId(prefabId);
+        }
+
+
+        public void Remove(GameObject gameObject)
+        {
+            GameObject.Destroy(gameObject);
+        }
+
+        public void Unuse(string prefabId)
+        {
+
         }
     }
-
-
-    public class ObjectView : MonoBehaviour
-    {
-        private IObjectViewReceiver _receiver;
-        public IObjectViewReceiver Receiver => _receiver;
-
-        public void Init(IObjectViewReceiver receiver)
-        {
-            if (receiver == null) {
-                throw new ArgumentNullException();
-            }
-            _receiver = receiver;
-
-            //UnityAction<bool> applyVisibility = (visible) => {
-            //    gameObject.SetActive( visible );
-            //};
-
-            UnityAction remove = null;
-            remove = () => {
-                _receiver = null;
-                //_receiver.visibilityChanged -= applyVisibility;
-                _receiver.removed -= remove;
-            };
-
-
-            //_receiver.visibilityChanged += applyVisibility;
-            //applyVisibility( _receiver.Visible );
-
-            _receiver.removed += remove;
-        }
-    }
-
 }

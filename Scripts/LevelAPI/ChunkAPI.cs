@@ -1,10 +1,11 @@
-﻿using UnityEngine.Events;
+﻿using System;
 
 namespace Level.API
 {
+    //TODO remove file
     public interface IChunkAPI
     {
-        public UnityAction onDestroy { get; set; }
+        public Action onDestroy { get; set; }
     }
 
     internal class ChunkAPI

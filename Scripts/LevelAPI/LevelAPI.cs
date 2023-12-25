@@ -1,93 +1,118 @@
 using System;
-using System.Collections;
-using System.Collections.Generic;
+
+using Level.IO;
+
 using UnityEngine;
-using UnityEngine.Events;
 
 namespace Level.API
 {
     public class LevelAPIException : Exception
     {
-        public LevelAPIException(string msg) : base( msg ) { }
+        public LevelAPIException(string msg) : base(msg)
+        {
+        }
     }
-
-    public interface ILevelAPI
-    {
-        IGridSettingsAPI GridSettings { get; }
-        IBlockProtoAPI BlockProto { get; }
-        IGridStatesAPI GridStates { get; }
-
-        void TODORefactorSaveLevel(Level.IO.ILevelSave levelSaver);
-        void TODORefactorLoadLevel(Level.IO.ILevelLoader levelLoader);
-    }
-
 
     public class LevelAPIFabric
     {
-        public ILevelAPI Create()
+        public LevelAPI Create(LevelSettings gameSettings = default)
         {
-            var gridSettingsEnv = new TypeEnv<GridSettings, uint, GridSettingsCore, GridSettingsFabric, GridSettingsRegistry>();
-            var blockProtoEnv = new TypeEnv<BlockProto, uint, BlockProtoCreateParams, BlockProtoFabric, BlockProtoRegistry>();
-            var gridStateEnv = new TypeEnv<GridState, uint, GridStateCreateParams, GridStateFabric, GridStateRegistry>();
-            var dataLayerFabric = new DataLayerFabric();
-
-            return new LevelAPI(
-                gridSettingsEnv.Registry,
-                gridSettingsEnv.Fabric,
-                blockProtoEnv.Registry,
-                blockProtoEnv.Fabric,
-                gridStateEnv.Registry,
-                gridStateEnv.Fabric,
-                dataLayerFabric
-                );
+            return new LevelAPI(gameSettings);
         }
     }
 
-    public class LevelAPI : ILevelAPI
+    public enum ChunkStorageStrategy
     {
-        private GridSettingsAPI _gridSettingsAPI;
-        private BlockProtoAPI _blockProtoAPI;
-        //private DataLayerAPIFabric _dataLayerAPIFabric;
-        private GridStatesAPI _gridStateAPI;
-        private BlockProtoRegistry TODORefactor_blockProtoRegistry;
-        private GridSettingsRegistry TODORefactor_gridSettingsRegistry;
-        private GridStateRegistry TODORefactor_gridStateRegistry;
+        DontSave = 0,
+        AllTogether = 1,
+        DynamicSaveLoad = 2
+    }
 
-        public LevelAPI(
-            GridSettingsRegistry gridSettingsRegistry,
-            GridSettingsFabric gridSettingsFabric,
-            BlockProtoRegistry blockProtoRegistry,
-            BlockProtoFabric blockProtoFabric,
-            GridStateRegistry gridStateRegistry,
-            GridStateFabric gridStateFabric,
-            DataLayerFabric dataLayerFabric
-            )
+    [Serializable]
+    public struct LevelSettings
+    {
+        public ChunkStorageStrategy chunkStorageStrategy;
+        public string levelStoreFolder;
+    }
+
+    /// <summary>
+    /// РџСЂРµРґРѕСЃС‚Р°РІР»СЏРµС‚ РґРѕСЃС‚СѓРї Рє API СѓСЂРѕРІРЅСЏ РІ С†РµР»РѕРј Рё РѕС‚РґРµР»СЊРЅС‹Рј РµРіРѕ РєРѕРјРїРѕРЅРµРЅС‚Р°Рј.
+    /// </summary>
+    public class LevelAPI
+    {
+        private BlockProtoCollection _blockProtoCollection;
+
+        private GridStatesCollection _gridStatesCollection;
+
+        private GridSettingsCollection _gridSettingsCollection;
+
+        private ChunkStorageFabric _chunkStorageFabric;
+
+        private UserManager _userManager;
+        private LevelSettings _settings;
+        private ILevelLoader _levelLoader;
+        private ILevelSave _levelSaver;
+
+        internal LevelAPI(LevelSettings settings)
         {
-            _gridSettingsAPI = new GridSettingsAPI( gridSettingsRegistry, gridSettingsFabric );
-            _blockProtoAPI = new BlockProtoAPI( blockProtoRegistry, blockProtoFabric );
-            //_dataLayerAPIFabric = new DataLayerAPIFabric();
-            _gridStateAPI = new GridStatesAPI( gridStateRegistry, gridStateFabric, _gridSettingsAPI, dataLayerFabric );
+            _settings = settings;
 
-            TODORefactor_blockProtoRegistry = blockProtoRegistry;
-            TODORefactor_gridSettingsRegistry = gridSettingsRegistry;
-            TODORefactor_gridStateRegistry = gridStateRegistry;
+            switch (_settings.chunkStorageStrategy) {
+                case ChunkStorageStrategy.DontSave:
+                    _chunkStorageFabric = new MockChunkStorageFabric();
+                    break;
+
+                case ChunkStorageStrategy.AllTogether:
+                case ChunkStorageStrategy.DynamicSaveLoad:
+                    _chunkStorageFabric = new FileChunkStorageFabric(_settings.levelStoreFolder + "\\" + LevelFileNames.DIR_CHUNKS);
+                    _levelLoader = new FileLevelLoader(_settings.levelStoreFolder, _chunkStorageFabric);
+                    _levelSaver = new FileLevelSaver(_settings.levelStoreFolder, true, _chunkStorageFabric);
+                    break;
+
+                default:
+                    throw new Exception($"Unknown chunk storage strategy {_settings.chunkStorageStrategy}");
+            }
+
+            _blockProtoCollection = new BlockProtoCollection();
+            _gridSettingsCollection = new GridSettingsCollection();
+            _gridStatesCollection = new GridStatesCollection(this);
+            _userManager = new();
         }
-        public IGridSettingsAPI GridSettings => _gridSettingsAPI;
-        public IBlockProtoAPI BlockProto => _blockProtoAPI;
-        public IGridStatesAPI GridStates => _gridStateAPI;
 
-        void ILevelAPI.TODORefactorSaveLevel(Level.IO.ILevelSave levelSaver)
+        public void Destroy()
         {
-            levelSaver.SaveFullContent(
-                TODORefactor_blockProtoRegistry,
-                TODORefactor_gridSettingsRegistry,
-                TODORefactor_gridStateRegistry );
+            _gridStatesCollection.Destroy();
+            _gridSettingsCollection.Destroy();
+            _blockProtoCollection.Destroy();
         }
 
-        void ILevelAPI.TODORefactorLoadLevel(Level.IO.ILevelLoader levelLoader)
+        #region Public API
+
+        public GridSettingsCollection GridSettingsCollection => _gridSettingsCollection;
+        public BlockProtoCollection BlockProtoCollection => _blockProtoCollection;
+        public GridStatesCollection GridStatesCollection => _gridStatesCollection;
+        public UserManager UserManager => _userManager;
+        public LevelSettings LevelSettings => _settings;
+
+        internal ChunkStorageFabric ChunkStorageFabric => _chunkStorageFabric;
+
+        public void SaveLevel(string levelPath = null)
         {
-            levelLoader.LoadFullContent( this );
+            if (_settings.chunkStorageStrategy == ChunkStorageStrategy.DontSave) {
+                throw new LevelAPIException($"Level saving not available");
+            }
+            _levelSaver.SaveFullContent(this, levelPath);
         }
+
+        public void LoadLevel(string levelPath = null)
+        {
+            if (_settings.chunkStorageStrategy == ChunkStorageStrategy.DontSave) {
+                throw new LevelAPIException($"Level loading not available");
+            }
+            _levelLoader.LoadFullContent(this, levelPath);
+        }
+
+        #endregion Public API
     }
 
     public static class LevelAPITools
@@ -95,68 +120,8 @@ namespace Level.API
         public static void Clear(Transform target)
         {
             while (target.childCount > 0) {
-                GameObject.DestroyImmediate( target.GetChild( 0 ) );
+                GameObject.DestroyImmediate(target.GetChild(0).gameObject);
             }
-        }
-    }
-
-    public interface IObjectViewReceiver
-    {
-        UnityAction removed { get; set; }
-        UnityAction<bool> visibilityChanged { get; set; }
-        bool Visible { get; }
-        void Remove();
-    }
-
-    /// <summary>
-    /// Прослойка для доступа к единственному блоку.
-    /// Объект блока как таковой в модели не существует.
-    /// </summary>
-    public class BlockViewAPI : IObjectViewReceiver
-    {
-        private BlockLayer _blockLayer;
-        private int _flatCoord;
-
-        public BlockViewAPI(BlockLayer blockLayer, Vector3Int blockCoord, GridSettings gridSettings)
-        {
-            _blockLayer = blockLayer ?? throw new ArgumentNullException( nameof( blockLayer ) );
-            _flatCoord = GridChunk.BlockCoordToFlat( blockCoord, gridSettings.ChunkSize );
-
-            UnityAction<int> onChanged = (i) => {
-                if (i == _flatCoord) {
-                    BlockData blockData = blockLayer.Item( i );
-                    if (blockData.blockId == 0) {
-                        removed?.Invoke();
-                    }
-                }
-            };
-            blockLayer.onChanged += onChanged;
-
-            UnityAction<DataLayerSettings> layerRemoved = null;
-            layerRemoved = (layerSettings) => {
-                if (layerSettings.tag == _blockLayer.Tag) {
-                    blockLayer.onChanged -= onChanged;
-                    gridSettings.layerRemoved -= layerRemoved;
-
-                    removed?.Invoke();
-                }
-            };
-            gridSettings.layerRemoved += layerRemoved;
-        }
-
-        public UnityAction removed { get; set; }
-        public UnityAction<bool> visibilityChanged
-        {
-            get => throw new NotImplementedException();
-            set => throw new NotImplementedException();
-        }
-
-        public bool Visible => throw new NotImplementedException();
-
-        public void Remove()
-        {
-            BlockData blockData = default;
-            _blockLayer.SetItem( _flatCoord, blockData );
         }
     }
 }

@@ -1,36 +1,36 @@
 ﻿using Level;
 using LevelView;
+using System;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.Events;
 
 namespace RuntimeEditTools
 {
     public class BlocksWorkbenchFacade : MonoBehaviour
     {
-        [SerializeField] BlockEditorFacade _blockEditorFacade;
-        [SerializeField] ListField _blocksListFacade;
+        [SerializeField] private BlockEditorFacade _blockEditorFacade;
+        [SerializeField] private ListField _blocksListFacade;
 
-        private UnityAction _destroyCallback;
+        private Action _destroyCallback;
 
         public void Init()
         {
-            var blocksAPI = LevelStorage.Instance.API.BlockProto;
+            var blockCollection = LevelStorage.Instance.API.BlockProtoCollection;
 
             IListFacade blocksList = _blocksListFacade;
 
             // Связываем список прототипов блоков
             // Этот блок наглядно демонстрирует, почему нужно использовать библиотеки реактивного связывания
             Dictionary<BlockProto, ITextConnector> blockTexts = new();
-            Dictionary<BlockProto, UnityAction> blockSubscriptions = new();
-            UnityAction<BlockProto> onBlockProtoAdded = (block) => {
+            Dictionary<BlockProto, Action> blockSubscriptions = new();
+            Action<BlockProto> onBlockProtoAdded = (block) => {
                 var connector = blocksList.AddElement( block.Name );
                 blockTexts.Add( block, connector );
             };
-            blocksAPI.onBlockProtoAdded += onBlockProtoAdded;
-            foreach (var block in blocksAPI.BlockProtos) {
+            blockCollection.added += onBlockProtoAdded;
+            foreach (var block in blockCollection) {
                 onBlockProtoAdded( block );
-                UnityAction onBlockDestroy = null;
+                Action onBlockDestroy = null;
                 onBlockDestroy = () => {
                     block.OnDestroyAction -= onBlockDestroy;
                     blockTexts[block].Remove();
@@ -41,11 +41,10 @@ namespace RuntimeEditTools
                 blockSubscriptions.Add( block, onBlockDestroy );
             }
 
-
-            UnityAction onDestroy = null;
+            Action onDestroy = null;
             onDestroy = () => {
                 _destroyCallback -= onDestroy;
-                blocksAPI.onBlockProtoAdded -= onBlockProtoAdded;
+                blockCollection.added -= onBlockProtoAdded;
                 foreach (var sub in blockSubscriptions) {
                     sub.Key.OnDestroyAction -= sub.Value;
                 }

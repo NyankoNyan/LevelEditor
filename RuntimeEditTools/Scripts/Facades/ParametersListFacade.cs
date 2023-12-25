@@ -1,8 +1,11 @@
-﻿using Level;
-using LevelView;
+﻿using System;
 using System.Collections.Generic;
+
+using Level;
+
+using LevelView;
+
 using UnityEngine;
-using UnityEngine.Events;
 
 namespace RuntimeEditTools
 {
@@ -30,10 +33,9 @@ namespace RuntimeEditTools
             _paramName = paramName;
         }
 
-        public override object Value
-        {
-            get => _parametersConnector.GetParameter( _paramName );
-            set => _parametersConnector.SetParameter( _paramName, value );
+        public override object Value {
+            get => _parametersConnector.GetParameter(_paramName);
+            set => _parametersConnector.SetParameter(_paramName, value);
         }
     }
 
@@ -50,18 +52,17 @@ namespace RuntimeEditTools
             _vecPart = vecPart;
         }
 
-        public override object Value
-        {
-            get => ( (Vector3Int)_parametersConnector.GetParameter( _paramName ) )[_vecPart].ToString();
+        public override object Value {
+            get => ((Vector3Int)_parametersConnector.GetParameter(_paramName))[_vecPart].ToString();
             set {
-                var vec = (Vector3Int)_parametersConnector.GetParameter( _paramName );
+                var vec = (Vector3Int)_parametersConnector.GetParameter(_paramName);
                 string strVal = (string)value;
-                if (string.IsNullOrWhiteSpace( strVal )) {
+                if (string.IsNullOrWhiteSpace(strVal)) {
                     vec[_vecPart] = 0;
                 } else {
-                    vec[_vecPart] = int.Parse( strVal );
+                    vec[_vecPart] = int.Parse(strVal);
                 }
-                _parametersConnector.SetParameter( _paramName, vec );
+                _parametersConnector.SetParameter(_paramName, vec);
             }
         }
     }
@@ -79,18 +80,17 @@ namespace RuntimeEditTools
             _vecPart = vecPart;
         }
 
-        public override object Value
-        {
-            get => ( (Vector3)_parametersConnector.GetParameter( _paramName ) )[_vecPart].ToString( "0.00" );
+        public override object Value {
+            get => ((Vector3)_parametersConnector.GetParameter(_paramName))[_vecPart].ToString("0.00");
             set {
-                var vec = (Vector3)_parametersConnector.GetParameter( _paramName );
+                var vec = (Vector3)_parametersConnector.GetParameter(_paramName);
                 string strVal = (string)value;
-                if (string.IsNullOrWhiteSpace( strVal )) {
+                if (string.IsNullOrWhiteSpace(strVal)) {
                     vec[_vecPart] = 0;
                 } else {
-                    vec[_vecPart] = float.Parse( strVal );
+                    vec[_vecPart] = float.Parse(strVal);
                 }
-                _parametersConnector.SetParameter( _paramName, vec );
+                _parametersConnector.SetParameter(_paramName, vec);
             }
         }
     }
@@ -108,10 +108,9 @@ namespace RuntimeEditTools
             _subpart = subpart;
         }
 
-        public override object Value
-        {
+        public override object Value {
             get {
-                var bounds = (GridBoundsRect)_parametersConnector.GetParameter( _paramName );
+                var bounds = (GridBoundsRect)_parametersConnector.GetParameter(_paramName);
                 if (_subpart < 3) {
                     return bounds.chunkFrom[_subpart];
                 } else {
@@ -119,18 +118,18 @@ namespace RuntimeEditTools
                 }
             }
             set {
-                var bounds = (GridBoundsRect)_parametersConnector.GetParameter( _paramName );
+                var bounds = (GridBoundsRect)_parametersConnector.GetParameter(_paramName);
                 string strVal = (string)value;
                 int intVal = 0;
-                if (!string.IsNullOrWhiteSpace( strVal )) {
-                    intVal = int.Parse( strVal );
+                if (!string.IsNullOrWhiteSpace(strVal)) {
+                    intVal = int.Parse(strVal);
                 }
                 if (_subpart < 3) {
                     bounds.chunkFrom[_subpart] = intVal;
                 } else {
                     bounds.chunkTo[_subpart - 3] = intVal;
                 }
-                _parametersConnector.SetParameter( _paramName, bounds );
+                _parametersConnector.SetParameter(_paramName, bounds);
             }
         }
     }
@@ -149,10 +148,10 @@ namespace RuntimeEditTools
         private Dictionary<string, IParamElement> _elements = new();
         private string _focusedElementId;
 
-        internal UnityAction<string, EditConnector> OnParameterFocused { get; set; }
-        internal UnityAction<string> OnParameterUnfocused { get; set; }
+        internal Action<string, EditConnector> OnParameterFocused { get; set; }
+        internal Action<string> OnParameterUnfocused { get; set; }
 
-        public UnityAction OnBack { get; set; }
+        public Action OnBack { get; set; }
 
         public Dictionary<string, IParamElement> Elements => _elements;
 
@@ -161,9 +160,9 @@ namespace RuntimeEditTools
             _parametersConnector = parametersConnector;
             CreateListElements();
             _parametersConnector.OnParamModelUpdate += OnParamModelUpdate;
-            _backButton.onClick.AddListener( () => {
+            _backButton.onClick.AddListener(() => {
                 OnBack?.Invoke();
-            } );
+            });
         }
 
         private void OnParamModelUpdate(string name, object value)
@@ -180,56 +179,56 @@ namespace RuntimeEditTools
         {
             foreach (ParameterDescription descr in _parametersConnector.ParametersDescriptions) {
                 IParamElement elementProto;
-                if (descr.type == typeof( bool )) {
-                    elementProto = Instantiate( _boolPrefab, _elementsRoot );
-                } else if (descr.type == typeof( string )) {
-                    elementProto = Instantiate( _stringPrefab, _elementsRoot );
-                } else if (descr.type == typeof( uint )) {
-                    elementProto = Instantiate( _stringPrefab, _elementsRoot );
-                } else if (descr.type == typeof( Vector3Int )) {
-                    elementProto = Instantiate( _vector3IntPrefab, _elementsRoot );
-                } else if (descr.type == typeof( Vector3 )) {
-                    elementProto = Instantiate( _vector3Prefab, _elementsRoot );
-                } else if (descr.type == typeof( GridBoundsRect )) {
-                    elementProto = Instantiate( _bounds3DPrefab, _elementsRoot );
+                if (descr.type == typeof(bool)) {
+                    elementProto = Instantiate(_boolPrefab, _elementsRoot);
+                } else if (descr.type == typeof(string)) {
+                    elementProto = Instantiate(_stringPrefab, _elementsRoot);
+                } else if (descr.type == typeof(uint)) {
+                    elementProto = Instantiate(_stringPrefab, _elementsRoot);
+                } else if (descr.type == typeof(Vector3Int)) {
+                    elementProto = Instantiate(_vector3IntPrefab, _elementsRoot);
+                } else if (descr.type == typeof(Vector3)) {
+                    elementProto = Instantiate(_vector3Prefab, _elementsRoot);
+                } else if (descr.type == typeof(GridBoundsRect)) {
+                    elementProto = Instantiate(_bounds3DPrefab, _elementsRoot);
                 } else {
-                    Debug.LogError( $"Unknown type {descr.type.Name}" );
+                    Debug.LogError($"Unknown type {descr.type.Name}");
                     return;
                 }
                 elementProto.Name = descr.name;
                 elementProto.ReadOnly = descr.mode == ParameterMode.ReadOnly;
-                _elements.Add( descr.name, elementProto );
+                _elements.Add(descr.name, elementProto);
 
                 if (descr.mode == ParameterMode.ReadWrite) {
-                    if (descr.type == typeof( Vector3Int )
-                        || descr.type == typeof( Vector3 )
-                        || descr.type == typeof( GridBoundsRect )) {
-                        ( elementProto as V3ParamElement ).OnComponentSelect += (subpart) => {
+                    if (descr.type == typeof(Vector3Int)
+                        || descr.type == typeof(Vector3)
+                        || descr.type == typeof(GridBoundsRect)) {
+                        (elementProto as V3ParamElement).OnComponentSelect += (subpart) => {
                             if (_focusedElementId != descr.name) {
                                 Unfocuse();
                             }
 
                             EditConnector connector;
-                            if (descr.type == typeof( Vector3Int )) {
-                                connector = new Vector3IntEditConnector( _parametersConnector, descr.name, subpart );
-                            } else if (descr.type == typeof( Vector3 )) {
-                                connector = new Vector3EditConnector( _parametersConnector, descr.name, subpart );
+                            if (descr.type == typeof(Vector3Int)) {
+                                connector = new Vector3IntEditConnector(_parametersConnector, descr.name, subpart);
+                            } else if (descr.type == typeof(Vector3)) {
+                                connector = new Vector3EditConnector(_parametersConnector, descr.name, subpart);
                             } else {
-                                connector = new Bounds3DEditConnector( _parametersConnector, descr.name, (byte)subpart );
+                                connector = new Bounds3DEditConnector(_parametersConnector, descr.name, (byte)subpart);
                             }
 
-                            OnParameterFocused?.Invoke( descr.name, connector );
+                            OnParameterFocused?.Invoke(descr.name, connector);
                             _focusedElementId = descr.name;
                         };
                     }
 
-                    if (descr.type == typeof( string )) {
-                        var listElement = ( elementProto as MonoBehaviour ).GetComponent<ListUIElement>();
+                    if (descr.type == typeof(string)) {
+                        var listElement = (elementProto as MonoBehaviour).GetComponent<ListUIElement>();
                         listElement.onClick += (_) => {
                             Unfocuse();
                             listElement.Selected = !listElement.Selected;
-                            var connector = new StringEditConnector( _parametersConnector, descr.name );
-                            OnParameterFocused?.Invoke( descr.name, connector );
+                            var connector = new StringEditConnector(_parametersConnector, descr.name);
+                            OnParameterFocused?.Invoke(descr.name, connector);
                             _focusedElementId = descr.name;
                         };
                     }
@@ -247,7 +246,7 @@ namespace RuntimeEditTools
         {
             if (_focusedElementId != null) {
                 _elements[_focusedElementId].Selected = false;
-                OnParameterUnfocused?.Invoke( _focusedElementId );
+                OnParameterUnfocused?.Invoke(_focusedElementId);
                 _focusedElementId = null;
             }
         }

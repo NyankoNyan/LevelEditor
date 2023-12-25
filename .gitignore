@@ -1,2 +1,6 @@
 \3rd_party
-3rd_party.meta
+\3rd_party.meta
+\.vscode
+\obj
+\bin
+\UnityLibsDummy.cs

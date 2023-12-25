@@ -1,15 +1,11 @@
 ﻿using System;
 using UnityEngine;
-using UnityEngine.Events;
 
 namespace Level
 {
     public class BlockProto : IHasKey<uint>, IInitializable<BlockProtoCreateParams>, IDestroy
     {
-        public UnityAction changed;
-        public UnityAction<string, string> nameChanged;
-        public UnityAction<string, string> tagChanged;
-        public UnityAction<string, string> formFactorChanged;
+        public Action changed;
 
         private uint _id;
         private BlockProtoSettings _settings;
@@ -23,7 +19,6 @@ namespace Level
                 if (value != _settings.name) {
                     string oldValue = _settings.name;
                     _settings.name = value;
-                    nameChanged?.Invoke( oldValue, value );
                     changed?.Invoke();
                 }
             }
@@ -36,7 +31,6 @@ namespace Level
                 if (value != _settings.layerTag) {
                     string oldValue = _settings.layerTag;
                     _settings.layerTag = value;
-                    tagChanged?.Invoke( oldValue, value );
                     changed?.Invoke();
                 }
             }
@@ -49,7 +43,6 @@ namespace Level
                 if (value != _settings.formFactor) {
                     string oldValue = _settings.formFactor;
                     _settings.formFactor = value;
-                    formFactorChanged?.Invoke( oldValue, value );
                     changed?.Invoke();
                 }
             }
@@ -66,9 +59,9 @@ namespace Level
             }
         }
 
-        internal BlockProtoSettings Settings => _settings;
+        public BlockProtoSettings Settings => _settings;
 
-        public UnityAction OnDestroyAction { get; set; }
+        public Action OnDestroyAction { get; set; }
 
         public void Destroy()
         {
@@ -92,6 +85,12 @@ namespace Level
         public string layerTag;
         public Vector3Int size;
         public bool lockXZ;
+    }
+
+    public struct BlockProtoInfo
+    {
+        public uint id;
+        public BlockProtoSettings content;
     }
 
     public struct BlockProtoCreateParams

@@ -1,9 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using UnityEngine.Events;
 
 namespace Level
 {
@@ -19,15 +15,16 @@ namespace Level
 
     public interface IDestroy
     {
-        UnityAction OnDestroyAction { get; set; }
+        Action OnDestroyAction { get; set; }
+
         void Destroy();
     }
 
     public class Registry<TKey, TValue>
         where TValue : IHasKey<TKey>, IDestroy
     {
-        public UnityAction<TValue> onAdd;
-        public UnityAction<TValue> onRemove;
+        public Action<TValue> onAdd;
+        public Action<TValue> onRemove;
 
         private Dictionary<TKey, TValue> _values = new();
 
@@ -47,9 +44,7 @@ namespace Level
         public void Remove(TValue value)
         {
             _values.Remove( value.Key );
-            if (onRemove != null) {
-                onRemove( value );
-            }
+            onRemove?.Invoke(value);
         }
 
         public Dictionary<TKey, TValue>.ValueCollection Values => _values.Values;
@@ -59,26 +54,24 @@ namespace Level
     public class Fabric<T, TCreateParams>
         where T : IInitializable<TCreateParams>, new()
     {
-        public UnityAction<T> onCreate;
+        public Action<T> onCreate;
         private uint _counter;
         public uint Counter => _counter;
+
         public T Create(TCreateParams createParams)
         {
             T value = new();
             _counter++;
             value.Init( createParams, _counter );
-            if (onCreate != null) {
-                onCreate( value );
-            }
+            onCreate?.Invoke(value);
             return value;
         }
+
         public T CreateWithCounter(TCreateParams createParams, uint counter)
         {
             T value = new();
             value.Init( createParams, counter );
-            if (onCreate != null) {
-                onCreate( value );
-            }
+            onCreate.Invoke(value);
             _counter = Math.Max( _counter, counter );
             return value;
         }

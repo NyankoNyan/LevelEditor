@@ -1,12 +1,12 @@
-﻿using System.Collections.Generic;
+﻿using Level.API;
+using System.Collections.Generic;
 using UnityEngine;
-using Level.API;
 
 namespace Level.Builder
 {
     public class BlockProtosBuilder : MonoBehaviour, IBuilderCheck
     {
-        [SerializeField] List<BlockProtoSettings> _blockProtoParams = new();
+        [SerializeField] private List<BlockProtoSettings> _blockProtoParams = new();
 
         public void Check()
         {
@@ -15,17 +15,17 @@ namespace Level.Builder
             }
         }
 
-        public void Export(IBlockProtoAPI api)
+        public void Export(BlockProtoCollection blockProtos)
         {
             foreach (var bp in _blockProtoParams) {
-                api.Add( bp );
+                blockProtos.Add( bp );
             }
         }
 
-        public void Import(IBlockProtoAPI api)
+        public void Import(BlockProtoCollection blockProtos)
         {
             _blockProtoParams.Clear();
-            foreach (var bp in api.BlockProtos) {
+            foreach (var bp in blockProtos) {
                 _blockProtoParams.Add( bp.Settings );
             }
         }

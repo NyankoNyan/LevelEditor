@@ -13,23 +13,23 @@ namespace RuntimeEditTools
         private const string editCmdId = "EDIT";
 
         private InteractiveListFacade _listFacade;
-        private IBlockProtoAPI _blockProtoAPI;
+        private BlockProtoCollection _blockProtoCollection;
 
         public UnityAction<uint> onStartEdit;
         public UnityAction<string, IDataContainer[]> onListAction;
 
         public BlockListContoller(
             InteractiveListFacade listFacade,
-            IBlockProtoAPI blockProtoAPI)
+            BlockProtoCollection blockProtoCollection)
         {
             _listFacade = listFacade;
-            _blockProtoAPI = blockProtoAPI;
+            _blockProtoCollection = blockProtoCollection;
 
             // From model to view
-            _blockProtoAPI.onBlockProtoAdded += AddBlockToList;
-            _blockProtoAPI.onBlockProtoRemoved += RemoveBlockFromList;
+            _blockProtoCollection.added += AddBlockToList;
+            _blockProtoCollection.removed += RemoveBlockFromList;
 
-            foreach (var blockProto in blockProtoAPI.BlockProtos) {
+            foreach (var blockProto in blockProtoCollection) {
                 AddBlockToList( blockProto );
             }
 
@@ -39,8 +39,8 @@ namespace RuntimeEditTools
 
         public void Destroy()
         {
-            _blockProtoAPI.onBlockProtoAdded -= AddBlockToList;
-            _blockProtoAPI.onBlockProtoRemoved -= RemoveBlockFromList;
+            _blockProtoCollection.added -= AddBlockToList;
+            _blockProtoCollection.removed -= RemoveBlockFromList;
             _listFacade.SendEvent -= HandleListEvent;
         }
 
@@ -58,7 +58,7 @@ namespace RuntimeEditTools
         {
             switch (args.id) {
                 case addCmdId:
-                    _blockProtoAPI.AddEmpty();
+                    _blockProtoCollection.Add();
                     break;
 
                 case removeCmdId:

@@ -11,20 +11,13 @@ namespace LevelView
     /// Её можно расширять для добавления новых свойств объектов.
     /// </remarks>
     [Serializable]
-    public class ObjectSetup
+    public class ObjectSetup : IEquatable<ObjectSetup>
     {
         /// <summary>
-        /// Уникальный идентификатор типа объекта. Одновременно не могут существовать два типа
+        /// Уникальный идентификатор типа объекта. Используется как ключ. Одновременно не могут существовать два типа
         /// объекта с одним уникальным идентификатором.
         /// </summary>
         public string id;
-
-        /// <summary>
-        /// Номер версии объекта. Нужен для версионирования настроек и разрешения кофликтов
-        /// уникальных идентификаторов. Из двух объектов с одним id будет использован тот, чья
-        /// версия больше.
-        /// </summary>
-        public uint version;
 
         /// <summary>
         /// Ссылочный идентификатор. Используется в настройках уровня. Может быть неуникальным.
@@ -36,6 +29,13 @@ namespace LevelView
         /// клиентских девайсов разной производительности и создания специальных графических эффектов.
         /// </remarks>
         public string refId;
+
+        /// <summary>
+        /// Номер версии объекта. Нужен для версионирования настроек и разрешения кофликтов
+        /// уникальных идентификаторов. Из двух объектов с одним id будет использован тот, чья
+        /// версия больше.
+        /// </summary>
+        public uint version;
 
         /// <summary>
         /// Используемый префаб. Если префаб отсутствует, будет создан пустой объект, к которому
@@ -100,6 +100,13 @@ namespace LevelView
         /// объект влезал в куб со стороной 1 метр.
         /// </remarks>
         public Vector3 previewScale = Vector3.one;
+
+        public bool Equals(ObjectSetup other)
+        {
+            return id == other.id && refId == other.refId
+                && prefab == other.prefab && mesh == other.mesh && mainTexture == other.mainTexture
+                && offset == other.offset && rotation == other.rotation && scale == other.scale;
+        }
     }
 
     /// <summary>

@@ -1,14 +1,13 @@
 using Level.API;
-using System;
 using UnityEngine;
 
 namespace LevelView
 {
     public class LevelViewerEditor : MonoBehaviour
     {
-        [SerializeField] ConstructSettings _constructSettings;
+        [SerializeField] private ConstructSettings _constructSettings;
 
-        public void SetModel(ILevelAPI levelAPI)
+        public void SetModel(LevelAPI levelAPI)
         {
             while (transform.childCount > 0) {
                 DestroyImmediate( transform.GetChild( 0 ).gameObject );

@@ -1,13 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+
 using UnityEngine;
-using UnityEngine.Events;
 
 namespace Level
 {
     [Serializable]
-    public struct GridSettingsCore
+    public struct GridSettingsCreateParams
     {
         public string name;
         public Vector3Int chunkSize;
@@ -16,35 +16,49 @@ namespace Level
         public bool hasBounds;
         public GridBoundsRect bounds;
         public List<DataLayerSettings> layers;
+
+        public GridSettingsCreateParams(GridSettingsCreateParams other)
+        {
+            this = other;
+            layers = new(other.layers);
+        }
+    }
+
+    public struct GridSettingsInfo
+    {
+        public uint id;
+        public GridSettingsCreateParams content;
     }
 
     public enum LayerType
     {
-        BlockLayer,
-        PropsLayer
+        BlockLayer = 0,
+        BigBlockLayer = 1,
+        PropsLayer = 2,
+        ItemLayer,
+        GlobalItemLayer
     }
 
-    [Serializable]
-    public struct DataLayerSettings
-    {
-        public string name;
-        public LayerType layerType;
-        public string tag;
-    }
+    //[Serializable]
+    //public struct DataLayerSettings
+    //{
+    //    public string name;
+    //    public LayerType layerType;
+    //    public string tag;
+    //}
 
-    public class GridSettings : IHasKey<uint>, IInitializable<GridSettingsCore>, IDestroy
+    public class GridSettings : IHasKey<uint>, IInitializable<GridSettingsCreateParams>, IDestroy
     {
-        public UnityAction changed;
-        public UnityAction<DataLayerSettings> layerAdded;
-        public UnityAction<DataLayerSettings> layerRemoved;
+        public Action changed;
+        public Action<DataLayerSettings> layerAdded;
+        public Action<DataLayerSettings> layerRemoved;
 
         private uint _id;
-        private GridSettingsCore _settings;
+        private GridSettingsCreateParams _settings;
 
         public uint Key => _id;
 
-        public string Name
-        {
+        public string Name {
             get => _settings.name;
             set {
                 if (value != _settings.name) {
@@ -54,10 +68,9 @@ namespace Level
             }
         }
 
-        public GridSettingsCore Settings => _settings;
+        public GridSettingsCreateParams Settings => _settings;
 
-        public Vector3Int ChunkSize
-        {
+        public Vector3Int ChunkSize {
             get => _settings.chunkSize;
             set {
                 if (value != _settings.chunkSize) {
@@ -67,8 +80,7 @@ namespace Level
             }
         }
 
-        public Vector3 CellSize
-        {
+        public Vector3 CellSize {
             get => _settings.cellSize;
             set {
                 if (value != _settings.cellSize) {
@@ -78,8 +90,7 @@ namespace Level
             }
         }
 
-        public string FormFactor
-        {
+        public string FormFactor {
             get => _settings.formFactor;
             set {
                 if (value != _settings.formFactor) {
@@ -90,7 +101,13 @@ namespace Level
         }
 
         public int ChunkSizeFlat => ChunkSize.x * ChunkSize.y * ChunkSize.z;
-        public UnityAction OnDestroyAction { get; set; }
+        public Action OnDestroyAction { get; set; }
+
+
+        public GridSettingsInfo Info => new GridSettingsInfo {
+            id = Key,
+            content = new(Settings)
+        };
 
         public void Destroy()
         {
@@ -99,7 +116,7 @@ namespace Level
             }
         }
 
-        public void Init(GridSettingsCore value, uint counter)
+        public void Init(GridSettingsCreateParams value, uint counter)
         {
             _settings = value;
             _id = counter;
@@ -107,32 +124,32 @@ namespace Level
 
         public void AddLayer(DataLayerSettings layerSettings)
         {
-            if (_settings.layers.Any( x => x.tag == layerSettings.tag )) {
-                throw new Exception( $"Layer with tag {layerSettings.tag} already added" );
+            if (_settings.layers.Any(x => x.tag == layerSettings.tag)) {
+                throw new Exception($"Layer with tag {layerSettings.tag} already added");
             }
 
-            _settings.layers.Add( layerSettings );
+            _settings.layers.Add(layerSettings);
 
-            layerAdded?.Invoke( layerSettings );
+            layerAdded?.Invoke(layerSettings);
             changed?.Invoke();
         }
 
         public void RemoveLayer(string layerTag)
         {
-            int removeIndex = _settings.layers.FindIndex( x => x.tag == layerTag );
+            int removeIndex = _settings.layers.FindIndex(x => x.tag == layerTag);
             if (removeIndex == -1) {
-                throw new ArgumentException( $"Don't found layer {layerTag}" );
+                throw new ArgumentException($"Don't found layer {layerTag}");
             }
             DataLayerSettings layerSettings = _settings.layers[removeIndex];
-            _settings.layers.RemoveAt( removeIndex );
+            _settings.layers.RemoveAt(removeIndex);
 
-            layerRemoved?.Invoke( layerSettings );
+            layerRemoved?.Invoke(layerSettings);
             changed?.Invoke();
         }
     }
 
     [Serializable]
-    public struct GridBoundsRect
+    public struct GridBoundsRect : IEquatable<GridBoundsRect>
     {
         public Vector3Int chunkFrom;
         public Vector3Int chunkTo;
@@ -142,11 +159,23 @@ namespace Level
             this.chunkFrom = chunkFrom;
             this.chunkTo = chunkTo;
         }
+
+        public bool Equals(GridBoundsRect other)
+        {
+            return this.chunkFrom == other.chunkFrom
+                && this.chunkTo == other.chunkTo;
+        }
+
+
+        public override string ToString()
+        {
+            return $"{{ {chunkFrom} : {chunkTo} }}";
+        }
     }
 
     public class GridSettingsRegistry : Registry<uint, GridSettings>
     { };
 
-    public class GridSettingsFabric : Fabric<GridSettings, GridSettingsCore>
+    public class GridSettingsFabric : Fabric<GridSettings, GridSettingsCreateParams>
     { };
 }

@@ -1,6 +1,4 @@
 using Level.API;
-using System;
-using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -8,7 +6,7 @@ namespace Level.Builder
 {
     public class GridSettingsBuilder : MonoBehaviour, IBuilderCheck
     {
-        [SerializeField] List<GridSettingsCore> _gridsSettings = new();
+        [SerializeField] private List<GridSettingsCreateParams> _gridsSettings = new();
 
         public void Check()
         {
@@ -17,20 +15,19 @@ namespace Level.Builder
             }
         }
 
-        public void Export(IGridSettingsAPI api)
+        public void Export(GridSettingsCollection gridSettingsCollection)
         {
             foreach (var gs in _gridsSettings) {
-                api.Add( gs );
+                gridSettingsCollection.Add( gs );
             }
         }
 
-        public void Import(IGridSettingsAPI api)
+        public void Import(GridSettingsCollection gridSettingsCollection)
         {
             _gridsSettings.Clear();
-            foreach (var gs in api.Values) {
+            foreach (var gs in gridSettingsCollection) {
                 _gridsSettings.Add( gs.Settings );
             }
         }
-
     }
 }

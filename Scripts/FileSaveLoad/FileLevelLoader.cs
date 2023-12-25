@@ -1,114 +1,138 @@
-﻿using Level.API;
+﻿using System;
+using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Text.RegularExpressions;
+
+using Level.API;
+
 using UnityEngine;
 
 namespace Level.IO
 {
     public interface ILevelLoader
     {
-        void LoadFullContent(ILevelAPI levelAPI);
+        void LoadFullContent(LevelAPI levelAPI, string levelPath = null);
     }
 
     public class FileLevelLoader : ILevelLoader
     {
         private string _filePath;
+        private ChunkStorageFabric _chunkStorageFabric;
+        private List<ChunkStorage> _chunkStorages = new();
 
-        public FileLevelLoader(string filePath)
+        public FileLevelLoader(string filePath, ChunkStorageFabric chunkStorageFabric)
         {
             _filePath = filePath;
+
+            _chunkStorageFabric = chunkStorageFabric;
+            _chunkStorageFabric.created += OnChunkStorageCreated;
         }
 
-        public void LoadFullContent(ILevelAPI levelAPI)
+        public void LoadFullContent(LevelAPI levelAPI, string levelPath)
         {
-            var blPrSerials = LoadData<ListWrapper<BlockProtoSerializable>>( LevelFileConsts.FILE_BLOCK_PROTO );
-            foreach (var blPrSerial in blPrSerials.list) {
-                blPrSerial.Load( levelAPI.BlockProto );
-            }
+            //TODO Level/Server/Game settings
+            //TODO Load Items
 
-            var grSetSerials = LoadData<ListWrapper<GridSettingsSerializable>>( LevelFileConsts.FILE_GRID_SETTINGS );
-            foreach (var grSetSerial in grSetSerials.list) {
-                grSetSerial.Load( levelAPI.GridSettings );
-            }
+            string currentPath = levelPath ?? _filePath;
 
-            var grStateSerials = LoadData<ListWrapper<GridStateSerializable>>( LevelFileConsts.FILE_GRID_STATE );
-            foreach (var grStateSerial in grStateSerials.list) {
-                grStateSerial.Load( levelAPI.GridStates, levelAPI.GridSettings );
-            }
+            //Load block prototypes (settings)
+            LoadBlockProtos(levelAPI, currentPath);
 
-            LoadChunks( levelAPI.GridStates );
+            //Load grids settings
+            LoadGridSettings(levelAPI, currentPath);
+
+            //Load grid states (blocks, props, items, actors, etc.)
+            LoadGridStatesHeaders(levelAPI, currentPath);
+
+            LoadGridStatesBodies(levelAPI, currentPath);
         }
 
-        private void LoadChunks(IGridStatesAPI gridStatesAPI)
+        private void OnChunkStorageCreated(ChunkStorage storage)
         {
-            string[] chunkFiles = Directory.GetFiles( $"{_filePath}/{LevelFileConsts.DIR_CHUNKS}" );
+            _chunkStorages.Add(storage);
+        }
 
-            var regex = new Regex( @"(\d+)\.(-?\d+)_(-?\d+)_(-?\d+)\.json" );
+        public static void LoadBlockProtos(LevelAPI level, string path)
+        {
+            var collectionSerial = JsonDataIO.LoadData<ListWrapper<BlockProtoSerializable>>(path, LevelFileNames.FILE_BLOCK_PROTO);
+            foreach (var blockSerial in collectionSerial.list) {
+                blockSerial.Load(level.BlockProtoCollection);
+            }
+        }
 
-            foreach (string chunkFile in chunkFiles) {
-                MatchCollection matches = regex.Matches( chunkFile );
-                if (matches.Count == 0) {
-                    Debug.LogError( $"Chunk file name {chunkFile} don't match with naming rule" );
-                } else {
-                    // Group[0] is full match
-                    uint gridId = uint.Parse( matches[0].Groups[1].Value );
-                    int x = int.Parse( matches[0].Groups[2].Value );
-                    int y = int.Parse( matches[0].Groups[3].Value );
-                    int z = int.Parse( matches[0].Groups[4].Value );
+        public static void LoadGridSettings(LevelAPI level, string path)
+        {
+            var collectionSerial = JsonDataIO.LoadData<ListWrapper<GridSettingsSerializable>>(path, LevelFileNames.FILE_GRID_SETTINGS);
+            foreach (var gridSettingsSerial in collectionSerial.list) {
+                gridSettingsSerial.Load(level.GridSettingsCollection);
+            }
+        }
 
-                    string subPath = $"{LevelFileConsts.DIR_CHUNKS}/{gridId}.{x}_{y}_{z}";
-                    var chunkSerial = LoadData<ChunkSerializable>( subPath );
+        public static void LoadGridStatesHeaders(LevelAPI level, string path)
+        {
+            var collectionSerial = JsonDataIO.LoadData<ListWrapper<GridStateSerializable>>(path, LevelFileNames.FILE_GRID_STATE);
+            foreach (var gridStateSerial in collectionSerial.list) {
+                gridStateSerial.Load(level.GridStatesCollection, level.GridSettingsCollection);
+            }
+        }
 
-                    var gridState = gridStatesAPI.Grids.SingleOrDefault( x => x.Key == gridId );
-                    if (gridState == null) {
-                        Debug.LogError( $"Missing grid with id {gridId}" );
+        public static void LoadGridStatesBodies(LevelAPI level, string path)
+        {
+            foreach (var gridState in level.GridStatesCollection) {
+                foreach (var dataLayer in gridState.DataLayers) {
+                    string folder = path + "\\" + LevelFileNames.GetDataLayerSubFolder(dataLayer.Settings, gridState);
+
+                    if (dataLayer.LayerType == LayerType.BlockLayer) {
+                        var chunks = ReadChunksCoordsFromDir(folder);
+                        var chunkLayer = (SimpleChunkLayer<BlockData>)dataLayer;
+                        foreach (Vector3Int chunkCoord in chunks) {
+                            LoadChunk(folder, chunkCoord, chunkLayer.GetChunkData(chunkCoord));
+                        }
+                    } else if (dataLayer.LayerType == LayerType.BigBlockLayer) {
+                        var chunks = ReadChunksCoordsFromDir(folder);
+                        var chunkLayer = (SimpleChunkLayer<BigBlockData>)dataLayer;
+                        foreach (Vector3Int chunkCoord in chunks) {
+                            LoadChunk(folder, chunkCoord, chunkLayer.GetChunkData(chunkCoord));
+                        }
                     } else {
-                        chunkSerial.Load( gridState );
+                        throw new NotImplementedException();
                     }
                 }
             }
         }
 
-        private T LoadData<T>(string file)
+        public static List<Vector3Int> ReadChunksCoordsFromDir(string path)
         {
-            return JsonDataIO.LoadData<T>( _filePath, file );
-        }
-    }
-
-    public static class JsonDataIO
-    {
-        /// <summary>
-        /// Loaded data from json file. Data must be serializable.
-        /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <param name="folder">Absolute or relative folder</param>
-        /// <param name="file">File name without extension</param>
-        /// <returns></returns>
-        public static T LoadData<T>(string folder, string file)
-        {
-            string fullPath = FileFullName( folder, file );
-            string json = File.ReadAllText( fullPath, LevelFileConsts.ENCODING );
-            return JsonUtility.FromJson<T>( json );
+            List<Vector3Int> result = new();
+            if (Directory.Exists(path)) {
+                string[] files = Directory.GetFiles(path);
+                var re = new Regex(LevelFileNames.CHUNK_COORD_REGEX);
+                foreach (string filename in files) {
+                    var match = re.Match(filename);
+                    if (match.Success) {
+                        Vector3Int blockCoord = new(
+                            int.Parse(match.Groups[2].Value),
+                            int.Parse(match.Groups[3].Value),
+                            int.Parse(match.Groups[4].Value));
+                        result.Add(blockCoord);
+                    }
+                }
+            }
+            return result;
         }
 
-        /// <summary>
-        /// Save data to json file. Data must be serializable.
-        /// </summary>
-        /// <param name="obj"></param>
-        /// <param name="folder">Absolute or relative folder</param>
-        /// <param name="file">File name without extension</param>
-        /// <param name="prettyPrint">When true, file will be human readable</param>
-        public static void SaveData(object obj, string folder, string file, bool prettyPrint)
+        public static void LoadChunk<T>(string dataLayerPath, Vector3Int coord, DataLayerContent<T> content)
         {
-            string json = JsonUtility.ToJson( obj, prettyPrint );
-            string fullPath = FileFullName( folder, file );
-            File.WriteAllText( fullPath, json, LevelFileConsts.ENCODING );
-        }
-
-        public static string FileFullName(string folder, string file)
-        {
-            return $"{folder}/{file}{LevelFileConsts.JSON_EXTENSION}";
+            string fileName = LevelFileNames.GetChunkFile(coord);
+            if (content is DataLayerStaticContent<BlockData> bdContent) {
+                var serial = JsonDataIO.LoadData<BlockChunkConvertSerializable>(dataLayerPath, fileName);
+                serial.Load(bdContent);
+            } else if (content is DataLayerDynamicContent<BigBlockData> bbdContent) {
+                var serial = JsonDataIO.LoadData<BigBlockChunkContentSerializable>(dataLayerPath, fileName);
+                serial.Load(bbdContent);
+            } else {
+                throw new NotImplementedException();
+            }
         }
     }
 }

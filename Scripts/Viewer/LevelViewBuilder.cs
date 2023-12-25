@@ -1,146 +1,145 @@
 ﻿using Level;
 using Level.API;
+
+using System;
+using System.Collections.Generic;
+using System.Linq;
+
 using UnityEngine;
-using UnityEngine.Events;
 
 namespace LevelView
 {
+    /// <summary>
+    /// Формирует вьюху по модели. Да, да, это тот самый класс вьюхи.
+    /// </summary>
     public class LevelViewBuilder
     {
-        private IConstructFabric _constructFabric;
-        private ILevelAPI _levelAPI;
+        private ConstructFabric _constructFabric;
+        private LevelAPI _levelAPI;
         private IObjectViewFabric _objViewFabric;
 
-        public LevelViewBuilder(IConstructFabric constructFabric)
+        private Dictionary<DataLayer, BlockLayerSyncronizer> _blockSyncronizers = new();
+
+
+        public LevelViewBuilder(ConstructFabric constructFabric)
         {
             _constructFabric = constructFabric;
         }
 
-        public void Build(ILevelAPI levelAPI, Transform root, bool ignorePools)
+        public void Build(LevelAPI levelAPI, Transform root, bool ignorePools)
         {
             _levelAPI = levelAPI;
             if (ignorePools) {
-                _objViewFabric = new ObjectViewFabricNonPool( _constructFabric );
+                _objViewFabric = new ObjectViewFabricNonPool(_constructFabric);
             } else {
-                _objViewFabric = new ObjectViewFabric( _constructFabric );
+                _objViewFabric = new ObjectViewFabric(_constructFabric);
             }
 
-            levelAPI.BlockProto.onBlockProtoAdded += (blockProto) => {
-                SetupBlockProto( blockProto, _constructFabric );
-            };
-            foreach (var blockProto in levelAPI.BlockProto.BlockProtos) {
-                SetupBlockProto( blockProto, _constructFabric );
-            }
+            // Setup grid settings
+            _levelAPI.BlockProtoCollection.added = ReactiveTools.SubscribeCollection(
+                _levelAPI.BlockProtoCollection,
+                _levelAPI.BlockProtoCollection.added,
+                (blockProto) => SetupBlockProto(blockProto)
+            );
+            _levelAPI.BlockProtoCollection.removed += RemoveBlockProto;
 
             // Setup grid states
-            UnityAction<GridState> onStateAdded = (gridState) => {
-                SetupGridState( gridState, root );
-            };
-            levelAPI.GridStates.onStateAdded += onStateAdded;
-            foreach (var gridState in levelAPI.GridStates.Grids) {
-                SetupGridState( gridState, root );
+            _levelAPI.GridStatesCollection.added = ReactiveTools.SubscribeCollection(
+                _levelAPI.GridStatesCollection,
+                _levelAPI.GridStatesCollection.added,
+                (gridState) => SetupGridState(gridState, root)
+            );
+        }
+
+
+        private void SetupBlockProto(BlockProto blockProto)
+        {
+            // Простая проверка на существование префаба
+            if (!_objViewFabric.HasPrefab(blockProto.Name)) {
+                Debug.LogError($"Missing block class {blockProto.Name}");
             }
         }
 
-        private void SetupBlockProto(BlockProto blockProto, IConstructFabric constructFabric)
+        private void RemoveBlockProto(BlockProto proto)
         {
-            if (!constructFabric.HasPrefab( blockProto.Name )) {
-                Debug.LogError( $"Missing block prefab {blockProto.Name}" );
-            }
+            // Удаление описания блока не имеет смысла для вьюхи, 
+            // но мы можем попробовать удалить пул объектов 
+            _objViewFabric.Unuse(proto.Name);
         }
 
         private void SetupGridState(GridState gridState, Transform parent)
         {
-
-            GameObject gridView = new( $"{gridState.Key}-{gridState.GridSettingsName}" );
+            // Корневой объект для хранения грида
+            GameObject gridView = new($"{gridState.Key}-{gridState.GridSettingsName}");
             gridView.transform.parent = parent;
             gridView.transform.localPosition = default;
             gridView.transform.localRotation = Quaternion.identity;
 
-            UnityAction<GridChunk> chunkLoaded = (chunk) => {
-                SetupChunk( chunk, gridView.transform, gridState.GridSettings );
+            Action<GridState, DataLayer> onLayerAdded = (gridState, dataLayer) => {
+                SetupDataLayer(dataLayer, parent, gridState);
             };
-            gridState.chunkLoaded += chunkLoaded;
-
-            foreach (var chunk in gridState.LoadedChunks) {
-                SetupChunk( chunk, gridView.transform, gridState.GridSettings );
+            gridState.layerAdded += onLayerAdded;
+            foreach (var dataLayer in gridState.DataLayers) {
+                SetupDataLayer(dataLayer, gridView.transform, gridState);
             }
 
-            UnityAction onDestroy = null;
+            Action<GridState, string> onLayerRemoved = (gridState, layerTag) => {
+                var dataLayer = gridState.GetLayer(layerTag);
+                RemoveDataLayer(dataLayer, gridView.transform);
+            };
+            gridState.layerRemoved += onLayerRemoved;
+
+            Action onDestroy = null;
             onDestroy = () => {
-                gridState.chunkLoaded -= chunkLoaded;
+                gridState.layerAdded -= onLayerAdded;
+                gridState.layerRemoved -= onLayerRemoved;
                 gridState.OnDestroyAction -= onDestroy;
+                RemoveGridState(gridState, gridView.transform);
             };
             gridState.OnDestroyAction += onDestroy;
         }
 
-        private void SetupChunk(
-            GridChunk chunk,
-            Transform parent,
-            GridSettings gridSettings)
+        private void RemoveGridState(GridState gridState, Transform gridView)
         {
-            GameObject chunkView = new( $"{chunk.Key.x} {chunk.Key.y} {chunk.Key.z}" );
-            chunkView.transform.parent = parent;
-            chunkView.transform.localRotation = Quaternion.identity;
-            chunkView.transform.localPosition = new Vector3(
-                gridSettings.ChunkSize.x * chunk.Key.x,
-                gridSettings.ChunkSize.y * chunk.Key.y,
-                gridSettings.ChunkSize.z * chunk.Key.z
-                );
-
-            UnityAction<DataLayer> layerAdded = (dataLayer) => {
-                SetupLayer( dataLayer, chunkView.transform, gridSettings );
-            };
-            chunk.layerAdded += layerAdded;
-
-            foreach (var dataLayer in chunk.Layers) {
-                SetupLayer( dataLayer, chunkView.transform, gridSettings );
+            foreach (var dataLayer in gridState.DataLayers) {
+                RemoveDataLayer(dataLayer, gridView.transform);
             }
-
-            UnityAction onRemove = null;
-            onRemove = () => {
-                chunk.layerAdded -= layerAdded;
-                chunk.OnDestroyAction -= onRemove;
-            };
-            chunk.OnDestroyAction += onRemove;
+            GameObject.Destroy(gridView.gameObject);
         }
 
-        private void SetupLayer(
-            DataLayer dataLayer,
-            Transform parent,
-            GridSettings gridSettings)
+        private void SetupDataLayer(DataLayer dataLayer, Transform gridView, GridState gridState)
+        {
+            var layerSettings = gridState.GridSettings.Settings.layers.Single(x => x.tag == dataLayer.Tag);
+            switch (dataLayer.LayerType) {
+                case LayerType.BlockLayer:
+                    var layerSyncronizer = new BlockLayerSyncronizer(
+                        _levelAPI,
+                        gridState,
+                        (ChunkLayer<BlockData, Vector3Int>)dataLayer,
+                        _objViewFabric,
+                        gridView);
+                    layerSyncronizer.Init();
+                    _blockSyncronizers.Add(dataLayer, layerSyncronizer);
+                    //TODO add remove layer handler
+                    break;
+
+                default:
+                    Debug.LogError($"Layer {dataLayer.LayerType} not supported");
+                    break;
+            }
+        }
+
+        private void RemoveDataLayer(DataLayer dataLayer, Transform gridView)
         {
             switch (dataLayer.LayerType) {
                 case LayerType.BlockLayer:
-                    SetupBlockLayer( dataLayer as BlockLayer, parent, gridSettings );
+                    var layerSyncronizer = _blockSyncronizers[dataLayer];
+                    layerSyncronizer.Destroy();
+                    _blockSyncronizers.Remove(dataLayer);
                     break;
                 default:
-                    Debug.LogError( $"Layer {dataLayer.LayerType} not supported" );
+                    Debug.LogError($"Layer {dataLayer.LayerType} not supported");
                     break;
-            }
-        }
-
-        private void SetupBlockLayer(
-            BlockLayer blockLayer,
-            Transform parent,
-            GridSettings gridSettings)
-        {
-            for (int i = 0; i < gridSettings.ChunkSizeFlat; i++) {
-                var blockData = blockLayer.Item( i );
-                if (blockData.blockId == 0) {
-                    continue;
-                }
-                Vector3Int blockCoord = GridChunk.FlatToBlockCoord( i, gridSettings.ChunkSize );
-                Vector3 pos = new Vector3(
-                    blockCoord.x * gridSettings.CellSize.x,
-                    blockCoord.y * gridSettings.CellSize.y,
-                    blockCoord.z * gridSettings.CellSize.z );
-                BlockProto blockProto = _levelAPI.BlockProto.GetBlockProto( blockData.blockId );
-                BlockViewAPI blockViewAPI = new BlockViewAPI( blockLayer, blockCoord, gridSettings );
-                var objectView = _objViewFabric.Create( blockProto.Name, blockViewAPI );
-                objectView.transform.parent = parent;
-                objectView.transform.localRotation = Quaternion.identity;
-                objectView.transform.localPosition = pos;
             }
         }
     }

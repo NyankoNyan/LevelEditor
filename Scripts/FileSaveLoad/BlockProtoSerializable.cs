@@ -15,9 +15,9 @@ namespace Level.IO
                 settings = blockProto.Settings
             };
 
-        public void Load(IBlockProtoAPI blockProtoAPI)
+        public void Load(BlockProtoCollection blockProtos)
         {
-            blockProtoAPI.Add( settings );
+            blockProtos.Add( settings );
         }
     }
 }

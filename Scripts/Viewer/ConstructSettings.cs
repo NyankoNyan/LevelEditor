@@ -6,22 +6,27 @@ namespace LevelView
     [CreateAssetMenu( fileName = "ConstructSettings", menuName = "LevelEditor/ConstructSettings" )]
     public class ConstructSettings : ScriptableObject
     {
-        [SerializeField] Prefab[] _prefabs;
+        [SerializeField] private Prefab[] _prefabs;
 
         [Serializable]
         private struct Prefab
         {
             public string id;
-            public ObjectView prefab;
+            public string refId;
+            public GameObject prefab;
         }
 
-        public IConstructFabric GetConstructFabric()
+        public ConstructFabric GetConstructFabric()
         {
             ConstructFabric constructFabric = new();
             for (int i = 0; i < _prefabs.Length; i++) {
                 var prefab = _prefabs[i];
                 try {
-                    constructFabric.AddPrefab( prefab.id, prefab.prefab );
+                    constructFabric.AddPrefab( new ObjectSetup() {
+                        id = prefab.id,
+                        refId = prefab.refId,
+                        prefab = prefab.prefab
+                    } );
                 } catch (Exception e) {
                     Debug.LogError( $"Index {i}: {e.Message}" );
                 }
