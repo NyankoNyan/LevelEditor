@@ -22,6 +22,22 @@ namespace Level
             this = other;
             layers = new(other.layers);
         }
+
+        public (bool, CompareTools.Difference<DataLayerSettings>) Equals(GridSettingsCreateParams other)
+        {
+            var layersDiff = CompareTools.CompareLists(layers, other.layers);
+            return (
+                name == other.name
+                    && chunkSize == other.chunkSize
+                    && cellSize == other.cellSize
+                    && formFactor == other.formFactor
+                    && hasBounds == other.hasBounds
+                    && bounds.Equals(other.bounds)
+                    && layersDiff.uniq1.Count() == 0
+                    && layersDiff.uniq2.Count() == 0,
+                layersDiff
+            );
+        }
     }
 
     public struct GridSettingsInfo
@@ -38,14 +54,6 @@ namespace Level
         ItemLayer,
         GlobalItemLayer
     }
-
-    //[Serializable]
-    //public struct DataLayerSettings
-    //{
-    //    public string name;
-    //    public LayerType layerType;
-    //    public string tag;
-    //}
 
     public class GridSettings : IHasKey<uint>, IInitializable<GridSettingsCreateParams>, IDestroy
     {
@@ -68,7 +76,26 @@ namespace Level
             }
         }
 
-        public GridSettingsCreateParams Settings => _settings;
+        public GridSettingsCreateParams Settings {
+            get => _settings;
+            set {
+                (var equal, var diff) = _settings.Equals(value);
+                if (!equal) {
+                    _settings = new(value);
+                    changed?.Invoke();
+                    if (layerRemoved != null) {
+                        foreach (var layer in diff.uniq1) {
+                            layerRemoved(layer);
+                        }
+                    }
+                    if (layerAdded != null) {
+                        foreach (var layer in diff.uniq2) {
+                            layerAdded(layer);
+                        }
+                    }
+                }
+            }
+        }
 
         public Vector3Int ChunkSize {
             get => _settings.chunkSize;
@@ -178,4 +205,29 @@ namespace Level
 
     public class GridSettingsFabric : Fabric<GridSettings, GridSettingsCreateParams>
     { };
+
+    public static class CompareTools
+    {
+        public struct Difference<T>
+        {
+            public IEnumerable<T> uniq1, uniq2;
+        }
+
+        public delegate TKey GetKey<T, TKey>(ref T value);
+
+        public static Difference<T> CompareLists<T, TKey>(List<T> list1, List<T> list2, GetKey<T, TKey> getKey)
+        {
+            Difference<T> difference = new();
+            HashSet<TKey> keys1 = new(list1.Select(x => getKey(ref x)));
+            HashSet<TKey> keys2 = new(list2.Select(x => getKey(ref x)));
+            difference.uniq1 = list1.Where(elem => !keys2.Contains(getKey(ref elem)));
+            difference.uniq2 = list2.Where(elem => !keys1.Contains(getKey(ref elem)));
+            return difference;
+        }
+
+        public static Difference<T> CompareLists<T>(List<T> list1, List<T> list2)
+        {
+            return CompareLists(list1, list2, (ref T x) => x);
+        }
+    }
 }
