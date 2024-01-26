@@ -1,14 +1,13 @@
 ﻿using System.Collections.Generic;
 using UnityEngine.Assertions;
-using UnityEngine.Events;
 
 namespace RuntimeEditTools
 {
     public class InputFieldLinker
     {
-        public UnityAction onLinked;
-        public UnityAction onUnlinked;
-        public UnityAction<string> textChanged;
+        public Action onLinked;
+        public Action onUnlinked;
+        public Action<string> textChanged;
 
 
         private List<IKeyboard> _keyboards = new();
