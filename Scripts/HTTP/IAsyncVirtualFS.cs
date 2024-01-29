@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 
 namespace Level.IO
@@ -13,8 +14,11 @@ namespace Level.IO
     public interface IAsyncVirtualFS
     {
         IEnumerator GetFilesList(string path, Action<FileInfo[]> callback = null, Action<string> errorCallback = null);
+
         IEnumerator AddDirectory(string path, Action callback = null, Action<string> errorCallback = null);
+
         IEnumerator AddFile(string path, string content, Action callback = null, Action<string> errorCallback = null);
+
         IEnumerator GetFile(string path, Action<string> callback = null, Action<string> errorCallback = null);
     }
 }

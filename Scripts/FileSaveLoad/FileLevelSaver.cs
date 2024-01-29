@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -12,7 +13,7 @@ namespace Level.IO
 {
     public interface ILevelSave
     {
-        void SaveFullContent(LevelAPI level, string savePath = null);
+        IEnumerator SaveFullContent(LevelAPI level, string savePath = null);
     }
 
     internal static class LevelFileNames
@@ -36,9 +37,9 @@ namespace Level.IO
         {
             string gridFolder = gridState.Key.ToString();
             if (dataLayerSettings.layerType == LayerType.BlockLayer) {
-                return gridFolder + "\\" + LevelFileNames.LAYER_BLOCKS + '_' + dataLayerSettings.tag;
+                return gridFolder + "\\" + LAYER_BLOCKS + '_' + dataLayerSettings.tag;
             } else if (dataLayerSettings.layerType == LayerType.BigBlockLayer) {
-                return gridFolder + "\\" + LevelFileNames.LAYER_BIG_BLOCKS + '_' + dataLayerSettings.tag;
+                return gridFolder + "\\" + LAYER_BIG_BLOCKS + '_' + dataLayerSettings.tag;
             } else {
                 throw new Exception($"Unknown layer type {dataLayerSettings.layerType}");
             }
@@ -65,7 +66,7 @@ namespace Level.IO
             _chunkStorages.Add(storage);
         }
 
-        public void SaveFullContent(LevelAPI level, string savePath)
+        public IEnumerator SaveFullContent(LevelAPI level, string savePath)
         {
             string currentSavePath = savePath ?? _filePath;
 
@@ -74,6 +75,8 @@ namespace Level.IO
             SaveGridSettings(level, currentSavePath, _prettyPrint);
             SaveGridStatesHeaders(level, currentSavePath, _prettyPrint);
             SaveGridStatesBodies(level, currentSavePath, _prettyPrint);
+
+            yield break;
         }
 
         private static void CheckDirectory(string path)

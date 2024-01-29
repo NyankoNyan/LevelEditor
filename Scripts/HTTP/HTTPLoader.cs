@@ -1,10 +1,11 @@
+using System;
 using System.Collections;
+using System.Linq;
 using System.Text.RegularExpressions;
 
 using Level.API;
 
 using UnityEngine;
-using UnityEngine.Assertions;
 using UnityEngine.Networking;
 
 namespace Level.IO
@@ -42,7 +43,7 @@ namespace Level.IO
         public IEnumerator AddDirectory(string path, Action callback = null, Action<string> errorCallback = null)
         {
             string url = _mainURLPart + path;
-            using (UnityWebRequest request = UnityWebRequest.Post(url)) {
+            using (UnityWebRequest request = UnityWebRequest.Post(url, "", "application/octet-stream")) {
                 yield return request.SendWebRequest();
                 if (request.result == UnityWebRequest.Result.Success) {
                     callback?.Invoke();
@@ -82,12 +83,13 @@ namespace Level.IO
     public class AsyncFSLevelSaver : MonoBehaviour, ILevelSave
     {
         [SerializeField] private string _defaultPath;
-        [SerializeField] private float _timeout = 10f;
         [SerializeField] private bool _prettyPrint = true;
+
         /// <summary>
         /// Virtual file system provider
         /// </summary>
         private IAsyncVirtualFS _fs;
+
         private bool _initialized;
         private Status _status;
 
@@ -149,13 +151,11 @@ namespace Level.IO
             );
         }
 
-
         private IEnumerator SaveGridStates(LevelAPI level, string currentPath)
         {
             yield return SaveGridStatesHeaders(level, currentPath);
             yield return SaveGridStatesBodies(level, currentPath);
         }
-
 
         private IEnumerator SaveGridStatesHeaders(LevelAPI level, string currentPath)
         {
