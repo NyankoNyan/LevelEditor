@@ -1,32 +1,53 @@
 using UnityEngine;
 using UnityEngine.Assertions;
 
-namespace UI2;
-
-internal class ElementInstance : IElementInstance
+namespace UI2
 {
-    private readonly IElementSetup _proto;
-    private readonly GameObject _instance;
-
-    public ElementInstance(IElementSetup proto, GameObject instance)
+    internal class ElementInstance : IElementInstance
     {
-        Assert.IsNotNull(proto);
-        Assert.IsNotNull(instance);
-        _proto = proto;
-        _instance = instance;
-    }
+        private readonly IElementSetupReadWrite _proto;
+        private readonly GameObject _instance;
+        private readonly IElementInstance _parent;
+        private List<IElementInstance> _children;
 
-    public IElementSetup Proto => _proto;
+        public ElementInstance(IElementSetupReadWrite proto, GameObject instance, IElementInstance parent)
+        {
+            Assert.IsNotNull(proto);
+            Assert.IsNotNull(instance);
+            _proto = proto;
+            _instance = instance;
 
-    public IElementInstance Hide()
-    {
-        _instance.SetActive(false);
-        return this;
-    }
+            if (parent != null) {
+                parent.AddChild(parent);
+                _parent = parent;
+            }
+        }
 
-    public IElementInstance Show()
-    {
-        _instance.SetActive(true);
-        return this;
+        public IElementSetupReadWrite Proto => _proto;
+        public IElementInstance Parent => _parent;
+
+        public void AddChild(IElementInstance child)
+        {
+            _children ??= new();
+            if (child.Parent != null) {
+                throw new ArgumentException();
+            }
+
+            _children.Add(child);
+        }
+
+        public IEnumerable<IElementInstance> Children => _children;
+
+        public IElementInstance Hide()
+        {
+            _instance.SetActive(false);
+            return this;
+        }
+
+        public IElementInstance Show()
+        {
+            _instance.SetActive(true);
+            return this;
+        }
     }
 }

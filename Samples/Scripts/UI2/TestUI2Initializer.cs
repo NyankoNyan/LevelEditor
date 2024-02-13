@@ -1,5 +1,9 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.Runtime.CompilerServices;
+using System.Linq;
 
 using UnityEngine;
 
@@ -42,49 +46,11 @@ namespace UI2
         }
     }
 
-    public interface IElementInstance
-    {
-        IElementInstance Show();
-
-        IElementInstance Hide();
-
-        IElementSetup Proto { get; }
-    }
-
-    public delegate void SetupThenDelegate(IElementSetup setup);
-
-    public interface IElementRuntimeContext
-    {
-        public IElementInstance Element { get; }
-        public void DrillUpSignal();
-    }
-
-    internal class ElementRuntimeContext : IElementRuntimeContext
-    {
-        public IElementInstance Element { get; }
-
-        public ElementRuntimeContext(IElementInstance element)
-        {
-            Element = element;
-        }
-    }
-
-    public interface ISignalContext
-    {
-        public string Name { get; }
-    }
-
-    internal class SignalContext : ISignalContext
-    {
-        public string Name { get; }
-
-        public SignalContext(string name)
-        {
-            Name = name;
-        }
-    }
+    public delegate void SetupThenDelegate(IElementSetupReadWrite setupReadWrite);
 
     public delegate void SetupHandleDelegate(ISignalContext signal, IElementRuntimeContext context);
+
+    public delegate IEnumerator OperationDelegate();
 
     public class ElementWorkflowException : Exception
     {
@@ -118,12 +84,12 @@ namespace UI2
         {
         }
 
-        public static IElementSetup Create()
+        public static IElementSetupReadWrite Create()
         {
             return new MyWindow()
                 .SetId("MyWindow")
                 .SetStyle("window")
-                .Sub(new List<IElementSetup> {
+                .Sub(new List<IElementSetupReadWrite> {
                     ServerAddress.Create()
                         .Then(Snaps.HorizontalSnap(partSize: .8f))
                         .Then(Snaps.VerticalSnap(top: 0f, fixedSize: 100f)),
@@ -149,9 +115,18 @@ namespace UI2
                         switch (sig.Name) {
                             case "QUIT": {
                                 ctx.Element.Hide();
+                                ctx.DrillUpSignal("RETURN_CONTROL");
                                 break;
                             }
+                            case "CONFIRM": {
+                                ctx.Element.Hide();
+                                //waiting simulation
+                                break;
+                            }
+                            default:
+                                return;
                         }
+                        sig.Consume();
                     }
                 );
         }
@@ -163,7 +138,7 @@ namespace UI2
         {
         }
 
-        public static IElementSetup Create()
+        public static IElementSetupReadWrite Create()
         {
             return new ServerAddress()
                 .SetId("ServerAddress")
@@ -175,7 +150,7 @@ namespace UI2
     {
         private MapName() { }
 
-        public static IElementSetup Create()
+        public static IElementSetupReadWrite Create()
         {
             return new MapName()
                 .SetId("MapName")
@@ -187,7 +162,7 @@ namespace UI2
     {
         private WaitStatus() { }
 
-        public static IElementSetup Create()
+        public static IElementSetupReadWrite Create()
         {
             return new WaitStatus()
                 .SetId("WaitStatus")
@@ -199,7 +174,7 @@ namespace UI2
     {
         private ErrorStatus() { }
 
-        public static IElementSetup Create()
+        public static IElementSetupReadWrite Create()
         {
             return new ErrorStatus()
                 .SetId("ErrorStatus")
@@ -211,7 +186,7 @@ namespace UI2
     {
         private CancelButton() { }
 
-        public static IElementSetup Create()
+        public static IElementSetupReadWrite Create()
         {
             return new CancelButton()
                 .SetId("CancelButton")
@@ -223,7 +198,7 @@ namespace UI2
     {
         private ConfirmButton() { }
 
-        public static IElementSetup Create()
+        public static IElementSetupReadWrite Create()
         {
             return new ConfirmButton()
                 .SetId("ConfirmButton")
