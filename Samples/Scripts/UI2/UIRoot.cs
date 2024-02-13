@@ -1,3 +1,6 @@
+using System;
+using System.Collections.Generic;
+
 using UnityEngine;
 
 namespace UI2
@@ -88,67 +91,67 @@ namespace UI2
             SignalContext signal = new SignalContext(name, data);
             switch (direction) {
                 case SignalDirection.Broadcast: {
-                    foreach (var listener in _listeners) {
-                        listener.Proto.Handler(signal, new ElementRuntimeContext(listener, this));
-                        if (consumable && signal.Consumed) {
-                            break;
+                        foreach (var listener in _listeners) {
+                            listener.Proto.Handler(signal, new ElementRuntimeContext(listener, this));
+                            if (consumable && signal.Consumed) {
+                                break;
+                            }
                         }
-                    }
 
-                    break;
-                }
+                        break;
+                    }
                 case SignalDirection.Self: {
-                    sender.Proto.Handler?.Invoke(signal, new ElementRuntimeContext(sender, this));
-                    break;
-                }
-                case SignalDirection.DrillUp: {
-                    HashSet<IElementInstance> antiRecursion = new() { sender };
-                    var current = sender.Parent;
-                    while (current != null) {
-                        if (!antiRecursion.Add(current)) {
-                            Debug.LogWarning($"found recursion in element {current.Proto.Id}");
-                            break;
-                        }
-
-                        current.Proto.Handler?.Invoke(signal, new ElementRuntimeContext(sender, this));
-                        if (consumable && signal.Consumed) {
-                            break;
-                        }
-
-                        current = current.Parent;
+                        sender.Proto.Handler?.Invoke(signal, new ElementRuntimeContext(sender, this));
+                        break;
                     }
+                case SignalDirection.DrillUp: {
+                        HashSet<IElementInstance> antiRecursion = new() { sender };
+                        var current = sender.Parent;
+                        while (current != null) {
+                            if (!antiRecursion.Add(current)) {
+                                Debug.LogWarning($"found recursion in element {current.Proto.Id}");
+                                break;
+                            }
 
-                    break;
-                }
+                            current.Proto.Handler?.Invoke(signal, new ElementRuntimeContext(sender, this));
+                            if (consumable && signal.Consumed) {
+                                break;
+                            }
+
+                            current = current.Parent;
+                        }
+
+                        break;
+                    }
                 case SignalDirection.DrillDown: {
-                    HashSet<IElementInstance> antiRecursion = new() { sender };
+                        HashSet<IElementInstance> antiRecursion = new() { sender };
 
-                    void DeepSeach(IElementInstance elem)
-                    {
-                        if (elem.Children != null) {
-                            foreach (var sub in elem.Children) {
-                                if (!antiRecursion.Add(sub)) {
-                                    Debug.LogWarning($"found recursion in element {elem.Proto.Id}");
-                                    continue;
-                                }
+                        void DeepSeach(IElementInstance elem)
+                        {
+                            if (elem.Children != null) {
+                                foreach (var sub in elem.Children) {
+                                    if (!antiRecursion.Add(sub)) {
+                                        Debug.LogWarning($"found recursion in element {elem.Proto.Id}");
+                                        continue;
+                                    }
 
-                                sub.Proto.Handler?.Invoke(signal, new ElementRuntimeContext(sender, this));
-                                if (consumable && signal.Consumed) {
-                                    return;
-                                }
+                                    sub.Proto.Handler?.Invoke(signal, new ElementRuntimeContext(sender, this));
+                                    if (consumable && signal.Consumed) {
+                                        return;
+                                    }
 
-                                DeepSeach(sub);
-                                if (consumable && signal.Consumed) {
-                                    break;
+                                    DeepSeach(sub);
+                                    if (consumable && signal.Consumed) {
+                                        break;
+                                    }
                                 }
                             }
                         }
+
+                        DeepSeach(sender);
+
+                        break;
                     }
-
-                    DeepSeach(sender);
-
-                    break;
-                }
                 default:
                     throw new NotImplementedException();
             }

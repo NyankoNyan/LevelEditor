@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+
 namespace UI2
 {
     public interface IElementInstance

@@ -1,9 +1,6 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Diagnostics;
-using System.Runtime.CompilerServices;
-using System.Linq;
 
 using UnityEngine;
 
@@ -63,7 +60,6 @@ namespace UI2
         public GameObject prefab;
     }
 
-
     #region Test Zone
 
     /* Нужно сделать окошко с вводом адреса сервера, которое хранит последнее значение и выдаёт значение по умолчанию при первом запуске.
@@ -112,22 +108,22 @@ namespace UI2
                         .MoveRelative(new Vector2(.25f, 0))
                 })
                 .Handle((sig, ctx) => {
-                        switch (sig.Name) {
-                            case "QUIT": {
+                    switch (sig.Name) {
+                        case "QUIT": {
                                 ctx.Element.Hide();
                                 ctx.DrillUpSignal("RETURN_CONTROL");
                                 break;
                             }
-                            case "CONFIRM": {
+                        case "CONFIRM": {
                                 ctx.Element.Hide();
                                 //waiting simulation
                                 break;
                             }
-                            default:
-                                return;
-                        }
-                        sig.Consume();
+                        default:
+                            return;
                     }
+                    sig.Consume();
+                }
                 );
         }
     }
@@ -148,7 +144,8 @@ namespace UI2
 
     public class MapName : BaseElement
     {
-        private MapName() { }
+        private MapName()
+        { }
 
         public static IElementSetupReadWrite Create()
         {
@@ -160,7 +157,8 @@ namespace UI2
 
     public class WaitStatus : BaseElement
     {
-        private WaitStatus() { }
+        private WaitStatus()
+        { }
 
         public static IElementSetupReadWrite Create()
         {
@@ -172,7 +170,8 @@ namespace UI2
 
     public class ErrorStatus : BaseElement
     {
-        private ErrorStatus() { }
+        private ErrorStatus()
+        { }
 
         public static IElementSetupReadWrite Create()
         {
@@ -184,7 +183,8 @@ namespace UI2
 
     public class CancelButton : BaseElement
     {
-        private CancelButton() { }
+        private CancelButton()
+        { }
 
         public static IElementSetupReadWrite Create()
         {
@@ -196,7 +196,8 @@ namespace UI2
 
     public class ConfirmButton : BaseElement
     {
-        private ConfirmButton() { }
+        private ConfirmButton()
+        { }
 
         public static IElementSetupReadWrite Create()
         {

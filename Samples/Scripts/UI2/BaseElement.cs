@@ -1,8 +1,10 @@
+using System;
+using System.Collections.Generic;
+
 using UnityEngine;
 
 namespace UI2
 {
-
     public abstract class BaseElement : IElementSetupReadWrite
     {
         private string _id;

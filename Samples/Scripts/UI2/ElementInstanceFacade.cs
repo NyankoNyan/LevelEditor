@@ -1,4 +1,6 @@
-﻿using UnityEngine;
+﻿using System;
+
+using UnityEngine;
 using UnityEngine.UI;
 
 namespace UI2
@@ -16,25 +18,26 @@ namespace UI2
     {
         [SerializeField] private Button _button;
 
-        void Awake()
+        private void Awake()
         {
             if (!_button) {
                 throw new Exception("Missing button link");
             }
         }
-        void OnEnable()
+
+        private void OnEnable()
         {
             _button.onClick.AddListener(OnClick);
         }
 
-        void OnDisable()
+        private void OnDisable()
         {
             _button.onClick.RemoveListener(OnClick);
         }
 
-        void OnClick()
+        private void OnClick()
         {
-            this.ElementInstance.Click();
+            //this.ElementInstance.Click();
         }
     }
 }
