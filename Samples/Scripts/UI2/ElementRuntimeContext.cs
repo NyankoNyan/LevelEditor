@@ -12,6 +12,14 @@ namespace UI2
         public void DrillDownSignal(string name, object data = null, bool consumable = true)
             => _root.SendSignal(name, data, Element, SignalDirection.DrillDown, consumable);
 
+        public OperationDescriptor Start(IOperation operation) 
+            => _root.StartOperation(operation);
+
+        public IElementInstance Sub(string id)
+        {
+            return Element.Sub(id);
+        }
+
         public ElementRuntimeContext(IElementInstance element, UIRoot root)
         {
             Element = element;

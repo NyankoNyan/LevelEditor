@@ -40,12 +40,35 @@ namespace UI2
         }
 
         public IEnumerable<IElementInstance> Children => _children;
+        public IElementInstance Sub(string id)
+        {
+            // Own children
+            foreach (var child in Children) {
+                if (child.Proto.Id == id) {
+                    return child;
+                }
+            }
+            
+            // Ok, just go to a hierarchy
+            foreach (var child in Children) {
+                if (child.Proto.Id == id) {
+                    var result = child.Sub(id);
+                    if (result != null) {
+                        return result;
+                    }
+                }
+            }
+
+            return null;
+        }
 
         public IElementInstance Hide()
         {
             _instance.SetActive(false);
             return this;
         }
+
+        public bool Active => _instance.activeSelf;
 
         public IElementInstance Show()
         {

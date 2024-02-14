@@ -19,8 +19,7 @@ namespace UI2
         private bool _newSizeDelta;
         private Vector2 _anchoredPosition;
         private bool _newAnchorPos;
-        private SetupHandleDelegate _handler;
-        private Action _onClick;
+        private Dictionary<string, List<SetupHandleDelegate>> _handlers;
 
         public string Style => _style;
 
@@ -57,20 +56,39 @@ namespace UI2
             return this;
         }
 
-        public IElementSetupReadWrite Handle(SetupHandleDelegate handler)
+        // public IElementSetupReadWrite Handle(SetupHandleDelegate handler)
+        // {
+        //     _handler = handler;
+        //     return this;
+        // }
+
+        public IElementSetupReadWrite Handle(string signalName, SetupHandleDelegate handler)
         {
-            _handler = handler;
+            if (_handlers == null) {
+                _handlers = new();
+            }
+
+            List<SetupHandleDelegate> namedHandlers;
+            if (!_handlers.TryGetValue(signalName, out namedHandlers)) {
+                namedHandlers = new();
+                _handlers.Add(signalName, namedHandlers);
+            }
+
+            namedHandlers.Add(handler);
             return this;
         }
 
-        public SetupHandleDelegate Handler => _handler;
-        public Action OnClick => _onClick;
-
-        public IElementSetupReadWrite Click(Action handler)
+        public IElementSetupReadWrite DefaultHide()
         {
-            _onClick = handler;
+            NeedHide = true;
             return this;
         }
+
+        public IEnumerable<SetupHandleDelegate> GetHandlers(string signalName)
+            => _handlers?.GetValueOrDefault(signalName);
+
+        public bool HasHandlers => _handlers != null;
+        public bool NeedHide { get; private set; }
 
         public virtual void Init()
         {
@@ -90,28 +108,30 @@ namespace UI2
 
         public string Id => _id;
 
-        public IElementSetupReadWrite Sub(IElementSetupReadWrite element)
+        public IElementSetupReadWrite Sub(params IElementSetupReadWrite[] elements)
         {
-            if (_children == null) {
-                _children = new();
+            _children ??= new();
+
+            foreach (var element in elements) {
+                _children.Add(element);
             }
 
-            _children.Add(element);
             return this;
         }
 
         public IElementSetupReadWrite Sub(IEnumerable<IElementSetupReadWrite> elements)
         {
-            foreach (var element in elements) {
-                Sub(element);
-            }
+            Sub(elements.ToArray());
 
             return this;
         }
 
-        public IElementSetupReadWrite Then(SetupThenDelegate fn)
+        public IElementSetupReadWrite Apply(params SetupThenDelegate[] fns)
         {
-            fn(this);
+            foreach (var fn in fns) {
+                fn(this);
+            }
+
             return this;
         }
 

@@ -7,10 +7,12 @@ namespace UI2
         IElementInstance Show();
 
         IElementInstance Hide();
+        bool Active { get; }
 
         IElementSetupReadWrite Proto { get; }
         IElementInstance Parent { get; }
         void AddChild(IElementInstance child);
         IEnumerable<IElementInstance> Children { get; }
+        IElementInstance Sub(string id);
     }
 }

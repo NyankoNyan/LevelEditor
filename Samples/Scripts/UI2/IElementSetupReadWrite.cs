@@ -18,25 +18,26 @@ namespace UI2
         bool NewSizeDelta { get; }
         Vector2 AnchoredPosition { get; }
         bool NewAnchoredPosition { get; }
-        SetupHandleDelegate Handler { get; }
-        Action OnClick { get; }
+        IEnumerable<SetupHandleDelegate> GetHandlers(string signalName);
+        bool HasHandlers { get; }
+        bool NeedHide { get; }
     }
 
     public interface IElementSetupWrite
     {
         IElementSetupReadWrite SetId(string id);
         IElementSetupReadWrite SetStyle(string style);
-        IElementSetupReadWrite Sub(IElementSetupReadWrite element);
+        IElementSetupReadWrite Sub(params IElementSetupReadWrite[] elements);
         IElementSetupReadWrite Sub(IEnumerable<IElementSetupReadWrite> elements);
-        IElementSetupReadWrite Then(SetupThenDelegate fn);
+        IElementSetupReadWrite Apply(params SetupThenDelegate[] fns);
         IElementSetupReadWrite SetPivot(Vector2 pivot);
         IElementSetupReadWrite SetAnchor(Vector2 min, Vector2 max);
         IElementSetupReadWrite SetSizeDelta(Vector2 delta);
         IElementSetupReadWrite SetAnchoredPosition(Vector2 pos);
         IElementSetupReadWrite MoveRelative(Vector2 move);
         IElementSetupReadWrite Move(Vector2 move);
-        IElementSetupReadWrite Handle(SetupHandleDelegate handler);
-        IElementSetupReadWrite Click(Action handler);
+        IElementSetupReadWrite Handle(string signalName, SetupHandleDelegate handler);
+        IElementSetupReadWrite DefaultHide();
     }
 
     public interface IElementSetupReadWrite : IElementSetupRead, IElementSetupWrite

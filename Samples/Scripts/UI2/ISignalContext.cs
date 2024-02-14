@@ -5,5 +5,6 @@ namespace UI2
         string Name { get; }
         object Data { get; }
         void Consume();
+        void Resume();
     }
 }

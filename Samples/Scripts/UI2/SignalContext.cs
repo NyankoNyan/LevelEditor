@@ -2,7 +2,7 @@ namespace UI2
 {
     internal class SignalContext : ISignalContext
     {
-        private bool _consumed = false;
+        private bool _consumed = true;
         public string Name { get; }
 
         internal bool Consumed => _consumed;
@@ -10,6 +10,11 @@ namespace UI2
         public void Consume()
         {
             _consumed = true;
+        }
+
+        public void Resume()
+        {
+            _consumed = false;
         }
 
         public SignalContext(string name, object data)
