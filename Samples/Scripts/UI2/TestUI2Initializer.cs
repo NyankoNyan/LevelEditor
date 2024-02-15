@@ -1,11 +1,8 @@
 using System;
 using System.Collections;
-using System.Collections.Generic;
 using System.Reflection.Metadata;
 
 using UnityEngine;
-using UnityEngine.Assertions;
-using UnityEngine.CoreModule;
 
 namespace UI2
 {
@@ -66,86 +63,6 @@ namespace UI2
     public static class Facade
     {
         public const string Click = "CLICK";
-    }
-
-    public static class Traits
-    {
-        public static readonly SetupThenDelegate Active = elem => {
-            elem
-                .Handle("ACTIVATE", (sig, ctx) => {
-                    //TODO unlock element
-                })
-                .Handle("DEACTIVATE", (sig, ctx) => {
-                    //TODO lock element
-                });
-        };
-    }
-
-    public interface IOperation
-    {
-        IOperation Do(Action callback);
-        IOperation Wait(YieldInstruction wait);
-
-        IEnumerator Exec();
-    }
-
-    public class Operation : IOperation
-    {
-        private readonly List<Instruction> _instructions = new();
-
-        public IOperation Do(Action callback)
-        {
-            Assert.IsNotNull(callback);
-            _instructions.Add(new Instruction() {
-                iType = InstructionType.Do,
-                callback = callback
-            });
-            return this;
-        }
-
-        public IOperation Wait(YieldInstruction wait)
-        {
-            _instructions.Add(new Instruction() {
-                iType = InstructionType.Wait,
-                wait = wait
-            });
-            return this;
-        }
-
-        public IEnumerator Exec()
-        {
-            foreach (var instruction in _instructions) {
-                switch (instruction.iType) {
-                    case InstructionType.Do:
-                        instruction.callback();
-                        break;
-                    case InstructionType.Wait:
-                        yield return instruction.wait;
-                        break;
-                    default:
-                        throw new NotImplementedException();
-                }
-            }
-        }
-
-        private enum InstructionType { Do, Wait }
-
-        private struct Instruction
-        {
-            public InstructionType iType;
-            public Action callback;
-            public YieldInstruction wait;
-        }
-    }
-
-    public class OperationDescriptor
-    {
-        private readonly Coroutine _coroutine;
-
-        internal OperationDescriptor(Coroutine coroutine)
-        {
-            _coroutine = coroutine;
-        }
     }
 
     #region Test Zone
@@ -283,7 +200,11 @@ namespace UI2
                 .SetId("ErrorStatus")
                 .SetStyle("status-bar")
                 .Handle("MSG", (sig, ctx) => {
-                    //TODO change element text
+                    if (sig.Data is string s) {
+                        ctx.Element.GetFacadeFeature<MainTextFeature>()?.SetText(s);
+                    } else {
+                        ctx.Element.GetFacadeFeature<MainTextFeature>()?.SetText("");
+                    }
                 });
         }
     }

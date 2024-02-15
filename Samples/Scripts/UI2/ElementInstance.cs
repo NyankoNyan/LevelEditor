@@ -10,10 +10,12 @@ namespace UI2
     {
         private readonly IElementSetupReadWrite _proto;
         private readonly GameObject _instance;
+        private readonly ElementInstanceFacade _facade;
         private readonly IElementInstance _parent;
         private List<IElementInstance> _children;
+        private readonly UIRoot _root;
 
-        public ElementInstance(IElementSetupReadWrite proto, GameObject instance, IElementInstance parent)
+        public ElementInstance(IElementSetupReadWrite proto, GameObject instance, IElementInstance parent, UIRoot root)
         {
             Assert.IsNotNull(proto);
             Assert.IsNotNull(instance);
@@ -24,6 +26,10 @@ namespace UI2
                 parent.AddChild(parent);
                 _parent = parent;
             }
+
+            _root = root;
+
+            _facade = _instance.GetComponent<ElementInstanceFacade>();
         }
 
         public IElementSetupReadWrite Proto => _proto;
@@ -40,6 +46,7 @@ namespace UI2
         }
 
         public IEnumerable<IElementInstance> Children => _children;
+
         public IElementInstance Sub(string id)
         {
             // Own children
@@ -48,7 +55,7 @@ namespace UI2
                     return child;
                 }
             }
-            
+
             // Ok, just go to a hierarchy
             foreach (var child in Children) {
                 if (child.Proto.Id == id) {
@@ -61,6 +68,14 @@ namespace UI2
 
             return null;
         }
+
+        public void SendFacadeSignal(string id)
+        {
+            _root.SendSignal(id, null, this, SignalDirection.Self, false);
+        }
+
+        public T GetFacadeFeature<T>() where T : class, IFacadeFeature 
+            => _facade?.GetFeature<T>();
 
         public IElementInstance Hide()
         {

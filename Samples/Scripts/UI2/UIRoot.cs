@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 using UnityEngine;
 
@@ -48,7 +49,7 @@ namespace UI2
             if (_styles.TryGetValue(setup.Style, out Style style)) {
                 var newGO = GameObject.Instantiate(style.prefab, parent);
                 var parentInstance = parent.GetComponent<ElementInstanceFacade>()?.ElementInstance;
-                var instance = new ElementInstance(setup, newGO, parentInstance);
+                var instance = new ElementInstance(setup, newGO, parentInstance, this);
 
                 var facade = newGO.GetComponent<ElementInstanceFacade>();
                 if (facade) {

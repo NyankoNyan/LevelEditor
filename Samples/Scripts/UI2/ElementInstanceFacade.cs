@@ -1,43 +1,45 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 
 using UnityEngine;
-using UnityEngine.UI;
 
 namespace UI2
 {
     public class ElementInstanceFacade : MonoBehaviour
     {
         [SerializeField] private Transform _subZone;
+        private List<IFacadeFeature> _features = new();
 
         public IElementInstance ElementInstance { get; internal set; }
 
         public Transform SubZone => _subZone ?? transform;
-    }
 
-    public class ButtonFacade : ElementInstanceFacade
-    {
-        [SerializeField] private Button _button;
+        public T GetFeature<T>() where T : class, IFacadeFeature
+            => _features.SingleOrDefault(f => f is T) as T;
 
-        private void Awake()
+        protected void AddFeature(params IFacadeFeature[] features)
+            => _features.AddRange(features);
+
+        void Start()
         {
-            if (!_button) {
-                throw new Exception("Missing button link");
+            foreach (var feature in _features) {
+                feature.Init(gameObject, ElementInstance);
             }
         }
 
-        private void OnEnable()
+        void OnEnable()
         {
-            _button.onClick.AddListener(OnClick);
+            foreach (var feature in _features) {
+                feature.Enable();
+            }
         }
 
-        private void OnDisable()
+        void OnDisable()
         {
-            _button.onClick.RemoveListener(OnClick);
-        }
-
-        private void OnClick()
-        {
-            //this.ElementInstance.Click();
+            foreach (var feature in _features) {
+                feature.Disable();
+            }
         }
     }
 }

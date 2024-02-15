@@ -14,5 +14,7 @@ namespace UI2
         void AddChild(IElementInstance child);
         IEnumerable<IElementInstance> Children { get; }
         IElementInstance Sub(string id);
+        void SendFacadeSignal(string id);
+        T GetFacadeFeature<T>() where T : class, IFacadeFeature;
     }
 }
