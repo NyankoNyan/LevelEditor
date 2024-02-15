@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 
 using UnityEngine;
@@ -9,7 +8,7 @@ namespace UI2
     public class ElementInstanceFacade : MonoBehaviour
     {
         [SerializeField] private Transform _subZone;
-        private List<IFacadeFeature> _features = new();
+        private readonly List<IFacadeFeature> _features = new();
 
         public IElementInstance ElementInstance { get; internal set; }
 
@@ -21,21 +20,25 @@ namespace UI2
         protected void AddFeature(params IFacadeFeature[] features)
             => _features.AddRange(features);
 
-        void Start()
+        private void Start()
         {
             foreach (var feature in _features) {
-                feature.Init(gameObject, ElementInstance);
+                try {
+                    feature.Init(gameObject, ElementInstance);
+                } catch (ElementWorkflowException) {
+                    Debug.LogError($"Error on feature activation {feature.GetType().Name}");
+                }
             }
         }
 
-        void OnEnable()
+        private void OnEnable()
         {
             foreach (var feature in _features) {
                 feature.Enable();
             }
         }
 
-        void OnDisable()
+        private void OnDisable()
         {
             foreach (var feature in _features) {
                 feature.Disable();

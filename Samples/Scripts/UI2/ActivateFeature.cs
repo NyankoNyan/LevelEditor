@@ -5,14 +5,17 @@ namespace UI2
 {
     public class ActivateFeature : IFacadeFeature
     {
-        private Button _button;
+        private readonly Button _button;
+
+        public ActivateFeature(Button button = null)
+        {
+            _button = button;
+
+        }
 
         public void Init(GameObject go, IElementInstance instance)
         {
-            _button = go.GetComponent<Button>();
-            if (!_button) {
-                throw new ElementWorkflowException();
-            }
+            
         }
 
         public void Enable() { }
@@ -38,14 +41,14 @@ namespace UI2
         public void Activate()
         {
             if (_button) {
-                _button.enable = true;
+                _button.enabled = true;
             }
         }
 
         public void Deactivate()
         {
             if (_button) {
-                _button.enable = false;
+                _button.enabled = false;
             }
         }
     }

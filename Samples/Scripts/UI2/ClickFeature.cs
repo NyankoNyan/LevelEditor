@@ -5,15 +5,22 @@ namespace UI2
 {
     public class ClickFeature : IFacadeFeature
     {
-        private Button _button;
+        private readonly Button _button;
         private IElementInstance _instance;
+
+        public ClickFeature(Button button)
+        {
+            _button = button;
+            if (!_button) {
+                throw new ElementWorkflowException();
+            }
+        }
 
         public void Use(string action, params object[] actonParams)
             => throw new ElementWorkflowException();
 
         public void Init(GameObject go, IElementInstance instance)
         {
-            _button = go.GetComponent<Button>();
             _instance = instance;
         }
 

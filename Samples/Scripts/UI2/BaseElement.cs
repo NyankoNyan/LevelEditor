@@ -24,7 +24,15 @@ namespace UI2
 
         public string Style => _style;
 
-        public IEnumerable<IElementSetupReadWrite> Subs => _children.AsReadOnly();
+        public IEnumerable<IElementSetupReadWrite> Subs {
+            get {
+                if (_children != null) {
+                    return _children.AsReadOnly();
+                } else {
+                    return new IElementSetupReadWrite[0];
+                }
+            }
+        }
 
         public Vector2 Pivot => _pivot;
 

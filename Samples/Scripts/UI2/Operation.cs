@@ -2,8 +2,8 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 
+using UnityEngine;
 using UnityEngine.Assertions;
-using UnityEngine.CoreModule;
 
 namespace UI2
 {
@@ -37,16 +37,19 @@ namespace UI2
                     case InstructionType.Do:
                         instruction.callback();
                         break;
+
                     case InstructionType.Wait:
                         yield return instruction.wait;
                         break;
+
                     default:
                         throw new NotImplementedException();
                 }
             }
         }
 
-        private enum InstructionType { Do, Wait }
+        private enum InstructionType
+        { Do, Wait }
 
         private struct Instruction
         {
