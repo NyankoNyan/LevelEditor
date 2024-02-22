@@ -10,7 +10,7 @@ namespace UI2
         [SerializeField] private Transform _subZone;
         private readonly List<IFacadeFeature> _features = new();
 
-        public IElementInstance ElementInstance { get; internal set; }
+        //public IElementInstance ElementInstance { get; internal set; }
 
         public Transform SubZone => _subZone ?? transform;
 
@@ -19,17 +19,6 @@ namespace UI2
 
         protected void AddFeature(params IFacadeFeature[] features)
             => _features.AddRange(features);
-
-        private void Start()
-        {
-            foreach (var feature in _features) {
-                try {
-                    feature.Init(gameObject, ElementInstance);
-                } catch (ElementWorkflowException) {
-                    Debug.LogError($"Error on feature activation {feature.GetType().Name}");
-                }
-            }
-        }
 
         private void OnEnable()
         {
@@ -44,5 +33,24 @@ namespace UI2
                 feature.Disable();
             }
         }
+
+        public void InitFeatures(IElementInstance elementInstance)
+        {
+            OnInitFeatures();
+
+            foreach (var feature in _features) {
+                try {
+                    feature.Init(gameObject, elementInstance);
+                    if (enabled) {
+                        feature.Enable();
+                    }
+                } catch (ElementWorkflowException) {
+                    Debug.LogError($"Error on feature activation {feature.GetType().Name}");
+                }
+            }
+        }
+
+        protected virtual void OnInitFeatures()
+        { }
     }
 }

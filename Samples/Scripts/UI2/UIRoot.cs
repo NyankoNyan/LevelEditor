@@ -20,6 +20,7 @@ namespace UI2
         private readonly HashSet<IElementInstance> _instances = new();
         private readonly HashSet<IElementInstance> _listeners = new();
         private readonly MonoBehaviour _provider;
+        private readonly Dictionary<Transform, IElementInstance> _viewToModelMap = new();
 
         public UIRoot(MonoBehaviour provider)
         {
@@ -47,16 +48,24 @@ namespace UI2
             }
 
             if (_styles.TryGetValue(setup.Style, out Style style)) {
-                var newGO = GameObject.Instantiate(style.prefab, parent);
-                var parentInstance = parent.GetComponent<ElementInstanceFacade>()?.ElementInstance;
-                var instance = new ElementInstance(setup, newGO, parentInstance, this);
-
-                var facade = newGO.GetComponent<ElementInstanceFacade>();
-                if (facade) {
-                    foreach (var sub in setup.Subs) {
-                        Attach(sub, facade.SubZone);
+                // TODO May be merge facade and instance?
+                IElementInstance parentInstance = parent ? _viewToModelMap.GetValueOrDefault(parent, null) : null;
+                Transform parentPivot = null;
+                if (parentInstance != null) {
+                    var parentFacade = parent.GetComponent<ElementInstanceFacade>();
+                    if (parentFacade) {
+                        parentPivot = parentFacade.SubZone;
                     }
                 }
+
+                if (!parentPivot) {
+                    parentPivot = parent;
+                }
+
+                var newGO = GameObject.Instantiate(style.prefab, parentPivot);
+                var instance = new ElementInstance(setup, newGO, parentInstance, this);
+
+                _viewToModelMap.Add(newGO.transform, instance);
 
                 var rectTransform = newGO.GetComponent<RectTransform>();
                 if (rectTransform) {
@@ -86,6 +95,15 @@ namespace UI2
                     newGO.SetActive(false);
                 }
 
+                var facade = newGO.GetComponent<ElementInstanceFacade>();
+                if (facade) {
+                    foreach (var sub in setup.Subs) {
+                        Attach(sub, facade.transform);
+                    }
+
+                    facade.InitFeatures(instance);
+                }
+
                 return instance;
             } else {
                 throw new ElementWorkflowException();
@@ -102,85 +120,85 @@ namespace UI2
             SignalContext signal = new SignalContext(name, data);
             switch (direction) {
                 case SignalDirection.Broadcast: {
-                    foreach (var listener in _listeners) {
-                        var handlers = listener.Proto.GetHandlers(name);
-                        if (handlers == null) {
-                            continue;
-                        }
-
-                        if (handlers.Any(h => {
-                                h(signal, new ElementRuntimeContext(listener, this));
-                                return consumable && signal.Consumed;
-                            })) {
-                            break;
-                        }
-                    }
-
-                    break;
-                }
-                case SignalDirection.Self: {
-                    _ = sender.Proto.GetHandlers(name)?.All(h => {
-                        h(signal, new ElementRuntimeContext(sender, this));
-                        return true;
-                    });
-                    break;
-                }
-                case SignalDirection.DrillUp: {
-                    HashSet<IElementInstance> antiRecursion = new() { sender };
-                    var current = sender.Parent;
-                    while (current != null) {
-                        if (!antiRecursion.Add(current)) {
-                            Debug.LogWarning($"found recursion in element {current.Proto.Id}");
-                            break;
-                        }
-
-                        var result = current.Proto.GetHandlers(name)?.Any(h => {
-                            h(signal, new ElementRuntimeContext(current, this));
-                            return consumable && signal.Consumed;
-                        });
-                        if (result.HasValue && result.Value) {
-                            break;
-                        }
-
-                        current = current.Parent;
-                    }
-
-                    break;
-                }
-                case SignalDirection.DrillDown: {
-                    HashSet<IElementInstance> antiRecursion = new() { sender };
-
-                    DeepSearch(sender);
-
-                    break;
-
-                    void DeepSearch(IElementInstance elem)
-                    {
-                        if (elem.Children == null) {
-                            return;
-                        }
-
-                        foreach (var sub in elem.Children) {
-                            if (!antiRecursion.Add(sub)) {
-                                Debug.LogWarning($"found recursion in element {elem.Proto.Id}");
+                        foreach (var listener in _listeners) {
+                            var handlers = listener.Proto.GetHandlers(name);
+                            if (handlers == null) {
                                 continue;
                             }
 
-                            var result = sub.Proto.GetHandlers(name)?.Any(h => {
-                                h(signal, new ElementRuntimeContext(sub, this));
+                            if (handlers.Any(h => {
+                                h(signal, new ElementRuntimeContext(listener, this));
+                                return consumable && signal.Consumed;
+                            })) {
+                                break;
+                            }
+                        }
+
+                        break;
+                    }
+                case SignalDirection.Self: {
+                        _ = sender.Proto.GetHandlers(name)?.All(h => {
+                            h(signal, new ElementRuntimeContext(sender, this));
+                            return true;
+                        });
+                        break;
+                    }
+                case SignalDirection.DrillUp: {
+                        HashSet<IElementInstance> antiRecursion = new() { sender };
+                        var current = sender.Parent;
+                        while (current != null) {
+                            if (!antiRecursion.Add(current)) {
+                                Debug.LogWarning($"found recursion in element {current.Proto.Id}");
+                                break;
+                            }
+
+                            var result = current.Proto.GetHandlers(name)?.Any(h => {
+                                h(signal, new ElementRuntimeContext(current, this));
                                 return consumable && signal.Consumed;
                             });
                             if (result.HasValue && result.Value) {
                                 break;
                             }
 
-                            DeepSearch(sub);
-                            if (consumable && signal.Consumed) {
-                                break;
+                            current = current.Parent;
+                        }
+
+                        break;
+                    }
+                case SignalDirection.DrillDown: {
+                        HashSet<IElementInstance> antiRecursion = new() { sender };
+
+                        DeepSearch(sender);
+
+                        break;
+
+                        void DeepSearch(IElementInstance elem)
+                        {
+                            if (elem.Children == null) {
+                                return;
+                            }
+
+                            foreach (var sub in elem.Children) {
+                                if (!antiRecursion.Add(sub)) {
+                                    Debug.LogWarning($"found recursion in element {elem.Proto.Id}");
+                                    continue;
+                                }
+
+                                var result = sub.Proto.GetHandlers(name)?.Any(h => {
+                                    h(signal, new ElementRuntimeContext(sub, this));
+                                    return consumable && signal.Consumed;
+                                });
+                                if (result.HasValue && result.Value) {
+                                    break;
+                                }
+
+                                DeepSearch(sub);
+                                if (consumable && signal.Consumed) {
+                                    break;
+                                }
                             }
                         }
                     }
-                }
                 default:
                     throw new NotImplementedException();
             }

@@ -23,7 +23,7 @@ namespace UI2
             _instance = instance;
 
             if (parent != null) {
-                parent.AddChild(parent);
+                parent.AddChild(this);
                 _parent = parent;
             }
 

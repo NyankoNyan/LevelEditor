@@ -126,17 +126,16 @@ namespace UI2
                     ctx.DrillUpSignal("RETURN_CONTROL");
                 })
                 .Handle("CONFIRM", (sig, ctx) => {
-                    ctx.Element.Hide();
                     //waiting simulation
                     ctx.Start(new Operation()
                         .Do(() => {
                             ctx.DrillDownSignal("DEACTIVATE");
-                            ctx.Sub("WaitStatus").Show();
+                            ctx.Sub("WaitStatus")?.Show();
                             ctx.DrillDownSignal("MSG", consumable: false);
                         })
                         .Wait(new WaitForSeconds(3))
                         .Do(() => {
-                            ctx.Sub("WaitStatus").Hide();
+                            ctx.Sub("WaitStatus")?.Hide();
                             ctx.DrillDownSignal("MSG", data: "Something happens...", consumable: false);
                             ctx.DrillDownSignal("ACTIVATE");
                         })

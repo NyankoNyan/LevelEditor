@@ -2,7 +2,7 @@ namespace UI2
 {
     public class FieldFacade : ElementInstanceFacade
     {
-        private void Awake()
+        protected override void OnInitFeatures()
         {
             AddFeature(new ActivateFeature());
         }
