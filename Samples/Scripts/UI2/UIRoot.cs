@@ -41,7 +41,7 @@ namespace UI2
             }
         }
 
-        public IElementInstance Attach(IElementSetupReadWrite setup, Transform parent)
+        public IElementInstance Attach(IElementSetup setup, Transform parent)
         {
             if (!parent) {
                 throw new ArgumentException("Empty parent");
@@ -160,7 +160,7 @@ namespace UI2
                                 break;
                             }
 
-                            current = current.Parent;
+                            current = current.Proto.SignalBlocked ? null : current.Parent;
                         }
 
                         break;
@@ -174,7 +174,7 @@ namespace UI2
 
                         void DeepSearch(IElementInstance elem)
                         {
-                            if (elem.Children == null) {
+                            if (elem.Children == null || elem.Proto.SignalBlocked) {
                                 return;
                             }
 

@@ -42,7 +42,7 @@ namespace UI2
         }
     }
 
-    public delegate void SetupThenDelegate(IElementSetupReadWrite setupReadWrite);
+    public delegate void SetupThenDelegate(IElementSetup setup);
 
     public delegate void SetupHandleDelegate(ISignalContext signal, IElementRuntimeContext context);
 
@@ -62,6 +62,21 @@ namespace UI2
     public static class Facade
     {
         public const string Click = "CLICK";
+    }
+
+    public delegate object StateInitDelegate();
+
+    public class StateDef
+    {
+        public string name;
+        public object defaultValue;
+        public StateInitDelegate stateInitCall;
+    }
+
+    public class StateVar
+    {
+        public string name;
+        public object value;
     }
 
     #region Test Zone
@@ -84,7 +99,7 @@ namespace UI2
         {
         }
 
-        public static IElementSetupReadWrite Create()
+        public static IElementSetup Create()
         {
             return new MyWindow()
                 .SetId("MyWindow")
@@ -142,6 +157,8 @@ namespace UI2
                     );
                 });
         }
+
+        protected override BaseElement GetEmptyClone() => new MyWindow();
     }
 
     public class ServerAddress : BaseElement
@@ -150,12 +167,14 @@ namespace UI2
         {
         }
 
-        public static IElementSetupReadWrite Create()
+        public static IElementSetup Create()
         {
             return new ServerAddress()
                 .SetId("ServerAddress")
                 .SetStyle("field");
         }
+
+        protected override BaseElement GetEmptyClone() => new ServerAddress();
     }
 
     public class MapName : BaseElement
@@ -164,12 +183,14 @@ namespace UI2
         {
         }
 
-        public static IElementSetupReadWrite Create()
+        public static IElementSetup Create()
         {
             return new MapName()
                 .SetId("MapName")
                 .SetStyle("field");
         }
+
+        protected override BaseElement GetEmptyClone() => new MapName();
     }
 
     public class WaitStatus : BaseElement
@@ -178,12 +199,14 @@ namespace UI2
         {
         }
 
-        public static IElementSetupReadWrite Create()
+        public static IElementSetup Create()
         {
             return new WaitStatus()
                 .SetId("WaitStatus")
                 .SetStyle("wait");
         }
+
+        protected override BaseElement GetEmptyClone() => new WaitStatus();
     }
 
     public class ErrorStatus : BaseElement
@@ -192,7 +215,7 @@ namespace UI2
         {
         }
 
-        public static IElementSetupReadWrite Create()
+        public static IElementSetup Create()
         {
             return new ErrorStatus()
                 .SetId("ErrorStatus")
@@ -205,6 +228,8 @@ namespace UI2
                     }
                 });
         }
+
+        protected override BaseElement GetEmptyClone() => new ErrorStatus();
     }
 
     public class CancelButton : BaseElement
@@ -213,7 +238,7 @@ namespace UI2
         {
         }
 
-        public static IElementSetupReadWrite Create()
+        public static IElementSetup Create()
         {
             return new CancelButton()
                 .SetId("CancelButton")
@@ -222,6 +247,8 @@ namespace UI2
                     ctx.DrillUpSignal("QUIT")
                 );
         }
+
+        protected override BaseElement GetEmptyClone() => new CancelButton();
     }
 
     public class ConfirmButton : BaseElement
@@ -230,7 +257,7 @@ namespace UI2
         {
         }
 
-        public static IElementSetupReadWrite Create()
+        public static IElementSetup Create()
         {
             return new ConfirmButton()
                 .SetId("ConfirmButton")
@@ -239,6 +266,8 @@ namespace UI2
                     ctx.DrillUpSignal("CONFIRM")
                 );
         }
+
+        protected override BaseElement GetEmptyClone() => new ConfirmButton();
     }
 
     #endregion Test Zone

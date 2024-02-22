@@ -33,6 +33,7 @@ namespace Level.API
     {
         public ChunkStorageStrategy chunkStorageStrategy;
         public string levelStoreFolder;
+        public string name;
     }
 
     /// <summary>

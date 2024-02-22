@@ -31,7 +31,7 @@ namespace UI2
                 return vec;
             }
 
-            void SetAnchor(IElementSetupReadWrite elem, float vMin, float vMax)
+            void SetAnchor(IElementSetup elem, float vMin, float vMax)
             {
                 (Vector2 min, Vector2 max) = elem.Anchor;
                 elem.SetAnchor(AxChange(min, vMin), AxChange(max, vMax));

@@ -8,14 +8,14 @@ namespace UI2
 {
     internal class ElementInstance : IElementInstance
     {
-        private readonly IElementSetupReadWrite _proto;
+        private readonly IElementSetup _proto;
         private readonly GameObject _instance;
         private readonly ElementInstanceFacade _facade;
         private readonly IElementInstance _parent;
         private List<IElementInstance> _children;
         private readonly UIRoot _root;
 
-        public ElementInstance(IElementSetupReadWrite proto, GameObject instance, IElementInstance parent, UIRoot root)
+        public ElementInstance(IElementSetup proto, GameObject instance, IElementInstance parent, UIRoot root)
         {
             Assert.IsNotNull(proto);
             Assert.IsNotNull(instance);
@@ -32,7 +32,7 @@ namespace UI2
             _facade = _instance.GetComponent<ElementInstanceFacade>();
         }
 
-        public IElementSetupReadWrite Proto => _proto;
+        public IElementSetup Proto => _proto;
         public IElementInstance Parent => _parent;
 
         public void AddChild(IElementInstance child)
