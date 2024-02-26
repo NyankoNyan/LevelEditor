@@ -77,6 +77,43 @@ namespace UI2
     {
         public string name;
         public object value;
+
+        public StateVar(StateDef stateDef)
+        {
+            name = stateDef.name;
+            if (stateDef.defaultValue != null) {
+                value = stateDef.defaultValue switch {
+                    bool b => b,
+                    int i => i,
+                    ICloneable c => c.Clone(),
+                    _ => stateDef.defaultValue
+                };
+            } else if (stateDef.stateInitCall != null) {
+                value = stateDef.stateInitCall();
+            }
+        }
+
+        public void Set<T>(T v)
+        {
+            if (typeof(T) == typeof(bool) 
+                || typeof(T) == typeof(int)) {
+                value = v;
+            }else if (v is ICloneable c) {
+                value = c.Clone();
+            } else {
+                value = v;
+            }
+        }
+
+        public T As<T>()
+        {
+            if (value is T t) {
+                return t;
+            } else {
+                throw new ElementWorkflowException();
+                // TODO May be return default here? 
+            }
+        }
     }
 
     #region Test Zone

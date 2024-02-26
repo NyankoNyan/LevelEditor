@@ -16,5 +16,6 @@ namespace UI2
         IElementInstance Sub(string id);
         void SendFacadeSignal(string id);
         T GetFacadeFeature<T>() where T : class, IFacadeFeature;
+        StateVar State(string name);
     }
 }

@@ -14,6 +14,7 @@ namespace UI2
         private readonly IElementInstance _parent;
         private List<IElementInstance> _children;
         private readonly UIRoot _root;
+        private readonly List<StateVar> _states = new();
 
         public ElementInstance(IElementSetup proto, GameObject instance, IElementInstance parent, UIRoot root)
         {
@@ -30,6 +31,12 @@ namespace UI2
             _root = root;
 
             _facade = _instance.GetComponent<ElementInstanceFacade>();
+            
+            // Init states
+            foreach (var stateDef in proto.DefaultStates) {
+                StateVar state = new(stateDef);
+                _states.Add(state);
+            }
         }
 
         public IElementSetup Proto => _proto;
@@ -76,6 +83,9 @@ namespace UI2
 
         public T GetFacadeFeature<T>() where T : class, IFacadeFeature 
             => _facade?.GetFeature<T>();
+
+        public StateVar State(string name) 
+            => _states.SingleOrDefault(x=>x.name == name);
 
         public IElementInstance Hide()
         {

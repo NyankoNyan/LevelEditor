@@ -54,6 +54,7 @@ namespace UI2
         private GroupType _groupType = GroupType.None;
         private bool _signalBlock;
         private bool _lazy;
+        private Dictionary<string, StateDef> _stateDefinitions = new();
 
         public string Style => _style;
 
@@ -158,7 +159,15 @@ namespace UI2
 
         public IElementSetup State(string name, object value = null, StateInitDelegate initFunc = null)
         {
-            //TODO do something
+            var stateDef = new StateDef() {
+                defaultValue = value,
+                name = name,
+                stateInitCall = initFunc
+            };
+            if (!_stateDefinitions.TryAdd(name, stateDef)) {
+                _stateDefinitions[name] = stateDef;
+            }
+
             return this;
         }
 
@@ -184,6 +193,10 @@ namespace UI2
             }
 
             newElem._featureCalls.AddRange(_featureCalls);
+            newElem._groupType = _groupType;
+            newElem._signalBlock = _signalBlock;
+            newElem._lazy = _lazy;
+            newElem._stateDefinitions = new(_stateDefinitions);
 
             AfterClone(newElem);
             return newElem;
@@ -199,6 +212,7 @@ namespace UI2
         public bool NeedHide { get; private set; }
         public IEnumerable<IFeatureCall> Features => _featureCalls;
         public bool SignalBlocked => _signalBlock;
+        public IEnumerable<StateDef> DefaultStates => _stateDefinitions.Values;
 
         public virtual void Init()
         {
@@ -276,7 +290,7 @@ namespace UI2
 
         private enum GroupType
         {
-            None, 
+            None,
             Horizontal,
             Vertical
         }

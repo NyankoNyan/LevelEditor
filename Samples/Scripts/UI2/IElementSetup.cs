@@ -23,6 +23,7 @@ namespace UI2
         bool NeedHide { get; }
         IEnumerable<IFeatureCall> Features { get; }
         bool SignalBlocked { get; }
+        IEnumerable<StateDef> DefaultStates { get; }
     }
 
     public interface IElementSetupWrite
