@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 using UnityEngine;
 using UnityEngine.Assertions;
@@ -31,7 +32,7 @@ namespace UI2
             _root = root;
 
             _facade = _instance.GetComponent<ElementInstanceFacade>();
-            
+
             // Init states
             foreach (var stateDef in proto.DefaultStates) {
                 StateVar state = new(stateDef);
@@ -81,11 +82,18 @@ namespace UI2
             _root.SendSignal(id, null, this, SignalDirection.Self, false);
         }
 
-        public T GetFacadeFeature<T>() where T : class, IFacadeFeature 
+        public T GetFacadeFeature<T>() where T : class, IFacadeFeature
             => _facade?.GetFeature<T>();
 
-        public StateVar State(string name) 
-            => _states.SingleOrDefault(x=>x.name == name);
+        public StateVar State(string name)
+        {
+            StateVar result = _states.SingleOrDefault(x => x.name == name);
+            if (result == null) {
+                result = new StateVar(name);
+                _states.Add(result);
+            }
+            return result;
+        }
 
         public IElementInstance Hide()
         {

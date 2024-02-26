@@ -25,6 +25,7 @@ namespace UI2
         IEnumerable<IFeatureCall> Features { get; }
         bool SignalBlocked { get; }
         IEnumerable<StateDef> DefaultStates { get; }
+        string UsedState { get; }
     }
 
     public interface IElementSetupWrite
@@ -51,5 +52,7 @@ namespace UI2
         IElementSetupWrite State(string name, object value = null, StateInitDelegate initFunc = null);
         IElementSetupWrite Clone();
         IElementSetupWrite Init(SimpleHandleDelegate handler);
+        IElementSetupWrite UseState(string varName);
+        IElementSetupWrite StatesFrom(string elemId);
     }
 }

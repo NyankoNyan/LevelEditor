@@ -80,6 +80,12 @@ namespace UI2
         public string name;
         public object value;
 
+        public StateVar(string name, object value = null)
+        {
+            this.name = name;
+            this.value = value;
+        }
+
         public StateVar(StateDef stateDef)
         {
             name = stateDef.name;
@@ -112,8 +118,7 @@ namespace UI2
             if (value is T t) {
                 return t;
             } else {
-                throw new ElementWorkflowException();
-                // TODO May be return default here? 
+                return default;
             }
         }
     }

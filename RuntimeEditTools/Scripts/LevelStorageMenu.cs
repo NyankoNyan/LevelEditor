@@ -1,4 +1,5 @@
 using System.Drawing;
+using System.Linq;
 using System.Text.RegularExpressions;
 
 using Level.API;
@@ -79,6 +80,8 @@ namespace RuntimeEditTools.UI
                     ).Write()
                 )
                 .GroupVertical()
+                .StatesFrom("LocalFrame")
+                .StatesFrom("RemoteFrame")
                 .Handle("NEW", (sig, ctx) => { })
                 .Handle("OPEN", (sig, ctx) => { })
                 .Handle("SAVE", (sig, ctx) => { })
@@ -146,7 +149,7 @@ namespace RuntimeEditTools.UI
                         .Feature<MainTextFeature>(f => f.SetText("URL")),
                     new InputElement().Write()
                         .UseState("Port")
-                        .Feature<Input>(f => f.Numbers(4))
+                        .Feature<InputFeature>(f => f.Number(4))
                         .Feature<MainTextFeature>(f => f.SetText("Port")),
                     new FlagElement().Write()
                         .UseState("UseHTTPS")

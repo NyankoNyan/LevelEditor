@@ -1,7 +1,6 @@
 using System;
-using System.Linq;
 using System.Collections.Generic;
-using System.Reflection;
+using System.Linq;
 
 using UnityEngine;
 using UnityEngine.Assertions;
@@ -55,6 +54,7 @@ namespace UI2
         private bool _signalBlock;
         private bool _lazy;
         private Dictionary<string, StateDef> _stateDefinitions = new();
+        private string _usedState;
 
         public string Style => _style;
 
@@ -188,7 +188,9 @@ namespace UI2
             return newElem;
         }
 
-        protected virtual void AfterClone(BaseElement newElem) { }
+        protected virtual void AfterClone(BaseElement newElem)
+        { }
+
         protected abstract BaseElement GetEmptyClone();
 
         public IEnumerable<SetupHandleDelegate> GetHandlers(string signalName)
@@ -215,6 +217,8 @@ namespace UI2
         }
 
         public string Id => _id;
+
+        public string UsedState => _usedState;
 
         public void Sub(params IElementSetupWrite[] elements)
         {
@@ -260,6 +264,11 @@ namespace UI2
         {
             _anchoredPosition = pos;
             _newAnchorPos = true;
+        }
+
+        public void SetUsedState(string name)
+        {
+            _usedState = name;
         }
 
         public IElementSetupWrite Write() => new BaseElementChain(this);
@@ -410,47 +419,15 @@ namespace UI2
                 // Simple wrapper
                 handler(ctx);
             });
-    }
 
-    public class InputElement : BaseElement
-    {
-        public InputElement()
+        public IElementSetupWrite UseState(string varName)
         {
-            SetStyle("field");
+            _element.SetUsedState(varName);
+            return this;
         }
 
-        protected override BaseElement GetEmptyClone() => new InputElement();
-    }
-
-    public class FlagElement : BaseElement
-    {
-        public FlagElement()
+        public IElementSetupWrite StatesFrom(string elemId)
         {
-            SetStyle("flag");
         }
-
-        protected override BaseElement GetEmptyClone() => new FlagElement();
-    }
-
-    public class ButtonElement : BaseElement
-    {
-        private readonly string _name;
-
-        public ButtonElement(string id = null, string name = null)
-        {
-            _name = name;
-            if (!string.IsNullOrWhiteSpace(id)) {
-                SetId(id);
-            }
-
-            SetStyle("button");
-            if (!string.IsNullOrWhiteSpace(name)) {
-                Feature<MainTextFeature>(f => f.SetText(_name));
-            } else {
-                Feature<MainTextFeature>(f => f.SetText(""));
-            }
-        }
-
-        protected override BaseElement GetEmptyClone() => new ButtonElement(Id, _name);
     }
 }
