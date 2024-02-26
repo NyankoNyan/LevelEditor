@@ -3,7 +3,7 @@ namespace UI2
     public static class Traits
     {
         public static readonly SetupThenDelegate Active = elem => {
-            elem
+            elem.Write()
                 .Handle("ACTIVATE", (sig, ctx) => {
                     ctx.Element.GetFacadeFeature<ActivateFeature>()?.Activate();
                 })

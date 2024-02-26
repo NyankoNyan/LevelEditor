@@ -35,11 +35,11 @@ namespace UI2
         }
     }
 
-    public abstract class BaseElement : IElementSetup
+    public abstract class BaseElement : IElementSetupRead
     {
         private string _id;
         private string _style;
-        private List<IElementSetup> _children;
+        private List<IElementSetupRead> _children;
         private Vector2 _pivot;
         private bool _newPivot;
         private Vector2 _anchorMin;
@@ -58,12 +58,12 @@ namespace UI2
 
         public string Style => _style;
 
-        public IEnumerable<IElementSetup> Subs {
+        public IEnumerable<IElementSetupRead> Subs {
             get {
                 if (_children != null) {
                     return _children.AsReadOnly();
                 } else {
-                    return new IElementSetup[0];
+                    return Array.Empty<IElementSetupRead>();
                 }
             }
         }
@@ -84,28 +84,20 @@ namespace UI2
 
         public bool NewAnchoredPosition => _newAnchorPos;
 
-        public IElementSetup MoveRelative(Vector2 move)
+        public void MoveRelative(Vector2 move)
         {
             var (min, max) = Anchor;
             min += move;
             max += move;
             SetAnchor(min, max);
-            return this;
         }
 
-        public IElementSetup Move(Vector2 move)
+        public void Move(Vector2 move)
         {
             SetAnchoredPosition(AnchoredPosition + move);
-            return this;
         }
 
-        // public IElementSetup Handle(SetupHandleDelegate handler)
-        // {
-        //     _handler = handler;
-        //     return this;
-        // }
-
-        public IElementSetup Handle(string signalName, SetupHandleDelegate handler)
+        public void Handle(string signalName, SetupHandleDelegate handler)
         {
             if (_handlers == null) {
                 _handlers = new();
@@ -118,46 +110,39 @@ namespace UI2
             }
 
             namedHandlers.Add(handler);
-            return this;
         }
 
-        public IElementSetup DefaultHide()
+        public void DefaultHide()
         {
             NeedHide = true;
-            return this;
         }
 
-        public IElementSetup Feature<T>(FeatureCall<T>.FuncDelegate f) where T : class, IFacadeFeature
+        public void Feature<T>(FeatureCall<T>.FuncDelegate f) where T : class, IFacadeFeature
         {
             _featureCalls.Add(new FeatureCall<T>(typeof(T), f));
-            return this;
         }
 
-        public IElementSetup GroupVertical()
+        public void GroupVertical()
         {
             _groupType = GroupType.Vertical;
-            return this;
         }
 
-        public IElementSetup GroupHorizontal()
+        public void GroupHorizontal()
         {
             _groupType = GroupType.Horizontal;
-            return this;
         }
 
-        public IElementSetup SignalBlock(bool block = true)
+        public void SignalBlock(bool block = true)
         {
             _signalBlock = block;
-            return this;
         }
 
-        public IElementSetup Lazy(bool lazy = true)
+        public void Lazy(bool lazy = true)
         {
             _lazy = lazy;
-            return this;
         }
 
-        public IElementSetup State(string name, object value = null, StateInitDelegate initFunc = null)
+        public void State(string name, object value = null, StateInitDelegate initFunc = null)
         {
             var stateDef = new StateDef() {
                 defaultValue = value,
@@ -167,16 +152,17 @@ namespace UI2
             if (!_stateDefinitions.TryAdd(name, stateDef)) {
                 _stateDefinitions[name] = stateDef;
             }
-
-            return this;
         }
 
-        public IElementSetup Clone()
+        public BaseElement Clone()
         {
             var newElem = GetEmptyClone();
             newElem._id = _id;
             newElem._style = _style;
-            newElem.Sub(_children);
+            if (_children != null) {
+                newElem._children = new(_children);
+            }
+
             newElem._pivot = _pivot;
             newElem._newPivot = _newPivot;
             newElem._anchorMin = _anchorMin;
@@ -202,7 +188,7 @@ namespace UI2
             return newElem;
         }
 
-        protected virtual void AfterClone(IElementSetup newElem) { }
+        protected virtual void AfterClone(BaseElement newElem) { }
         protected abstract BaseElement GetEmptyClone();
 
         public IEnumerable<SetupHandleDelegate> GetHandlers(string signalName)
@@ -218,75 +204,65 @@ namespace UI2
         {
         }
 
-        public IElementSetup SetStyle(string style)
+        public void SetStyle(string style)
         {
             _style = style;
-            return this;
         }
 
-        public IElementSetup SetId(string id)
+        public void SetId(string id)
         {
             _id = id;
-            return this;
         }
 
         public string Id => _id;
 
-        public IElementSetup Sub(params IElementSetup[] elements)
+        public void Sub(params IElementSetupWrite[] elements)
         {
             _children ??= new();
 
             foreach (var element in elements) {
-                _children.Add(element);
+                _children.Add(element.Read());
             }
-
-            return this;
         }
 
-        public IElementSetup Sub(IEnumerable<IElementSetup> elements)
+        public void Sub(IEnumerable<IElementSetupWrite> elements)
         {
             Sub(elements.ToArray());
-
-            return this;
         }
 
-        public IElementSetup Apply(params SetupThenDelegate[] fns)
+        public void Apply(params SetupThenDelegate[] fns)
         {
             foreach (var fn in fns) {
                 fn(this);
             }
-
-            return this;
         }
 
-        public IElementSetup SetPivot(Vector2 pivot)
+        public void SetPivot(Vector2 pivot)
         {
             _pivot = pivot;
             _newPivot = true;
-            return this;
         }
 
-        public IElementSetup SetAnchor(Vector2 min, Vector2 max)
+        public void SetAnchor(Vector2 min, Vector2 max)
         {
             _anchorMin = min;
             _anchorMax = max;
             _newAnchor = true;
-            return this;
         }
 
-        public IElementSetup SetSizeDelta(Vector2 delta)
+        public void SetSizeDelta(Vector2 delta)
         {
             _sizeDelta = delta;
             _newSizeDelta = true;
-            return this;
         }
 
-        public IElementSetup SetAnchoredPosition(Vector2 pos)
+        public void SetAnchoredPosition(Vector2 pos)
         {
             _anchoredPosition = pos;
             _newAnchorPos = true;
-            return this;
         }
+
+        public IElementSetupWrite Write() => new BaseElementChain(this);
 
         private enum GroupType
         {
@@ -294,6 +270,146 @@ namespace UI2
             Horizontal,
             Vertical
         }
+    }
+
+    public class BaseElementChain : IElementSetupWrite
+    {
+        private readonly BaseElement _element;
+
+        public BaseElementChain(BaseElement element)
+        {
+            _element = element;
+        }
+
+        public IElementSetupWrite SetId(string id)
+        {
+            _element.SetId(id);
+            return this;
+        }
+
+        public IElementSetupWrite SetStyle(string style)
+        {
+            _element.SetStyle(style);
+            return this;
+        }
+
+        public IElementSetupWrite Sub(params IElementSetupWrite[] elements)
+        {
+            _element.Sub(elements);
+            return this;
+        }
+
+        public IElementSetupWrite Sub(IEnumerable<IElementSetupWrite> elements)
+        {
+            _element.Sub(elements);
+            return this;
+        }
+
+        public IElementSetupWrite Apply(params SetupThenDelegate[] fns)
+        {
+            _element.Apply(fns);
+            return this;
+        }
+
+        public IElementSetupWrite SetPivot(Vector2 pivot)
+        {
+            _element.SetPivot(pivot);
+            return this;
+        }
+
+        public IElementSetupWrite SetAnchor(Vector2 min, Vector2 max)
+        {
+            _element.SetAnchor(min, max);
+            return this;
+        }
+
+        public IElementSetupWrite SetSizeDelta(Vector2 delta)
+        {
+            _element.SetSizeDelta(delta);
+            return this;
+        }
+
+        public IElementSetupWrite SetAnchoredPosition(Vector2 pos)
+        {
+            _element.SetAnchoredPosition(pos);
+            return this;
+        }
+
+        public IElementSetupWrite MoveRelative(Vector2 move)
+        {
+            _element.MoveRelative(move);
+            return this;
+        }
+
+        public IElementSetupWrite Move(Vector2 move)
+        {
+            _element.Move(move);
+            return this;
+        }
+
+        public IElementSetupWrite Handle(string signalName, SetupHandleDelegate handler)
+        {
+            _element.Handle(signalName, handler);
+            return this;
+        }
+
+        public IElementSetupWrite DefaultHide()
+        {
+            _element.DefaultHide();
+            return this;
+        }
+
+        public IElementSetupWrite Feature<T>(FeatureCall<T>.FuncDelegate f) where T : class, IFacadeFeature
+        {
+            _element.Feature<T>(f);
+            return this;
+        }
+
+        public IElementSetupWrite GroupVertical()
+        {
+            _element.GroupVertical();
+            return this;
+        }
+
+        public IElementSetupWrite GroupHorizontal()
+        {
+            _element.GroupHorizontal();
+            return this;
+        }
+
+        public IElementSetupWrite SignalBlock(bool block = true)
+        {
+            _element.SignalBlock(block);
+            return this;
+        }
+
+        public IElementSetupWrite Lazy(bool lazy = true)
+        {
+            _element.Lazy(lazy);
+            return this;
+        }
+
+        public IElementSetupWrite State(string name, object value = null, StateInitDelegate initFunc = null)
+        {
+            _element.State(name, value, initFunc);
+            return this;
+        }
+
+        public IElementSetupRead Read()
+        {
+            return _element;
+        }
+
+        public IElementSetupWrite Clone()
+        {
+            return _element.Clone().Write();
+        }
+
+        public IElementSetupWrite Init(SimpleHandleDelegate handler)
+            => Handle("__INIT__", (_, ctx) => {
+                // Simple wrapper
+                handler(ctx);
+            });
     }
 
     public class InputElement : BaseElement
@@ -304,6 +420,16 @@ namespace UI2
         }
 
         protected override BaseElement GetEmptyClone() => new InputElement();
+    }
+
+    public class FlagElement : BaseElement
+    {
+        public FlagElement()
+        {
+            SetStyle("flag");
+        }
+
+        protected override BaseElement GetEmptyClone() => new FlagElement();
     }
 
     public class ButtonElement : BaseElement

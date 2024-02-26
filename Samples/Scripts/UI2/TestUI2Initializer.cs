@@ -38,13 +38,15 @@ namespace UI2
              *     .AttachTo(targetCanvas);
              */
 
-            UIProvider.Get().Attach(MyWindow.Create(), _canvas);
+            UIProvider.Get().Attach(MyWindow.Create().Read(), _canvas);
         }
     }
 
-    public delegate void SetupThenDelegate(IElementSetup setup);
+    public delegate void SetupThenDelegate(IElementSetupRead setup);
 
     public delegate void SetupHandleDelegate(ISignalContext signal, IElementRuntimeContext context);
+
+    public delegate void SimpleHandleDelegate(IElementRuntimeContext context);
 
     public delegate IEnumerator OperationDelegate();
 
@@ -95,10 +97,10 @@ namespace UI2
 
         public void Set<T>(T v)
         {
-            if (typeof(T) == typeof(bool) 
+            if (typeof(T) == typeof(bool)
                 || typeof(T) == typeof(int)) {
                 value = v;
-            }else if (v is ICloneable c) {
+            } else if (v is ICloneable c) {
                 value = c.Clone();
             } else {
                 value = v;
@@ -136,9 +138,10 @@ namespace UI2
         {
         }
 
-        public static IElementSetup Create()
+        public static IElementSetupWrite Create()
         {
             return new MyWindow()
+                .Write()
                 .SetId("MyWindow")
                 .SetStyle("window")
                 .Sub(ServerAddress.Create()
@@ -204,9 +207,10 @@ namespace UI2
         {
         }
 
-        public static IElementSetup Create()
+        public static IElementSetupWrite Create()
         {
             return new ServerAddress()
+                .Write()
                 .SetId("ServerAddress")
                 .SetStyle("field");
         }
@@ -220,9 +224,10 @@ namespace UI2
         {
         }
 
-        public static IElementSetup Create()
+        public static IElementSetupWrite Create()
         {
             return new MapName()
+                .Write()
                 .SetId("MapName")
                 .SetStyle("field");
         }
@@ -236,9 +241,10 @@ namespace UI2
         {
         }
 
-        public static IElementSetup Create()
+        public static IElementSetupWrite Create()
         {
             return new WaitStatus()
+                .Write()
                 .SetId("WaitStatus")
                 .SetStyle("wait");
         }
@@ -252,9 +258,10 @@ namespace UI2
         {
         }
 
-        public static IElementSetup Create()
+        public static IElementSetupWrite Create()
         {
             return new ErrorStatus()
+                .Write()
                 .SetId("ErrorStatus")
                 .SetStyle("status-bar")
                 .Handle("MSG", (sig, ctx) => {
@@ -275,9 +282,10 @@ namespace UI2
         {
         }
 
-        public static IElementSetup Create()
+        public static IElementSetupWrite Create()
         {
             return new CancelButton()
+                .Write()
                 .SetId("CancelButton")
                 .SetStyle("button")
                 .Handle(Facade.Click, (sig, ctx) =>
@@ -294,9 +302,10 @@ namespace UI2
         {
         }
 
-        public static IElementSetup Create()
+        public static IElementSetupWrite Create()
         {
             return new ConfirmButton()
+                .Write()
                 .SetId("ConfirmButton")
                 .SetStyle("button")
                 .Handle(Facade.Click, (sig, ctx) =>

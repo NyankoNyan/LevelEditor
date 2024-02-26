@@ -32,7 +32,7 @@ namespace Level.API
     public struct LevelSettings
     {
         public ChunkStorageStrategy chunkStorageStrategy;
-        public string levelStoreFolder;
+        public string levelStoreURI;
         public string name;
     }
 
@@ -65,9 +65,9 @@ namespace Level.API
 
                 case ChunkStorageStrategy.AllTogether:
                 case ChunkStorageStrategy.DynamicSaveLoad:
-                    _chunkStorageFabric = new FileChunkStorageFabric(_settings.levelStoreFolder + "\\" + LevelFileNames.DIR_CHUNKS);
-                    _levelLoader = new FileLevelLoader(_settings.levelStoreFolder, _chunkStorageFabric);
-                    _levelSaver = new FileLevelSaver(_settings.levelStoreFolder, true, _chunkStorageFabric);
+                    _chunkStorageFabric = new FileChunkStorageFabric(_settings.levelStoreURI + "\\" + LevelFileNames.DIR_CHUNKS);
+                    _levelLoader = new FileLevelLoader(_settings.levelStoreURI, _chunkStorageFabric);
+                    _levelSaver = new FileLevelSaver(_settings.levelStoreURI, true, _chunkStorageFabric);
                     break;
 
                 default:

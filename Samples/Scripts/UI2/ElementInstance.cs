@@ -8,7 +8,7 @@ namespace UI2
 {
     internal class ElementInstance : IElementInstance
     {
-        private readonly IElementSetup _proto;
+        private readonly IElementSetupRead _proto;
         private readonly GameObject _instance;
         private readonly ElementInstanceFacade _facade;
         private readonly IElementInstance _parent;
@@ -16,7 +16,7 @@ namespace UI2
         private readonly UIRoot _root;
         private readonly List<StateVar> _states = new();
 
-        public ElementInstance(IElementSetup proto, GameObject instance, IElementInstance parent, UIRoot root)
+        public ElementInstance(IElementSetupRead proto, GameObject instance, IElementInstance parent, UIRoot root)
         {
             Assert.IsNotNull(proto);
             Assert.IsNotNull(instance);
@@ -39,7 +39,7 @@ namespace UI2
             }
         }
 
-        public IElementSetup Proto => _proto;
+        public IElementSetupRead Proto => _proto;
         public IElementInstance Parent => _parent;
 
         public void AddChild(IElementInstance child)

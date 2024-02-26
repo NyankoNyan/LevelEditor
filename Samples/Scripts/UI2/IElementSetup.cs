@@ -7,9 +7,10 @@ namespace UI2
 {
     public interface IElementSetupRead
     {
+        IElementSetupWrite Write();
         string Id { get; }
         string Style { get; }
-        IEnumerable<IElementSetup> Subs { get; }
+        IEnumerable<IElementSetupRead> Subs { get; }
         Vector2 Pivot { get; }
         bool NewPivot { get; }
         (Vector2, Vector2) Anchor { get; }
@@ -28,32 +29,27 @@ namespace UI2
 
     public interface IElementSetupWrite
     {
-        IElementSetup SetId(string id);
-        IElementSetup SetStyle(string style);
-        IElementSetup Sub(params IElementSetup[] elements);
-        IElementSetup Sub(IEnumerable<IElementSetup> elements);
-        IElementSetup Apply(params SetupThenDelegate[] fns);
-        IElementSetup SetPivot(Vector2 pivot);
-        IElementSetup SetAnchor(Vector2 min, Vector2 max);
-        IElementSetup SetSizeDelta(Vector2 delta);
-        IElementSetup SetAnchoredPosition(Vector2 pos);
-        IElementSetup MoveRelative(Vector2 move);
-        IElementSetup Move(Vector2 move);
-        IElementSetup Handle(string signalName, SetupHandleDelegate handler);
-        IElementSetup DefaultHide();
-
-        IElementSetup Feature<T>(FeatureCall<T>.FuncDelegate f)
-            where T : class, IFacadeFeature;
-
-        IElementSetup GroupVertical();
-        IElementSetup GroupHorizontal();
-        IElementSetup SignalBlock(bool block = true);
-        IElementSetup Lazy(bool lazy = true);
-        IElementSetup State(string name, object value = null, StateInitDelegate initFunc = null);
-    }
-
-    public interface IElementSetup : IElementSetupRead, IElementSetupWrite
-    {
-        IElementSetup Clone();
+        IElementSetupRead Read();
+        IElementSetupWrite SetId(string id);
+        IElementSetupWrite SetStyle(string style);
+        IElementSetupWrite Sub(params IElementSetupWrite[] elements);
+        IElementSetupWrite Sub(IEnumerable<IElementSetupWrite> elements);
+        IElementSetupWrite Apply(params SetupThenDelegate[] fns);
+        IElementSetupWrite SetPivot(Vector2 pivot);
+        IElementSetupWrite SetAnchor(Vector2 min, Vector2 max);
+        IElementSetupWrite SetSizeDelta(Vector2 delta);
+        IElementSetupWrite SetAnchoredPosition(Vector2 pos);
+        IElementSetupWrite MoveRelative(Vector2 move);
+        IElementSetupWrite Move(Vector2 move);
+        IElementSetupWrite Handle(string signalName, SetupHandleDelegate handler);
+        IElementSetupWrite DefaultHide();
+        IElementSetupWrite Feature<T>(FeatureCall<T>.FuncDelegate f) where T : class, IFacadeFeature;
+        IElementSetupWrite GroupVertical();
+        IElementSetupWrite GroupHorizontal();
+        IElementSetupWrite SignalBlock(bool block = true);
+        IElementSetupWrite Lazy(bool lazy = true);
+        IElementSetupWrite State(string name, object value = null, StateInitDelegate initFunc = null);
+        IElementSetupWrite Clone();
+        IElementSetupWrite Init(SimpleHandleDelegate handler);
     }
 }

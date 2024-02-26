@@ -112,7 +112,7 @@ namespace Level.IO
 
         public IEnumerator SaveFullContent(LevelAPI level, string savePath = null)
         {
-            string currentPath = NormalizeURL(level.LevelSettings.levelStoreFolder);
+            string currentPath = NormalizeURL(level.LevelSettings.levelStoreURI);
 
             yield return SaveBlockProtos(level, currentPath);
             yield return SaveGridSettings(level, currentPath);

@@ -1,16 +1,38 @@
+using System.Drawing;
+using System.Text.RegularExpressions;
+
 using Level.API;
+using Level.IO;
+
+using LevelView;
 
 using UI2;
 
+using UnityEngine;
 using UnityEngine.Assertions;
 
 namespace RuntimeEditTools.UI
 {
+    public class LevelStorageMenuInitializer : MonoBehaviour
+    {
+        [SerializeField] private RectTransform _parent;
+
+        void Start()
+        {
+            UIProvider.Get().Attach(
+                LevelStorageMenu.Create(LevelStorage.Instance.API).Read(),
+                _parent
+            );
+        }
+    }
+
     public class LevelStorageMenu : BaseElement
     {
-        private LevelStorageMenu() { }
+        private LevelStorageMenu()
+        {
+        }
 
-        public static IElementSetup Create(LevelAPI level)
+        public static IElementSetupWrite Create(LevelAPI level)
         {
             Assert.IsNotNull(level);
             /* ******************************
@@ -19,26 +41,34 @@ namespace RuntimeEditTools.UI
              * *    storage_settings_frame  *
              * *  NEW  OPEN  SAVE  SAVE_AS  *
              * ****************************** */
-            return new LevelStorageMenu()
+            return new LevelStorageMenu().Write()
                 .SetId(nameof(LevelStorageMenu))
                 .SetStyle("window")
-                .State("StorageMode", 0)
+                .State("StorageMode", initFunc: () => {
+                    string uri = level.LevelSettings.levelStoreURI;
+                    Regex httpRe = new(@"^https?://");
+                    return httpRe.IsMatch(uri) ? 1 : 0;
+                })
+                .State("LevelAPI", level)
+                .State("Path", initFunc: () => level.LevelSettings.levelStoreURI)
+                .State("Name", initFunc: () => level.LevelSettings.name)
                 .Sub(
-                    new InputElement()
+                    new InputElement().Write()
                         .SetId("LevelName")
                         .Feature<MainTextFeature>(f =>
                             f.SetText(level.LevelSettings.name)),
                     new OptionsButtonLine(
-                            new ButtonElement(),
-                            ("LOCAL", "Local Storage"),
-                            ("REMOTE", "Remote storage")
-                        )
-                        ,
-                    new LocalStorageSettings()
+                        new ButtonElement(),
+                        ("LOCAL", "Local Storage"),
+                        ("REMOTE", "Remote storage")
+                    ).Write(),
+                    new LocalStorageSettings().Write()
                         .SetId("LocalFrame")
+                        .DefaultHide()
                         .Lazy(),
-                    new RemoteStorageSettings()
+                    new RemoteStorageSettings().Write()
                         .SetId("RemoteFrame")
+                        .DefaultHide()
                         .Lazy(),
                     new OptionsButtonLine(
                         new ButtonElement(),
@@ -46,8 +76,9 @@ namespace RuntimeEditTools.UI
                         ("OPEN", "Open..."),
                         ("SAVE", "Save"),
                         ("SAVE_AS", "Save As...")
-                    )
+                    ).Write()
                 )
+                .GroupVertical()
                 .Handle("NEW", (sig, ctx) => { })
                 .Handle("OPEN", (sig, ctx) => { })
                 .Handle("SAVE", (sig, ctx) => { })
@@ -60,7 +91,7 @@ namespace RuntimeEditTools.UI
                     ctx.Element.State("StorageMode").Set<int>(1);
                     UpdateButtonsActivity(ctx);
                 })
-                .GroupVertical()
+                .Init(UpdateButtonsActivity)
                 .SignalBlock();
         }
 
@@ -68,7 +99,7 @@ namespace RuntimeEditTools.UI
             IElementRuntimeContext ctx)
         {
             int state = ctx.Element.State("StorageMode").As<int>();
-            
+
             var locActive = ctx.Sub("LOCAL").GetFacadeFeature<ActivateFeature>();
             var remActive = ctx.Sub("REMOTE").GetFacadeFeature<ActivateFeature>();
             if (state == 0) {
@@ -89,22 +120,48 @@ namespace RuntimeEditTools.UI
 
     public class LocalStorageSettings : BaseElement
     {
+        public LocalStorageSettings()
+        {
+            Write()
+                .SetStyle("sub-settings")
+                .Sub(
+                    new InputElement().Write()
+                        .UseState("FilePath")
+                        .Feature<MainTextFeature>(f => f.SetText("Level folder"))
+                );
+        }
+
         protected override BaseElement GetEmptyClone() => new LocalStorageSettings();
     }
 
     public class RemoteStorageSettings : BaseElement
     {
+        public RemoteStorageSettings()
+        {
+            Write()
+                .SetStyle("sub-settings")
+                .Sub(
+                    new InputElement().Write()
+                        .UseState("RemoteAddress")
+                        .Feature<MainTextFeature>(f => f.SetText("URL")),
+                    new InputElement().Write()
+                        .UseState("Port")
+                        .Feature<Input>(f => f.Numbers(4))
+                        .Feature<MainTextFeature>(f => f.SetText("Port")),
+                    new FlagElement().Write()
+                        .UseState("UseHTTPS")
+                        .Feature<MainTextFeature>(f => f.SetText("HTTPS"))
+                )
+                .GroupHorizontal();
+        }
+
         protected override BaseElement GetEmptyClone() => new RemoteStorageSettings();
     }
-
-    public class ButtonLine : BaseElement
-    {
-        protected override BaseElement GetEmptyClone() => new ButtonLine();
-    }
+    
 
     public class OptionsButtonLine : BaseElement
     {
-        private readonly IElementSetup _proto;
+        private readonly IElementSetupRead _proto;
         private Button[] _buttons;
 
         public struct Button
@@ -119,12 +176,12 @@ namespace RuntimeEditTools.UI
             }
         }
 
-        public OptionsButtonLine(IElementSetup proto, params (string, string)[] buttons) : this
+        public OptionsButtonLine(IElementSetupRead proto, params (string, string)[] buttons) : this
             (proto, buttons.Select(x => new Button(x.Item1, x.Item2)).ToArray())
         {
         }
 
-        public OptionsButtonLine(IElementSetup proto, params Button[] buttons)
+        public OptionsButtonLine(IElementSetupRead proto, params Button[] buttons)
         {
             _proto = proto;
             _buttons = new Button[buttons.Length];
@@ -134,7 +191,7 @@ namespace RuntimeEditTools.UI
             GroupHorizontal();
             foreach (var button in buttons) {
                 Sub(
-                    proto
+                    proto.Write()
                         .Clone()
                         .SetId(button.id)
                         .Feature<MainTextFeature>(f => f.SetText(button.name))

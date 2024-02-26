@@ -31,19 +31,20 @@ namespace UI2
                 return vec;
             }
 
-            void SetAnchor(IElementSetup elem, float vMin, float vMax)
+            void SetAnchor(IElementSetupWrite elem, float vMin, float vMax)
             {
-                (Vector2 min, Vector2 max) = elem.Anchor;
+                (Vector2 min, Vector2 max) = elem.Read().Anchor;
                 elem.SetAnchor(AxChange(min, vMin), AxChange(max, vMax));
             }
 
             return (elem) => {
+                var elemW = elem.Write();
                 if (from.HasValue) {
                     if (to.HasValue) {
-                        SetAnchor(elem, 0, 1);
-                        elem.SetPivot(AxChange(elem.Pivot, .5f));
-                        elem.SetSizeDelta(AxChange(elem.SizeDelta, -from.Value - to.Value));
-                        elem.SetAnchoredPosition(AxChange(elem.AnchoredPosition, -from.Value + to.Value));
+                        SetAnchor(elemW, 0, 1);
+                        elemW.SetPivot(AxChange(elem.Pivot, .5f));
+                        elemW.SetSizeDelta(AxChange(elem.SizeDelta, -from.Value - to.Value));
+                        elemW.SetAnchoredPosition(AxChange(elem.AnchoredPosition, -from.Value + to.Value));
                         if (fixedSize.HasValue) {
                             Debug.LogWarning("fixedSize will be ignored");
                         }
@@ -52,48 +53,48 @@ namespace UI2
                             Debug.LogWarning("partSize will be ignored");
                         }
                     } else {
-                        elem.SetPivot(AxChange(elem.Pivot, 0));
-                        elem.SetAnchoredPosition(AxChange(elem.AnchoredPosition, from.Value));
+                        elemW.SetPivot(AxChange(elem.Pivot, 0));
+                        elemW.SetAnchoredPosition(AxChange(elem.AnchoredPosition, from.Value));
                         if (fixedSize.HasValue) {
                             if (partSize.HasValue) {
                                 Debug.LogWarning("partSize will be ignored");
                             }
 
-                            SetAnchor(elem, 0, 0);
-                            elem.SetSizeDelta(AxChange(elem.SizeDelta, fixedSize.Value));
+                            SetAnchor(elemW, 0, 0);
+                            elemW.SetSizeDelta(AxChange(elem.SizeDelta, fixedSize.Value));
                         } else if (partSize.HasValue) {
-                            SetAnchor(elem, 0, partSize.Value);
-                            elem.SetSizeDelta(AxChange(elem.SizeDelta, -from.Value));
-                        } 
+                            SetAnchor(elemW, 0, partSize.Value);
+                            elemW.SetSizeDelta(AxChange(elem.SizeDelta, -from.Value));
+                        }
                     }
                 } else {
                     if (to.HasValue) {
-                        elem.SetPivot(AxChange(elem.Pivot, 1));
-                        elem.SetAnchoredPosition(AxChange(elem.AnchoredPosition, -to.Value));
+                        elemW.SetPivot(AxChange(elem.Pivot, 1));
+                        elemW.SetAnchoredPosition(AxChange(elem.AnchoredPosition, -to.Value));
                         if (fixedSize.HasValue) {
                             if (partSize.HasValue) {
                                 Debug.LogWarning("partSize will be ignored");
                             }
 
-                            SetAnchor(elem, 1, 1);
-                            elem.SetSizeDelta(AxChange(elem.SizeDelta, fixedSize.Value));
+                            SetAnchor(elemW, 1, 1);
+                            elemW.SetSizeDelta(AxChange(elem.SizeDelta, fixedSize.Value));
                         } else if (partSize.HasValue) {
-                            SetAnchor(elem, partSize.Value, 1);
-                            elem.SetSizeDelta(AxChange(elem.SizeDelta, -to.Value));
-                        } 
+                            SetAnchor(elemW, partSize.Value, 1);
+                            elemW.SetSizeDelta(AxChange(elem.SizeDelta, -to.Value));
+                        }
                     } else {
-                        elem.SetPivot(AxChange(elem.Pivot, .5f));
-                        elem.SetAnchoredPosition(AxChange(elem.AnchoredPosition, .5f));
+                        elemW.SetPivot(AxChange(elem.Pivot, .5f));
+                        elemW.SetAnchoredPosition(AxChange(elem.AnchoredPosition, .5f));
                         if (fixedSize.HasValue) {
                             if (partSize.HasValue) {
                                 Debug.LogWarning("partSize will be ignored");
                             }
 
-                            SetAnchor(elem, .5f, .5f);
-                            elem.SetSizeDelta(AxChange(elem.SizeDelta, fixedSize.Value));
+                            SetAnchor(elemW, .5f, .5f);
+                            elemW.SetSizeDelta(AxChange(elem.SizeDelta, fixedSize.Value));
                         } else if (partSize.HasValue) {
-                            SetAnchor(elem, .5f - partSize.Value / 2f, .5f + partSize.Value / 2f);
-                            elem.SetSizeDelta(AxChange(elem.SizeDelta, 0));
+                            SetAnchor(elemW, .5f - partSize.Value / 2f, .5f + partSize.Value / 2f);
+                            elemW.SetSizeDelta(AxChange(elem.SizeDelta, 0));
                         } else {
                             Debug.LogWarning("missing size argument");
                         }

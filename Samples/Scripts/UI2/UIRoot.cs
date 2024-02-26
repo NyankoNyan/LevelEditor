@@ -68,7 +68,7 @@ namespace UI2
         /// <returns>Заспавненная инстанция</returns>
         /// <exception cref="ArgumentException"></exception>
         /// <exception cref="ElementWorkflowException"></exception>
-        public IElementInstance Attach(IElementSetup setup, Transform parent)
+        public IElementInstance Attach(IElementSetupRead setup, Transform parent)
         {
             // TODO Добавить привязку к 3D-трансформам
             if (!parent) {
