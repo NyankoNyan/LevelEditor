@@ -16,6 +16,18 @@ namespace UI2
         IElementInstance Sub(string id);
         void SendFacadeSignal(string id);
         T GetFacadeFeature<T>() where T : class, IFacadeFeature;
+        /// <summary>
+        /// Возвращает переменную состояния. В случае отсутствия, переменная будет создана.
+        /// </summary>
+        /// <param name="name"></param>
+        /// <returns></returns>
         StateVar State(string name);
+        IEnumerable<StateVar> States { get; }
+
+        #region Service // TODO Move to another interface
+
+        void LateInit();
+
+        #endregion
     }
 }

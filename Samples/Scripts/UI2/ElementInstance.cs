@@ -16,6 +16,7 @@ namespace UI2
         private List<IElementInstance> _children;
         private readonly UIRoot _root;
         private readonly List<StateVar> _states = new();
+        private bool _initialized;
 
         public ElementInstance(IElementSetupRead proto, GameObject instance, IElementInstance parent, UIRoot root)
         {
@@ -92,8 +93,11 @@ namespace UI2
                 result = new StateVar(name);
                 _states.Add(result);
             }
+
             return result;
         }
+
+        public IEnumerable<StateVar> States => _states.AsReadOnly();
 
         public IElementInstance Hide()
         {
@@ -107,6 +111,42 @@ namespace UI2
         {
             _instance.SetActive(true);
             return this;
+        }
+
+        public void LateInit()
+        {
+            if (_initialized) {
+                return;
+            }
+
+            _initialized = true;
+
+            foreach (string target in _proto.ProxyTargets) {
+                var child = Sub(target);
+                if (child != null) {
+                    foreach (StateVar state in child.States) {
+                        CreateProxy(state, state.name);
+                    }
+                } else {
+                    Debug.LogWarning($"Child {target} for {_proto.Id} not found");
+                }
+            }
+
+            foreach (StateProxyDef proxy in _proto.Proxies) {
+                var child = Sub(proxy.refId);
+                if (child != null) {
+                    StateVar state = child.State(proxy.refVarName);
+                    CreateProxy(state, proxy.name);
+                } else {
+                    Debug.LogWarning($"Child {proxy.refId} for {_proto.Id} not found");
+                }
+            }
+        }
+
+        private void CreateProxy(StateVar state, string newName)
+        {
+            StateVar newState = new(state, newName);
+            _states.Add(newState);
         }
     }
 }

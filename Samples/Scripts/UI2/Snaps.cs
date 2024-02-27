@@ -36,9 +36,11 @@ namespace UI2
                 (Vector2 min, Vector2 max) = elem.Read().Anchor;
                 elem.SetAnchor(AxChange(min, vMin), AxChange(max, vMax));
             }
-
-            return (elem) => {
-                var elemW = elem.Write();
+            
+            // TODO У меня большие вопросы к этому коду, потому что он нарушает правило "Записывай не читая".
+            // TODO Так оно не будет работать в шаблонах. 
+            return (elemW) => {
+                var elem = elemW.Read();
                 if (from.HasValue) {
                     if (to.HasValue) {
                         SetAnchor(elemW, 0, 1);

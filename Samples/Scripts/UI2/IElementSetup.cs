@@ -26,6 +26,8 @@ namespace UI2
         bool SignalBlocked { get; }
         IEnumerable<StateDef> DefaultStates { get; }
         string UsedState { get; }
+        IEnumerable<string> ProxyTargets { get; }
+        IEnumerable<StateProxyDef> Proxies { get; }
     }
 
     public interface IElementSetupWrite
@@ -54,5 +56,7 @@ namespace UI2
         IElementSetupWrite Init(SimpleHandleDelegate handler);
         IElementSetupWrite UseState(string varName);
         IElementSetupWrite StatesFrom(string elemId);
+        IElementSetupWrite StateFrom(string elemId, string elemState, string newId = null);
+        IElementSetupWrite Grid(Vector2 cellSize, Vector2 padding = default);
     }
 }

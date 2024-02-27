@@ -100,6 +100,7 @@ namespace UI2
                 // Индекс для поиска модели по вьюхе
                 _viewToModelMap.Add(newGO.transform, instance);
 
+                // TODO А может это всё вынести в конструктор?
                 // Для canvas-фасадов доступно переопределение привязок и размеров
                 var rectTransform = newGO.GetComponent<RectTransform>();
                 if (rectTransform) {
@@ -146,6 +147,12 @@ namespace UI2
                     // Связываем фичи фасада с моделью 
                     facade.InitFeatures(instance);
                 }
+                
+                // Постинициализация от потомков к родителю
+                foreach (var child in instance.Children) {
+                    child.LateInit();
+                }
+                instance.LateInit();
 
                 return instance;
             } else {

@@ -55,6 +55,9 @@ namespace UI2
         private bool _lazy;
         private Dictionary<string, StateDef> _stateDefinitions = new();
         private string _usedState;
+        private Dictionary<string, StateProxyDef> _stateProxies = new();
+        private HashSet<string> _searchProxies = new();
+        private GridSetup _gridSetup;
 
         public string Style => _style;
 
@@ -183,13 +186,17 @@ namespace UI2
             newElem._signalBlock = _signalBlock;
             newElem._lazy = _lazy;
             newElem._stateDefinitions = new(_stateDefinitions);
+            newElem._usedState = _usedState;
+            _ = _searchProxies.Select(x => newElem._searchProxies.Add(x));
+            _ = _stateProxies.Select(x => newElem._stateProxies.TryAdd(x.Key, x.Value));
 
             AfterClone(newElem);
             return newElem;
         }
 
         protected virtual void AfterClone(BaseElement newElem)
-        { }
+        {
+        }
 
         protected abstract BaseElement GetEmptyClone();
 
@@ -219,6 +226,8 @@ namespace UI2
         public string Id => _id;
 
         public string UsedState => _usedState;
+        public IEnumerable<string> ProxyTargets => _searchProxies;
+        public IEnumerable<StateProxyDef> Proxies => _stateProxies.Values;
 
         public void Sub(params IElementSetupWrite[] elements)
         {
@@ -237,7 +246,7 @@ namespace UI2
         public void Apply(params SetupThenDelegate[] fns)
         {
             foreach (var fn in fns) {
-                fn(this);
+                fn(Write());
             }
         }
 
@@ -273,161 +282,37 @@ namespace UI2
 
         public IElementSetupWrite Write() => new BaseElementChain(this);
 
+        public void StateProxy(StateProxyDef proxy)
+        {
+            if (!_stateProxies.TryAdd(proxy.name, proxy)) {
+                _stateProxies[proxy.name] = proxy;
+            }
+        }
+
+        public void SearchProxy(string elemId) 
+            => _searchProxies.Add(elemId);
+
+        public void Grid(Vector2 cellSize, Vector2 padding = default)
+        {
+            _groupType = GroupType.Grid;
+            _gridSetup = new GridSetup() {
+                cellSize = cellSize,
+                padding = padding
+            };
+        }
+
         private enum GroupType
         {
             None,
             Horizontal,
-            Vertical
-        }
-    }
-
-    public class BaseElementChain : IElementSetupWrite
-    {
-        private readonly BaseElement _element;
-
-        public BaseElementChain(BaseElement element)
-        {
-            _element = element;
+            Vertical,
+            Grid
         }
 
-        public IElementSetupWrite SetId(string id)
+        private struct GridSetup
         {
-            _element.SetId(id);
-            return this;
-        }
-
-        public IElementSetupWrite SetStyle(string style)
-        {
-            _element.SetStyle(style);
-            return this;
-        }
-
-        public IElementSetupWrite Sub(params IElementSetupWrite[] elements)
-        {
-            _element.Sub(elements);
-            return this;
-        }
-
-        public IElementSetupWrite Sub(IEnumerable<IElementSetupWrite> elements)
-        {
-            _element.Sub(elements);
-            return this;
-        }
-
-        public IElementSetupWrite Apply(params SetupThenDelegate[] fns)
-        {
-            _element.Apply(fns);
-            return this;
-        }
-
-        public IElementSetupWrite SetPivot(Vector2 pivot)
-        {
-            _element.SetPivot(pivot);
-            return this;
-        }
-
-        public IElementSetupWrite SetAnchor(Vector2 min, Vector2 max)
-        {
-            _element.SetAnchor(min, max);
-            return this;
-        }
-
-        public IElementSetupWrite SetSizeDelta(Vector2 delta)
-        {
-            _element.SetSizeDelta(delta);
-            return this;
-        }
-
-        public IElementSetupWrite SetAnchoredPosition(Vector2 pos)
-        {
-            _element.SetAnchoredPosition(pos);
-            return this;
-        }
-
-        public IElementSetupWrite MoveRelative(Vector2 move)
-        {
-            _element.MoveRelative(move);
-            return this;
-        }
-
-        public IElementSetupWrite Move(Vector2 move)
-        {
-            _element.Move(move);
-            return this;
-        }
-
-        public IElementSetupWrite Handle(string signalName, SetupHandleDelegate handler)
-        {
-            _element.Handle(signalName, handler);
-            return this;
-        }
-
-        public IElementSetupWrite DefaultHide()
-        {
-            _element.DefaultHide();
-            return this;
-        }
-
-        public IElementSetupWrite Feature<T>(FeatureCall<T>.FuncDelegate f) where T : class, IFacadeFeature
-        {
-            _element.Feature<T>(f);
-            return this;
-        }
-
-        public IElementSetupWrite GroupVertical()
-        {
-            _element.GroupVertical();
-            return this;
-        }
-
-        public IElementSetupWrite GroupHorizontal()
-        {
-            _element.GroupHorizontal();
-            return this;
-        }
-
-        public IElementSetupWrite SignalBlock(bool block = true)
-        {
-            _element.SignalBlock(block);
-            return this;
-        }
-
-        public IElementSetupWrite Lazy(bool lazy = true)
-        {
-            _element.Lazy(lazy);
-            return this;
-        }
-
-        public IElementSetupWrite State(string name, object value = null, StateInitDelegate initFunc = null)
-        {
-            _element.State(name, value, initFunc);
-            return this;
-        }
-
-        public IElementSetupRead Read()
-        {
-            return _element;
-        }
-
-        public IElementSetupWrite Clone()
-        {
-            return _element.Clone().Write();
-        }
-
-        public IElementSetupWrite Init(SimpleHandleDelegate handler)
-            => Handle("__INIT__", (_, ctx) => {
-                // Simple wrapper
-                handler(ctx);
-            });
-
-        public IElementSetupWrite UseState(string varName)
-        {
-            _element.SetUsedState(varName);
-            return this;
-        }
-
-        public IElementSetupWrite StatesFrom(string elemId)
-        {
+            public Vector2 cellSize;
+            public Vector2 padding;
         }
     }
 }
