@@ -26,7 +26,7 @@ namespace UI2
         private readonly Dictionary<Transform, IElementInstance> _viewToModelMap = new();
 
         /// <summary>
-        /// 
+        ///
         /// </summary>
         /// <param name="provider">Объект Юнити, через который осуществляется запуск корутин</param>
         public UIRoot(MonoBehaviour provider)
@@ -77,7 +77,7 @@ namespace UI2
 
             if (_styles.TryGetValue(setup.Style, out Style style)) {
                 // TODO May be merge facade and instance?
-                // Если родитель - элемент UI, привяжемся к специальной зоне для потомков 
+                // Если родитель - элемент UI, привяжемся к специальной зоне для потомков
                 IElementInstance parentInstance = parent ? _viewToModelMap.GetValueOrDefault(parent, null) : null;
                 Transform parentPivot = null;
                 if (parentInstance != null) {
@@ -86,7 +86,7 @@ namespace UI2
                         parentPivot = parentFacade.SubZone;
                     }
                 }
-    
+
                 // По уполчанию привязываемся напрямую к родителю
                 if (!parentPivot) {
                     parentPivot = parent;
@@ -124,7 +124,7 @@ namespace UI2
                 // Обязательно сохраняем элемент, чтобы не потерять
                 // TODO А оно надо, если ранее создали индекс?
                 _instances.Add(instance);
-                
+
                 // Если у элемента есть перехватчики событий, регистрируем его как событийный
                 // (типа так быстрее должно работать, ведь так?)
                 if (setup.HasHandlers) {
@@ -143,14 +143,16 @@ namespace UI2
                     foreach (var sub in setup.Subs) {
                         Attach(sub, facade.transform);
                     }
-                    
-                    // Связываем фичи фасада с моделью 
+
+                    // Связываем фичи фасада с моделью
                     facade.InitFeatures(instance);
                 }
-                
+
                 // Постинициализация от потомков к родителю
-                foreach (var child in instance.Children) {
-                    child.LateInit();
+                if (instance.Children != null) {
+                    foreach (var child in instance.Children) {
+                        child.LateInit();
+                    }
                 }
                 instance.LateInit();
 
@@ -184,94 +186,93 @@ namespace UI2
             // Создаём объект сингнала
             SignalContext signal = new SignalContext(name, data);
             switch (direction) {
-                
                 // Сигнал должен попасть во все подписанные на него элементы сцены
                 case SignalDirection.Broadcast: {
-                    foreach (var listener in _listeners) {
-                        var handlers = listener.Proto.GetHandlers(name);
-                        if (handlers == null) {
-                            continue;
-                        }
-
-                        if (handlers.Any(h => {
-                                h(signal, new ElementRuntimeContext(listener, this));
-                                return consumable && signal.Consumed;
-                            })) {
-                            break;
-                        }
-                    }
-
-                    break;
-                }
-                
-                // Это типа loopback. Сигнал уходит на этот же элемент.
-                case SignalDirection.Self: {
-                    _ = sender.Proto.GetHandlers(name)?.All(h => {
-                        h(signal, new ElementRuntimeContext(sender, this));
-                        return true;
-                    });
-                    break;
-                }
-                
-                // Сигнал уходит вверх по родительской иерархии
-                case SignalDirection.DrillUp: {
-                    HashSet<IElementInstance> antiRecursion = new() { sender };
-                    var current = sender.Parent;
-                    while (current != null) {
-                        if (!antiRecursion.Add(current)) {
-                            Debug.LogWarning($"found recursion in element {current.Proto.Id}");
-                            break;
-                        }
-
-                        var result = current.Proto.GetHandlers(name)?.Any(h => {
-                            h(signal, new ElementRuntimeContext(current, this));
-                            return consumable && signal.Consumed;
-                        });
-                        if (result.HasValue && result.Value) {
-                            break;
-                        }
-
-                        current = current.Proto.SignalBlocked ? null : current.Parent;
-                    }
-
-                    break;
-                }
-                
-                // Сигнал уходит по потомкам путём поиска в глубину
-                case SignalDirection.DrillDown: {
-                    HashSet<IElementInstance> antiRecursion = new() { sender };
-
-                    DeepSearch(sender);
-
-                    break;
-
-                    void DeepSearch(IElementInstance elem)
-                    {
-                        if (elem.Children == null || elem.Proto.SignalBlocked) {
-                            return;
-                        }
-
-                        foreach (var sub in elem.Children) {
-                            if (!antiRecursion.Add(sub)) {
-                                Debug.LogWarning($"found recursion in element {elem.Proto.Id}");
+                        foreach (var listener in _listeners) {
+                            var handlers = listener.Proto.GetHandlers(name);
+                            if (handlers == null) {
                                 continue;
                             }
 
-                            var result = sub.Proto.GetHandlers(name)?.Any(h => {
-                                h(signal, new ElementRuntimeContext(sub, this));
+                            if (handlers.Any(h => {
+                                h(signal, new ElementRuntimeContext(listener, this));
+                                return consumable && signal.Consumed;
+                            })) {
+                                break;
+                            }
+                        }
+
+                        break;
+                    }
+
+                // Это типа loopback. Сигнал уходит на этот же элемент.
+                case SignalDirection.Self: {
+                        _ = sender.Proto.GetHandlers(name)?.All(h => {
+                            h(signal, new ElementRuntimeContext(sender, this));
+                            return true;
+                        });
+                        break;
+                    }
+
+                // Сигнал уходит вверх по родительской иерархии
+                case SignalDirection.DrillUp: {
+                        HashSet<IElementInstance> antiRecursion = new() { sender };
+                        var current = sender.Parent;
+                        while (current != null) {
+                            if (!antiRecursion.Add(current)) {
+                                Debug.LogWarning($"found recursion in element {current.Proto.Id}");
+                                break;
+                            }
+
+                            var result = current.Proto.GetHandlers(name)?.Any(h => {
+                                h(signal, new ElementRuntimeContext(current, this));
                                 return consumable && signal.Consumed;
                             });
                             if (result.HasValue && result.Value) {
                                 break;
                             }
 
-                            DeepSearch(sub);
-                            if (consumable && signal.Consumed) {
-                                break;
+                            current = current.Proto.SignalBlocked ? null : current.Parent;
+                        }
+
+                        break;
+                    }
+
+                // Сигнал уходит по потомкам путём поиска в глубину
+                case SignalDirection.DrillDown: {
+                        HashSet<IElementInstance> antiRecursion = new() { sender };
+
+                        DeepSearch(sender);
+
+                        break;
+
+                        void DeepSearch(IElementInstance elem)
+                        {
+                            if (elem.Children == null || elem.Proto.SignalBlocked) {
+                                return;
+                            }
+
+                            foreach (var sub in elem.Children) {
+                                if (!antiRecursion.Add(sub)) {
+                                    Debug.LogWarning($"found recursion in element {elem.Proto.Id}");
+                                    continue;
+                                }
+
+                                var result = sub.Proto.GetHandlers(name)?.Any(h => {
+                                    h(signal, new ElementRuntimeContext(sub, this));
+                                    return consumable && signal.Consumed;
+                                });
+                                if (result.HasValue && result.Value) {
+                                    break;
+                                }
+
+                                DeepSearch(sub);
+                                if (consumable && signal.Consumed) {
+                                    break;
+                                }
                             }
                         }
                     }
-                }
                 default:
                     throw new NotImplementedException();
             }

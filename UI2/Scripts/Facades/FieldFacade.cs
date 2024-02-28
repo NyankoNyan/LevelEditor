@@ -12,7 +12,7 @@ namespace UI2
 
         protected override void OnInitFeatures()
         {
-            AddFeature(new Active(), new Input(_inputField));
+            AddFeature(new Active(), new Feature.Input(_inputField));
         }
     }
 }

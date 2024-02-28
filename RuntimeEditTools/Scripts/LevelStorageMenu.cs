@@ -150,7 +150,7 @@ namespace RuntimeEditTools.UI
                         .Feature<MainText>(f => f.SetText("URL")),
                     new InputElement().Write()
                         .UseState("Port")
-                        .Feature<Input>(f => f.Number(4))
+                        .Feature<UI2.Feature.Input>(f => f.Number(4))
                         .Feature<MainText>(f => f.SetText("Port")),
                     new FlagElement().Write()
                         .UseState("UseHTTPS")
