@@ -1,5 +1,3 @@
-using UnityEngine;
-
 namespace UI2.Test
 {
     [UITest]
@@ -12,22 +10,18 @@ namespace UI2.Test
 
         [UITest]
         public static IElementSetupWrite VerticalLayout() =>
-            new PanelElement().Write()
-                .Apply(AddNElems(5))
-                .GroupVertical();
+            NoLayout().GroupVertical();
 
         [UITest]
         public static IElementSetupWrite HorizontalLayout() =>
-            new PanelElement().Write()
-                .Apply(AddNElems(5))
-                .GroupHorizontal();
+            NoLayout().GroupHorizontal();
 
         [UITest]
         public static IElementSetupWrite GridLayout() =>
             new PanelElement().Write()
                 .Apply(AddNElems(20))
-                .Grid(new Vector2(20, 20),
-                    new RectOffset(5, 5, 5, 5));
+                .Grid(cellSize: (20, 20),
+                    padding: (5, 5, 5, 5));
 
         private static SetupDelegate AddNElems(int n)
         {
@@ -35,10 +29,10 @@ namespace UI2.Test
                 for (int i = 0; i < n; i++) {
                     setup.Sub(
                         new PanelElement().Write()
-                            .SetPivot(new Vector2(0, 0))
-                            .SetAnchor(new Vector2(0, 0), new Vector2(0, 0))
-                            .SetSizeDelta(new Vector2(20, 20))
-                            .SetAnchoredPosition(new Vector2(10 * i, 10 * i))
+                            .SetPivot(0, 0)
+                            .SetAnchor(min: (0, 0), max: (0, 0))
+                            .SetSizeDelta(20, 20)
+                            .SetAnchoredPosition(10 * i, 10 * i)
                     );
                 }
             };
