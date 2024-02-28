@@ -1,9 +1,13 @@
 using System.Reflection;
 
+using global::System;
+
+using UI2.Feature;
+
 using UnityEngine;
 using UnityEngine.Assertions;
 
-namespace UI2.Tests
+namespace UI2.Test
 {
     /// <summary>
     /// Атрибут для тестов. Укажите атрибут у тестового класса и у его методов,
@@ -49,8 +53,8 @@ namespace UI2.Tests
                     } else {
                         setup.Sub(
                             new PanelElement().Write()
-                                .SetStyle("named-panel")
-                                .Feature<MainTextFeature>(f => f.SetText(mType.Name))
+                                .Style("named-panel")
+                                .Feature<MainText>(f => f.SetText(mType.Name))
                                 .Sub(elemSetup)
                         );
                     }

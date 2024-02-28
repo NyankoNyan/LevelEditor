@@ -15,7 +15,7 @@ namespace UI2
         public OperationDescriptor Start(IOperation operation) 
             => _root.StartOperation(operation);
 
-        public IElementInstance Sub(string id)
+        public IElementInstance Find(string id)
         {
             return Element.Sub(id);
         }

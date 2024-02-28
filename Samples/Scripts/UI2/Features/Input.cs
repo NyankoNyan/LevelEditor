@@ -3,15 +3,15 @@
 using UnityEngine;
 using UnityEngine.Assertions;
 
-namespace UI2
+namespace UI2.Feature
 {
-    public class InputFeature : IFacadeFeature
+    public class Input : IFacadeFeature
     {
         private readonly TMP_InputField _inputField;
         private IElementInstance _elem;
         private ValidateType _validateType;
 
-        public InputFeature(TMP_InputField inputField)
+        public Input(TMP_InputField inputField)
         {
             Assert.IsNotNull(inputField);
             _inputField = inputField;
@@ -24,7 +24,7 @@ namespace UI2
 
             if (!string.IsNullOrWhiteSpace(_elem.Proto.UsedState)) {
                 var state = _elem.State(_elem.Proto.UsedState);
-                _inputField.text = state.As<string>();
+                _inputField.text = state.Get<string>();
             }
         }
 

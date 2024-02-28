@@ -1,3 +1,5 @@
+using UI2.Feature;
+
 using UnityEngine;
 using UnityEngine.Assertions;
 using UnityEngine.UI;
@@ -11,7 +13,7 @@ namespace UI2
         protected override void OnInitFeatures()
         {
             Assert.IsNotNull(_button);
-            AddFeature(new ActivateFeature(_button), new ClickFeature(_button));
+            AddFeature(new Active(_button), new Click(_button));
         }
     }
 }

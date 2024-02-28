@@ -1,3 +1,5 @@
+using global::System.Collections.Generic;
+
 using UnityEngine;
 
 namespace UI2
@@ -11,13 +13,13 @@ namespace UI2
             _element = element;
         }
 
-        public IElementSetupWrite SetId(string id)
+        public IElementSetupWrite Id(string id)
         {
             _element.SetId(id);
             return this;
         }
 
-        public IElementSetupWrite SetStyle(string style)
+        public IElementSetupWrite Style(string style)
         {
             _element.SetStyle(style);
             return this;
@@ -35,7 +37,7 @@ namespace UI2
             return this;
         }
 
-        public IElementSetupWrite Apply(params SetupThenDelegate[] fns)
+        public IElementSetupWrite Apply(params SetupDelegate[] fns)
         {
             _element.Apply(fns);
             return this;
@@ -167,6 +169,17 @@ namespace UI2
         {
             _element.Grid(cellSize, padding);
             return this;
+        }
+
+        public IElementSetupWrite Timer(float timer, SimpleHandleDelegate handler)
+        {
+            return Init(ctx =>
+                ctx.Start(new Operation()
+                    .Do(() => handler.Invoke(ctx))
+                    .Wait((timer == 0) ? null : new WaitForSeconds(timer))
+                    .CallSelf()
+                )
+            );
         }
     }
 }

@@ -1,6 +1,9 @@
 using System.Diagnostics;
 using System.Reflection;
 
+using global::System.Collections.Generic;
+using global::System.Linq;
+
 using UnityEngine;
 
 namespace UI2
@@ -13,6 +16,13 @@ namespace UI2
     {
         private readonly List<Command> _commands = new();
 
+        public ElementTemplate(params SetupDelegate[] setupCalls)
+        {
+            foreach (var call in setupCalls) {
+                call(this);
+            }
+        }
+
         private IElementSetupWrite _Add(params object[] args)
         {
             StackTrace stackTrace = new StackTrace();
@@ -24,7 +34,7 @@ namespace UI2
             return this;
         }
 
-        public SetupThenDelegate All => (setup) => {
+        public SetupDelegate All => (setup) => {
             foreach (var command in _commands) {
                 var method = setup!.GetType().GetMethod(command.func.Name);
                 setup = (IElementSetupWrite)method!.Invoke(setup, command.args);
@@ -33,16 +43,16 @@ namespace UI2
 
         public IElementSetupRead Read() => throw new ElementWorkflowException();
 
-        public IElementSetupWrite SetId(string id) => _Add(id);
+        public IElementSetupWrite Id(string id) => _Add(id);
 
-        public IElementSetupWrite SetStyle(string style) => _Add(style);
+        public IElementSetupWrite Style(string style) => _Add(style);
 
         public IElementSetupWrite Sub(params IElementSetupWrite[] elements) =>
             _Add(elements.Select(x => (object)x).ToArray());
 
         public IElementSetupWrite Sub(IEnumerable<IElementSetupWrite> elements) => _Add(elements);
 
-        public IElementSetupWrite Apply(params SetupThenDelegate[] fns) => _Add(fns.Select(x => (object)x).ToArray());
+        public IElementSetupWrite Apply(params SetupDelegate[] fns) => _Add(fns.Select(x => (object)x).ToArray());
 
         public IElementSetupWrite SetPivot(Vector2 pivot) => _Add(pivot);
 
@@ -85,6 +95,9 @@ namespace UI2
             => _Add(elemId, elemState, newId);
 
         public IElementSetupWrite Grid(Vector2 cellSize, Vector2 padding) => _Add(cellSize, padding);
+
+        public IElementSetupWrite Timer(float timer, SimpleHandleDelegate handler)
+            => _Add(timer, handler);
 
         private struct Command
         {

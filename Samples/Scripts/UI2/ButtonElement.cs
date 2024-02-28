@@ -1,4 +1,6 @@
-﻿namespace UI2
+﻿using UI2.Feature;
+
+namespace UI2
 {
     public class ButtonElement : BaseElement
     {
@@ -13,9 +15,9 @@
 
             SetStyle("button");
             if (!string.IsNullOrWhiteSpace(name)) {
-                Feature<MainTextFeature>(f => f.SetText(_name));
+                Feature<MainText>(f => f.SetText(_name));
             } else {
-                Feature<MainTextFeature>(f => f.SetText(""));
+                Feature<MainText>(f => f.SetText(""));
             }
         }
 

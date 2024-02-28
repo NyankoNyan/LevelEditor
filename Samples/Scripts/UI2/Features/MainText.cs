@@ -2,13 +2,13 @@ using UnityEngine;
 
 using TMPro;
 
-namespace UI2
+namespace UI2.Feature
 {
-    public class MainTextFeature : IFacadeFeature
+    public class MainText : IFacadeFeature
     {
         private readonly TextMeshProUGUI _textObj;
 
-        public MainTextFeature(TextMeshProUGUI textObj)
+        public MainText(TextMeshProUGUI textObj)
         {
             _textObj = textObj;
         }

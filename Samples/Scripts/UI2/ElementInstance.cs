@@ -83,7 +83,7 @@ namespace UI2
             _root.SendSignal(id, null, this, SignalDirection.Self, false);
         }
 
-        public T GetFacadeFeature<T>() where T : class, IFacadeFeature
+        public T Feature<T>() where T : class, IFacadeFeature
             => _facade?.GetFeature<T>();
 
         public StateVar State(string name)

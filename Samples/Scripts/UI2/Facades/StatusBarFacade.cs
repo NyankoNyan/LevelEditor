@@ -1,5 +1,7 @@
 ﻿using TMPro;
 
+using UI2.Feature;
+
 using UnityEngine;
 
 namespace UI2
@@ -9,7 +11,7 @@ namespace UI2
         [SerializeField] TextMeshProUGUI _textObj;
         protected override void OnInitFeatures()
         {
-            AddFeature(new MainTextFeature(_textObj));
+            AddFeature(new MainText(_textObj));
         }
     }
 }

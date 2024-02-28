@@ -6,6 +6,6 @@ namespace UI2
         public void DrillUpSignal(string name, object data = null, bool consumable = true);
         public void DrillDownSignal(string name, object data = null, bool consumable = true);
         OperationDescriptor Start(IOperation operation);
-        IElementInstance Sub(string id);
+        IElementInstance Find(string id);
     }
 }

@@ -30,7 +30,7 @@ namespace UI2
 
         public void Call(IElementInstance instance)
         {
-            Func.Invoke(instance.GetFacadeFeature<T>());
+            Func.Invoke(instance.Feature<T>());
         }
     }
 
@@ -243,7 +243,7 @@ namespace UI2
             Sub(elements.ToArray());
         }
 
-        public void Apply(params SetupThenDelegate[] fns)
+        public void Apply(params SetupDelegate[] fns)
         {
             foreach (var fn in fns) {
                 fn(Write());

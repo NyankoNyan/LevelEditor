@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace UI2.Tests
+namespace UI2.Test
 {
     [UITest]
     public static class GroupTests
@@ -29,9 +29,9 @@ namespace UI2.Tests
                 .Grid(new Vector2(20, 20),
                     new Vector2(5, 5));
 
-        private static SetupThenDelegate AddNElems(int n)
+        private static SetupDelegate AddNElems(int n)
         {
-            SetupThenDelegate func = (setup) => {
+            SetupDelegate func = (setup) => {
                 for (int i = 0; i < n; i++) {
                     setup.Sub(
                         new PanelElement().Write()

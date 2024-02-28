@@ -9,7 +9,11 @@ namespace UI2
     {
         IOperation Do(Action callback);
 
-        IOperation Wait(YieldInstruction wait);
+        IOperation Wait(YieldInstruction wait = null);
+
+        IOperation Call(IOperation operation);
+        
+        IOperation CallSelf();
 
         IEnumerator Exec();
     }

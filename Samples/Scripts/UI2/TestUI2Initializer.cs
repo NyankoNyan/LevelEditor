@@ -1,8 +1,9 @@
 using System;
 using System.Collections;
 
+using UI2.Feature;
+
 using UnityEngine;
-using UnityEngine.Assertions;
 
 namespace UI2
 {
@@ -43,7 +44,7 @@ namespace UI2
         }
     }
 
-    public delegate void SetupThenDelegate(IElementSetupWrite setup);
+    public delegate void SetupDelegate(IElementSetupWrite setup);
 
     public delegate void SetupHandleDelegate(ISignalContext signal, IElementRuntimeContext context);
 
@@ -83,117 +84,6 @@ namespace UI2
         public string refId;
     }
 
-    public interface IStateVar
-    {
-        void Set<T>(T v);
-        T As<T>();
-        Action onChanged { get; set; }
-    }
-
-    public class StateVar : IStateVar, IDisposable
-    {
-        public string name;
-        public object value;
-        public bool isProxy;
-
-        public Action onChanged { get; set; }
-
-        public StateVar(string name, object value = null)
-        {
-            this.name = name;
-            this.value = value;
-        }
-
-        public StateVar(StateDef stateDef)
-        {
-            name = stateDef.name;
-            if (stateDef.defaultValue != null) {
-                value = stateDef.defaultValue switch {
-                    bool b => b,
-                    int i => i,
-                    ICloneable c => c.Clone(),
-                    _ => stateDef.defaultValue
-                };
-            } else if (stateDef.stateInitCall != null) {
-                value = stateDef.stateInitCall();
-            }
-        }
-
-        /// <summary>
-        /// Create reference to state
-        /// </summary>
-        /// <param name="refVar"></param>
-        /// <param name="newName"></param>
-        public StateVar(StateVar refVar, string newName = null)
-        {
-            Assert.IsNotNull(refVar);
-            name = newName ?? refVar.name;
-            isProxy = true;
-            value = refVar;
-            refVar.onChanged += OnProxyChanged;
-        }
-
-        private void OnProxyChanged() => onChanged?.Invoke();
-
-        public void Set<T>(T v)
-        {
-            if (isProxy) {
-                if (value is StateVar sv) {
-                    sv.Set(v);
-                } else {
-                    throw new ElementWorkflowException();
-                }
-            } // isProxy 
-            else {
-                bool callOnChanged;
-                if (v is IEquatable<T> newEq && value is IEquatable<T> oldEq) {
-                    callOnChanged = !newEq.Equals(oldEq);
-                } else {
-                    callOnChanged = true;
-                }
-
-                if (typeof(T) == typeof(bool)
-                    || typeof(T) == typeof(int)) {
-                    value = v;
-                } else if (v is ICloneable c) {
-                    value = c.Clone();
-                } else {
-                    value = v;
-                }
-
-                if (callOnChanged) {
-                    onChanged?.Invoke();
-                }
-            } // !isProxy
-        }
-
-        public T As<T>()
-        {
-            if (isProxy) {
-                if (value is StateVar sv) {
-                    return sv.As<T>();
-                } else {
-                    throw new ElementWorkflowException();
-                }
-            } // isProxy 
-            else {
-                if (value is T t) {
-                    return t;
-                } else {
-                    return default;
-                }
-            } // !isProxy
-        }
-
-        public void Dispose()
-        {
-            if (isProxy) {
-                if (value is StateVar sv) {
-                    sv.onChanged -= OnProxyChanged;
-                }
-            }
-        }
-    }
 
     #region Test Zone
 
@@ -219,8 +109,8 @@ namespace UI2
         {
             return new MyWindow()
                 .Write()
-                .SetId("MyWindow")
-                .SetStyle("window")
+                .Id("MyWindow")
+                .Style("window")
                 .Sub(ServerAddress.Create()
                         .Apply(
                             Snaps.HorizontalSnap(partSize: .8f),
@@ -262,12 +152,12 @@ namespace UI2
                     ctx.Start(new Operation()
                         .Do(() => {
                             ctx.DrillDownSignal("DEACTIVATE");
-                            ctx.Sub("WaitStatus")?.Show();
+                            ctx.Find("WaitStatus")?.Show();
                             ctx.DrillDownSignal("MSG", consumable: false);
                         })
                         .Wait(new WaitForSeconds(3))
                         .Do(() => {
-                            ctx.Sub("WaitStatus")?.Hide();
+                            ctx.Find("WaitStatus")?.Hide();
                             ctx.DrillDownSignal("MSG", data: "Something happens...", consumable: false);
                             ctx.DrillDownSignal("ACTIVATE");
                         })
@@ -288,8 +178,8 @@ namespace UI2
         {
             return new ServerAddress()
                 .Write()
-                .SetId("ServerAddress")
-                .SetStyle("field");
+                .Id("ServerAddress")
+                .Style("field");
         }
 
         protected override BaseElement GetEmptyClone() => new ServerAddress();
@@ -305,8 +195,8 @@ namespace UI2
         {
             return new MapName()
                 .Write()
-                .SetId("MapName")
-                .SetStyle("field");
+                .Id("MapName")
+                .Style("field");
         }
 
         protected override BaseElement GetEmptyClone() => new MapName();
@@ -322,8 +212,8 @@ namespace UI2
         {
             return new WaitStatus()
                 .Write()
-                .SetId("WaitStatus")
-                .SetStyle("wait");
+                .Id("WaitStatus")
+                .Style("wait");
         }
 
         protected override BaseElement GetEmptyClone() => new WaitStatus();
@@ -339,13 +229,13 @@ namespace UI2
         {
             return new ErrorStatus()
                 .Write()
-                .SetId("ErrorStatus")
-                .SetStyle("status-bar")
+                .Id("ErrorStatus")
+                .Style("status-bar")
                 .Handle("MSG", (sig, ctx) => {
                     if (sig.Data is string s) {
-                        ctx.Element.GetFacadeFeature<MainTextFeature>()?.SetText(s);
+                        ctx.Element.Feature<MainText>()?.SetText(s);
                     } else {
-                        ctx.Element.GetFacadeFeature<MainTextFeature>()?.SetText("");
+                        ctx.Element.Feature<MainText>()?.SetText("");
                     }
                 });
         }
@@ -363,8 +253,8 @@ namespace UI2
         {
             return new CancelButton()
                 .Write()
-                .SetId("CancelButton")
-                .SetStyle("button")
+                .Id("CancelButton")
+                .Style("button")
                 .Handle(Facade.Click, (sig, ctx) =>
                     ctx.DrillUpSignal("QUIT")
                 );
@@ -383,8 +273,8 @@ namespace UI2
         {
             return new ConfirmButton()
                 .Write()
-                .SetId("ConfirmButton")
-                .SetStyle("button")
+                .Id("ConfirmButton")
+                .Style("button")
                 .Handle(Facade.Click, (sig, ctx) =>
                     ctx.DrillUpSignal("CONFIRM")
                 );

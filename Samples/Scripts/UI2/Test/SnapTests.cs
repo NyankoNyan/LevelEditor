@@ -1,4 +1,4 @@
-namespace UI2.Tests
+namespace UI2.Test
 {
     [UITest]
     public static class SnapTests
@@ -73,6 +73,24 @@ namespace UI2.Tests
                     new PanelElement().Write()
                         .Apply(Snaps.HorizontalSnap(right: 10, fixedSize: 100f),
                             Snaps.VerticalSnap(top: 10, bottom: 10))
+                );
+
+        [UITest]
+        public static IElementSetupWrite SnapCorner() =>
+            new PanelElement().Write()
+                .Sub(
+                    new PanelElement().Write()
+                        .Apply(Snaps.HorizontalSnap(right: 10, partSize: .5f),
+                            Snaps.VerticalSnap(top: 10, partSize: .5f))
+                );
+
+        [UITest]
+        public static IElementSetupWrite SnapCornerAbs() =>
+            new PanelElement().Write()
+                .Sub(
+                    new PanelElement().Write()
+                        .Apply(Snaps.HorizontalSnap(right: 10, fixedSize: 100f),
+                            Snaps.VerticalSnap(top: 10, fixedSize: 100f))
                 );
     }
 }

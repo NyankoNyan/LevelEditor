@@ -1,14 +1,14 @@
 using UnityEngine;
 using UnityEngine.UI;
 
-namespace UI2
+namespace UI2.Feature
 {
-    public class ClickFeature : IFacadeFeature
+    public class Click : IFacadeFeature
     {
         private readonly Button _button;
         private IElementInstance _instance;
 
-        public ClickFeature(Button button)
+        public Click(Button button)
         {
             _button = button;
             if (!_button) {

@@ -33,11 +33,11 @@ namespace UI2
     public interface IElementSetupWrite
     {
         IElementSetupRead Read();
-        IElementSetupWrite SetId(string id);
-        IElementSetupWrite SetStyle(string style);
+        IElementSetupWrite Id(string id);
+        IElementSetupWrite Style(string style);
         IElementSetupWrite Sub(params IElementSetupWrite[] elements);
         IElementSetupWrite Sub(IEnumerable<IElementSetupWrite> elements);
-        IElementSetupWrite Apply(params SetupThenDelegate[] fns);
+        IElementSetupWrite Apply(params SetupDelegate[] fns);
         IElementSetupWrite SetPivot(Vector2 pivot);
         IElementSetupWrite SetAnchor(Vector2 min, Vector2 max);
         IElementSetupWrite SetSizeDelta(Vector2 delta);
@@ -58,5 +58,6 @@ namespace UI2
         IElementSetupWrite StatesFrom(string elemId);
         IElementSetupWrite StateFrom(string elemId, string elemState, string newId = null);
         IElementSetupWrite Grid(Vector2 cellSize, Vector2 padding = default);
+        IElementSetupWrite Timer(float timer, SimpleHandleDelegate handler);
     }
 }

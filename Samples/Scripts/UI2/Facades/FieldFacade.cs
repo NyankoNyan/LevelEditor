@@ -1,5 +1,7 @@
 using TMPro;
 
+using UI2.Feature;
+
 using UnityEngine;
 
 namespace UI2
@@ -10,7 +12,7 @@ namespace UI2
 
         protected override void OnInitFeatures()
         {
-            AddFeature(new ActivateFeature(), new InputFeature(_inputField));
+            AddFeature(new Active(), new Input(_inputField));
         }
     }
 }

@@ -30,32 +30,79 @@ namespace UI2
             return this;
         }
 
+        public IOperation Call(IOperation operation)
+        {
+            _instructions.Add(new() {
+                iType = InstructionType.Call,
+                operation = operation
+            });
+            return this;
+        }
+
+        public IOperation CallSelf()
+        {
+            _instructions.Add(new() {
+                iType = InstructionType.Call,
+                operation = this
+            });
+            return this;
+        }
+
         public IEnumerator Exec()
         {
-            foreach (var instruction in _instructions) {
-                switch (instruction.iType) {
-                    case InstructionType.Do:
-                        instruction.callback();
+            bool tailRecursion = _instructions.Count > 0
+                                 && _instructions[^1].iType == InstructionType.Call
+                                 && _instructions[^1].operation == this;
+            do {
+                bool breakFor = false;
+                for (int i = 0; i < _instructions.Count; i++) {
+                    bool last = i == _instructions.Count - 1;
+                    if (last && tailRecursion) {
                         break;
+                    }
+                    
+                    var instruction = _instructions[i];
 
-                    case InstructionType.Wait:
-                        yield return instruction.wait;
+                    switch (instruction.iType) {
+                        case InstructionType.Do:
+                            instruction.callback();
+                            break;
+
+                        case InstructionType.Wait:
+                            yield return instruction.wait;
+                            break;
+                        
+                        case InstructionType.Call:
+                            yield return instruction.operation.Exec();
+                            break;
+                        
+                        case InstructionType.Break:
+                            tailRecursion = false;
+                            breakFor = true;
+                            break;
+
+                        default:
+                            throw new NotImplementedException();
+                    }
+
+                    if (breakFor) {
                         break;
-
-                    default:
-                        throw new NotImplementedException();
+                    }
                 }
-            }
+            } while (tailRecursion);
         }
 
         private enum InstructionType
-        { Do, Wait }
+        {
+            Do, Wait, Call, Break
+        }
 
         private struct Instruction
         {
             public InstructionType iType;
             public Action callback;
             public YieldInstruction wait;
+            public IOperation operation;
         }
     }
 }

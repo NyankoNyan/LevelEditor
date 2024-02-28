@@ -15,7 +15,7 @@ namespace UI2
         IEnumerable<IElementInstance> Children { get; }
         IElementInstance Sub(string id);
         void SendFacadeSignal(string id);
-        T GetFacadeFeature<T>() where T : class, IFacadeFeature;
+        T Feature<T>() where T : class, IFacadeFeature;
         /// <summary>
         /// Возвращает переменную состояния. В случае отсутствия, переменная будет создана.
         /// </summary>

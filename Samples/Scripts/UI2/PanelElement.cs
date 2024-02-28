@@ -5,7 +5,7 @@ namespace UI2
         public PanelElement()
         {
             Write()
-                .SetStyle("panel");
+                .Style("panel");
         }
         protected override BaseElement GetEmptyClone() => new PanelElement();
     }

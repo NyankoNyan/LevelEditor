@@ -8,6 +8,7 @@ using Level.IO;
 using LevelView;
 
 using UI2;
+using UI2.Feature;
 
 using UnityEngine;
 using UnityEngine.Assertions;
@@ -43,8 +44,8 @@ namespace RuntimeEditTools.UI
              * *  NEW  OPEN  SAVE  SAVE_AS  *
              * ****************************** */
             return new LevelStorageMenu().Write()
-                .SetId(nameof(LevelStorageMenu))
-                .SetStyle("window")
+                .Id(nameof(LevelStorageMenu))
+                .Style("window")
                 .State("StorageMode", initFunc: () => {
                     string uri = level.LevelSettings.levelStoreURI;
                     Regex httpRe = new(@"^https?://");
@@ -55,8 +56,8 @@ namespace RuntimeEditTools.UI
                 .State("Name", initFunc: () => level.LevelSettings.name)
                 .Sub(
                     new InputElement().Write()
-                        .SetId("LevelName")
-                        .Feature<MainTextFeature>(f =>
+                        .Id("LevelName")
+                        .Feature<MainText>(f =>
                             f.SetText(level.LevelSettings.name)),
                     new OptionsButtonLine(
                         new ButtonElement(),
@@ -64,11 +65,11 @@ namespace RuntimeEditTools.UI
                         ("REMOTE", "Remote storage")
                     ).Write(),
                     new LocalStorageSettings().Write()
-                        .SetId("LocalFrame")
+                        .Id("LocalFrame")
                         .DefaultHide()
                         .Lazy(),
                     new RemoteStorageSettings().Write()
-                        .SetId("RemoteFrame")
+                        .Id("RemoteFrame")
                         .DefaultHide()
                         .Lazy(),
                     new OptionsButtonLine(
@@ -101,20 +102,20 @@ namespace RuntimeEditTools.UI
         private static void UpdateButtonsActivity(
             IElementRuntimeContext ctx)
         {
-            int state = ctx.Element.State("StorageMode").As<int>();
+            int state = ctx.Element.State("StorageMode").Get<int>();
 
-            var locActive = ctx.Sub("LOCAL").GetFacadeFeature<ActivateFeature>();
-            var remActive = ctx.Sub("REMOTE").GetFacadeFeature<ActivateFeature>();
+            var locActive = ctx.Find("LOCAL").Feature<Active>();
+            var remActive = ctx.Find("REMOTE").Feature<Active>();
             if (state == 0) {
                 locActive.Deactivate();
                 remActive.Activate();
-                ctx.Sub("LocalFrame").Show();
-                ctx.Sub("RemoteFrame").Hide();
+                ctx.Find("LocalFrame").Show();
+                ctx.Find("RemoteFrame").Hide();
             } else {
                 locActive.Activate();
                 remActive.Deactivate();
-                ctx.Sub("LocalFrame").Hide();
-                ctx.Sub("RemoteFrame").Show();
+                ctx.Find("LocalFrame").Hide();
+                ctx.Find("RemoteFrame").Show();
             }
         }
 
@@ -126,11 +127,11 @@ namespace RuntimeEditTools.UI
         public LocalStorageSettings()
         {
             Write()
-                .SetStyle("sub-settings")
+                .Style("sub-settings")
                 .Sub(
                     new InputElement().Write()
                         .UseState("FilePath")
-                        .Feature<MainTextFeature>(f => f.SetText("Level folder"))
+                        .Feature<MainText>(f => f.SetText("Level folder"))
                 );
         }
 
@@ -142,18 +143,18 @@ namespace RuntimeEditTools.UI
         public RemoteStorageSettings()
         {
             Write()
-                .SetStyle("sub-settings")
+                .Style("sub-settings")
                 .Sub(
                     new InputElement().Write()
                         .UseState("RemoteAddress")
-                        .Feature<MainTextFeature>(f => f.SetText("URL")),
+                        .Feature<MainText>(f => f.SetText("URL")),
                     new InputElement().Write()
                         .UseState("Port")
-                        .Feature<InputFeature>(f => f.Number(4))
-                        .Feature<MainTextFeature>(f => f.SetText("Port")),
+                        .Feature<Input>(f => f.Number(4))
+                        .Feature<MainText>(f => f.SetText("Port")),
                     new FlagElement().Write()
                         .UseState("UseHTTPS")
-                        .Feature<MainTextFeature>(f => f.SetText("HTTPS"))
+                        .Feature<MainText>(f => f.SetText("HTTPS"))
                 )
                 .GroupHorizontal();
         }
@@ -196,8 +197,8 @@ namespace RuntimeEditTools.UI
                 Sub(
                     proto.Write()
                         .Clone()
-                        .SetId(button.id)
-                        .Feature<MainTextFeature>(f => f.SetText(button.name))
+                        .Id(button.id)
+                        .Feature<MainText>(f => f.SetText(button.name))
                         .Handle(Facade.Click, (sig, ctx) => {
                                 ctx.DrillUpSignal(button.id);
                                 sig.Resume();

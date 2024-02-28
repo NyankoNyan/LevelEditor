@@ -1,21 +1,19 @@
 using UnityEngine;
 using UnityEngine.UI;
 
-namespace UI2
+namespace UI2.Feature
 {
-    public class ActivateFeature : IFacadeFeature
+    public class Active : IFacadeFeature
     {
         private readonly Button _button;
 
-        public ActivateFeature(Button button = null)
+        public Active(Button button = null)
         {
             _button = button;
-
         }
 
         public void Init(GameObject go, IElementInstance instance)
         {
-            
         }
 
         public void Enable() { }
@@ -38,10 +36,10 @@ namespace UI2
             }
         }
 
-        public void Activate()
+        public void Activate(bool active = true)
         {
             if (_button) {
-                _button.enabled = true;
+                _button.enabled = active;
             }
         }
 

@@ -4,21 +4,21 @@ namespace UI2
 {
     public static class Snaps
     {
-        public static SetupThenDelegate HorizontalSnap(
+        public static SetupDelegate HorizontalSnap(
             float? left = null,
             float? right = null,
             float? fixedSize = null,
             float? partSize = null) =>
             AxisSnap(0, left, right, fixedSize, partSize);
 
-        public static SetupThenDelegate VerticalSnap(
+        public static SetupDelegate VerticalSnap(
             float? bottom = null,
             float? top = null,
             float? fixedSize = null,
             float? partSize = null) =>
             AxisSnap(1, bottom, top, fixedSize, partSize);
 
-        public static SetupThenDelegate AxisSnap(
+        public static SetupDelegate AxisSnap(
             int axisId,
             float? from = null,
             float? to = null,
