@@ -54,6 +54,7 @@ namespace UI2
 
     public class ElementWorkflowException : Exception
     {
+        public ElementWorkflowException(string msg) : base(msg) { }
     }
 
     [Serializable]

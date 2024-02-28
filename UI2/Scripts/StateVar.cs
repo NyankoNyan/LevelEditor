@@ -62,7 +62,7 @@ namespace UI2
                 if (value is StateVar sv) {
                     sv.Set(v);
                 } else {
-                    throw new ElementWorkflowException();
+                    throw new ElementWorkflowException($"variable [{name}] is not [{nameof(T)}]");
                 }
             } // isProxy 
             else {
@@ -94,7 +94,7 @@ namespace UI2
                 if (value is StateVar sv) {
                     return sv.Get<T>();
                 } else {
-                    throw new ElementWorkflowException();
+                    throw new ElementWorkflowException($"variable [{name}] is not [{nameof(T)}]");
                 }
             } // isProxy 
             else {

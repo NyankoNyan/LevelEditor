@@ -4,6 +4,7 @@ using System.Linq;
 
 using UnityEngine;
 using UnityEngine.Assertions;
+using UnityEngine.UI;
 
 namespace UI2
 {
@@ -33,6 +34,8 @@ namespace UI2
             _root = root;
 
             _facade = _instance.GetComponent<ElementInstanceFacade>();
+
+            UpdateGroupLayout();
 
             // Init states
             foreach (var stateDef in proto.DefaultStates) {
@@ -147,6 +150,57 @@ namespace UI2
         {
             StateVar newState = new(state, newName);
             _states.Add(newState);
+        }
+
+        private void UpdateGroupLayout()
+        {
+            if (_facade) {
+                if (_facade.SubZone is RectTransform rt) {
+
+                    // Removing old groups
+                    if (_proto.Group != GroupType.Horizontal) {
+                        foreach (var comp in rt.GetComponents<HorizontalLayoutGroup>()) {
+                            GameObject.Destroy(comp);
+                        }
+                    }
+                    if (_proto.Group != GroupType.Vertical) {
+                        foreach (var comp in rt.GetComponents<VerticalLayoutGroup>()) {
+                            GameObject.Destroy(comp);
+                        }
+                    }
+                    if (_proto.Group != GroupType.Grid) {
+                        foreach (var comp in rt.GetComponents<GridLayoutGroup>()) {
+                            GameObject.Destroy(comp);
+                        }
+                    }
+
+                    switch (_proto.Group) {
+                        case GroupType.Horizontal: {
+                                var group = rt.gameObject.AddComponent<HorizontalLayoutGroup>();
+                                break;
+                            }
+                        case GroupType.Vertical: {
+                                var group = rt.gameObject.AddComponent<VerticalLayoutGroup>();
+                                break;
+                            }
+                        case GroupType.Grid: {
+                                var group = rt.gameObject.AddComponent<GridLayoutGroup>();
+                                group.cellSize = _proto.GridSetup.cellSize;
+                                group.padding = _proto.GridSetup.padding;
+                                break;
+                            }
+                        case GroupType.None:
+                            break;
+                        default:
+                            Debug.LogError($"Unknown layout group {_proto.Group} in element {_proto.Id}");
+                            break;
+                    }
+                } else {
+                    Debug.LogWarning($"Facade {_proto.Style} isn't 2D and it's not support element groups");
+                }
+            } else {
+                Debug.LogWarning($"Element {_proto.Id} require a facade component, but it's missing in style {_proto.Style}");
+            }
         }
     }
 }

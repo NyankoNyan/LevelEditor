@@ -27,7 +27,7 @@ namespace UI2.Test
             new PanelElement().Write()
                 .Apply(AddNElems(20))
                 .Grid(new Vector2(20, 20),
-                    new Vector2(5, 5));
+                    new RectOffset(5, 5, 5, 5));
 
         private static SetupDelegate AddNElems(int n)
         {

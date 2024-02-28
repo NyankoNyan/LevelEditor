@@ -165,7 +165,7 @@ namespace UI2
             return this;
         }
 
-        public IElementSetupWrite Grid(Vector2 cellSize, Vector2 padding)
+        public IElementSetupWrite Grid(Vector2 cellSize, RectOffset padding)
         {
             _element.Grid(cellSize, padding);
             return this;

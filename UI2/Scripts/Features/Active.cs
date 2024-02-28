@@ -32,7 +32,7 @@ namespace UI2.Feature
                     break;
 
                 default:
-                    throw new ElementWorkflowException();
+                    throw new ElementWorkflowException($"incorrect usage of [{action}] in [{nameof(Active)}] feature");
             }
         }
 

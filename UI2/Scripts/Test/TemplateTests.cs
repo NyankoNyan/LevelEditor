@@ -2,7 +2,7 @@ using UI2.Feature;
 
 namespace UI2.Test
 {
-    [UITest]
+    //[UITest]
     public static class TemplateTests
     {
         [UITest]

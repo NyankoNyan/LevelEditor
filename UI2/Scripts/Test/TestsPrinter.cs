@@ -33,7 +33,7 @@ namespace UI2.Test
         void Start()
         {
             var setup = new PanelElement().Write()
-                .Grid(new Vector2(200, 200), new Vector2(10, 10));
+                .Grid(new Vector2(200, 200), new RectOffset(10, 10, 10, 10));
 
             foreach (var type in this.GetType().Assembly.GetTypes()) {
                 var clAttr = type.GetCustomAttribute(typeof(UITestAttribute));

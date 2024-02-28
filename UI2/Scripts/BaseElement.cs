@@ -229,6 +229,10 @@ namespace UI2
         public IEnumerable<string> ProxyTargets => _searchProxies;
         public IEnumerable<StateProxyDef> Proxies => _stateProxies.Values;
 
+        public GroupType Group => _groupType;
+
+        public GridSetup GridSetup => _gridSetup;
+
         public void Sub(params IElementSetupWrite[] elements)
         {
             _children ??= new();
@@ -292,7 +296,7 @@ namespace UI2
         public void SearchProxy(string elemId) 
             => _searchProxies.Add(elemId);
 
-        public void Grid(Vector2 cellSize, Vector2 padding = default)
+        public void Grid(Vector2 cellSize, RectOffset padding = default)
         {
             _groupType = GroupType.Grid;
             _gridSetup = new GridSetup() {
@@ -301,18 +305,8 @@ namespace UI2
             };
         }
 
-        private enum GroupType
-        {
-            None,
-            Horizontal,
-            Vertical,
-            Grid
-        }
+        
 
-        private struct GridSetup
-        {
-            public Vector2 cellSize;
-            public Vector2 padding;
-        }
+        
     }
 }

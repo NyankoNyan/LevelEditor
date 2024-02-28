@@ -41,7 +41,7 @@ namespace UI2
             }
         };
 
-        public IElementSetupRead Read() => throw new ElementWorkflowException();
+        public IElementSetupRead Read() => throw new ElementWorkflowException($"template can't be converted into readable object");
 
         public IElementSetupWrite Id(string id) => _Add(id);
 
@@ -94,7 +94,7 @@ namespace UI2
         public IElementSetupWrite StateFrom(string elemId, string elemState, string newId = null)
             => _Add(elemId, elemState, newId);
 
-        public IElementSetupWrite Grid(Vector2 cellSize, Vector2 padding) => _Add(cellSize, padding);
+        public IElementSetupWrite Grid(Vector2 cellSize, RectOffset padding) => _Add(cellSize, padding);
 
         public IElementSetupWrite Timer(float timer, SimpleHandleDelegate handler)
             => _Add(timer, handler);

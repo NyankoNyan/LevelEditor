@@ -12,12 +12,12 @@ namespace UI2.Feature
         {
             _button = button;
             if (!_button) {
-                throw new ElementWorkflowException();
+                throw new ElementWorkflowException($"missing button reference in [{nameof(Click)}] feature");
             }
         }
 
         public void Use(string action, params object[] actonParams)
-            => throw new ElementWorkflowException();
+            => throw new ElementWorkflowException($"usage not available for [{nameof(Click)}] feature");
 
         public void Init(GameObject go, IElementInstance instance)
         {

@@ -64,9 +64,7 @@ namespace UI2.Feature
         }
 
         public void Use(string action, params object[] actonParams)
-        {
-            throw new ElementWorkflowException();
-        }
+            => throw new ElementWorkflowException($"usage not available for [{nameof(Input)}] feature");
 
         public void Number(int maxLen = 0)
         {

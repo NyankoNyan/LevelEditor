@@ -5,6 +5,20 @@ using UnityEngine;
 
 namespace UI2
 {
+    public enum GroupType
+    {
+        None,
+        Horizontal,
+        Vertical,
+        Grid
+    }
+
+    public struct GridSetup
+    {
+        public Vector2 cellSize;
+        public RectOffset padding;
+    }
+
     public interface IElementSetupRead
     {
         IElementSetupWrite Write();
@@ -28,6 +42,9 @@ namespace UI2
         string UsedState { get; }
         IEnumerable<string> ProxyTargets { get; }
         IEnumerable<StateProxyDef> Proxies { get; }
+        GroupType Group { get; }
+        GridSetup GridSetup { get; }
+
     }
 
     public interface IElementSetupWrite
@@ -57,7 +74,7 @@ namespace UI2
         IElementSetupWrite UseState(string varName);
         IElementSetupWrite StatesFrom(string elemId);
         IElementSetupWrite StateFrom(string elemId, string elemState, string newId = null);
-        IElementSetupWrite Grid(Vector2 cellSize, Vector2 padding = default);
+        IElementSetupWrite Grid(Vector2 cellSize, RectOffset padding = default);
         IElementSetupWrite Timer(float timer, SimpleHandleDelegate handler);
     }
 }

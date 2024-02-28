@@ -19,17 +19,17 @@ namespace UI2.Feature
                 if (actionParams.Length == 1 && actionParams[0] is string s) {
                     SetText(s);
                 } else {
-                    throw new ElementWorkflowException();
+                    throw new ElementWorkflowException($"incorrect usage of [{action}] in [{nameof(MainText)}] feature");
                 }
             } else {
-                throw new ElementWorkflowException();
+                throw new ElementWorkflowException($"unknown action [{action}] in [{nameof(MainText)}] feature usage");
             }
         }
 
         public void Init(GameObject go, IElementInstance instance)
         {
             if (!_textObj) {
-                throw new ElementWorkflowException();
+                throw new ElementWorkflowException($"missing reference to text object in [{nameof(MainText)}] feature");
             }
         }
 

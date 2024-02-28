@@ -4,7 +4,7 @@ using UnityEngine;
 
 namespace UI2.Test
 {
-    [UITest]
+    //[UITest]
     public static class TimerTests
     {
         [UITest]

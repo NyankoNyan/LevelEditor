@@ -145,10 +145,12 @@ namespace UI2
                     }
 
                     // Связываем фичи фасада с моделью
+                    // TODO переименовать во что-то типа Link
                     facade.InitFeatures(instance);
                 }
 
                 // Постинициализация от потомков к родителю
+                // Внутри будет в т.ч. инициализация ссылок на переменные потомков
                 if (instance.Children != null) {
                     foreach (var child in instance.Children) {
                         child.LateInit();
@@ -156,9 +158,16 @@ namespace UI2
                 }
                 instance.LateInit();
 
+                if (facade) {
+                    // Запускаем инициализацию фич
+                    foreach (var featureCall in setup.Features) {
+                        featureCall.Call(instance);
+                    }
+                }
+
                 return instance;
             } else {
-                throw new ElementWorkflowException();
+                throw new ElementWorkflowException($"missing prefab for style [{setup.Style}]");
             }
         }
 
