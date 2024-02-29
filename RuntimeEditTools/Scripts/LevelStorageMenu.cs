@@ -1,3 +1,4 @@
+using System;
 using System.Drawing;
 using System.Linq;
 using System.Text.RegularExpressions;
@@ -59,6 +60,13 @@ namespace RuntimeEditTools.UI
                         .Id("LevelName")
                         .Feature<MainText>(f =>
                             f.SetText(level.LevelSettings.name)),
+                    new PanelElement().Write()
+                        .Sub(
+                            new LabelElement("Current location: ").Write(),
+                            new LabelElement().Write()
+                                .Id("CurrentLocation")
+                        )
+                        .GroupHorizontal(),
                     new OptionsButtonLine(
                         new ButtonElement(),
                         ("LOCAL", "Local Storage"),
@@ -78,14 +86,25 @@ namespace RuntimeEditTools.UI
                         ("OPEN", "Open..."),
                         ("SAVE", "Save"),
                         ("SAVE_AS", "Save As...")
-                    ).Write()
+                    ).Write(),
+                    new QuestionWindow("CHOOSE_OPEN", "Save current changes?", "Yes", "No", "Cancel").Write()
+                        .Id("ChooseOpenWindow")
+                        .DefaultHide()
                 )
                 .GroupVertical()
                 .StatesFrom("LocalFrame")
                 .StatesFrom("RemoteFrame")
-                .Handle("NEW", (sig, ctx) => { })
-                .Handle("OPEN", (sig, ctx) => { })
-                .Handle("SAVE", (sig, ctx) => { })
+                .Handle("NEW", (sig, ctx) => {
+                    // TODO lock self, open save yes/not/cancel window
+                    // TODO open new default scene
+                })
+                .Handle("OPEN", (sig, ctx) => {
+                    // TODO lock self, open save yes/not/cancel window
+                    // TODO load and open existed level
+                })
+                .Handle("SAVE", (sig, ctx) => {
+                    // TODO save current level
+                })
                 .Handle("SAVE_AS", (sig, ctx) => { })
                 .Handle("LOCAL", (sig, ctx) => {
                     ctx.Element.State("StorageMode").Set<int>(0);
@@ -94,6 +113,25 @@ namespace RuntimeEditTools.UI
                 .Handle("REMOTE", (sig, ctx) => {
                     ctx.Element.State("StorageMode").Set<int>(1);
                     UpdateButtonsActivity(ctx);
+                })
+                .Handle("CHOOSE_OPEN", (sig, ctx) => {
+                    if (sig.Data is not int i) {
+                        return;
+                    }
+
+                    switch (i) {
+                        case 1:
+                            // TODO save scene
+                            // TODO open scene
+                            break;
+                        case 2:
+                            // TODO open scene
+                            break;
+                        default:
+                            break;
+                    }
+
+                    ctx.Element.Show();
                 })
                 .Init(UpdateButtonsActivity)
                 .SignalBlock();
@@ -161,34 +199,34 @@ namespace RuntimeEditTools.UI
 
         protected override BaseElement GetEmptyClone() => new RemoteStorageSettings();
     }
-    
+
+    public struct ButtonSetup
+    {
+        public string id;
+        public string name;
+
+        public ButtonSetup(string id, string name)
+        {
+            this.id = id;
+            this.name = name;
+        }
+    }
 
     public class OptionsButtonLine : BaseElement
     {
         private readonly IElementSetupRead _proto;
-        private Button[] _buttons;
+        private ButtonSetup[] _buttons;
 
-        public struct Button
-        {
-            public string id;
-            public string name;
-
-            public Button(string id, string name)
-            {
-                this.id = id;
-                this.name = name;
-            }
-        }
 
         public OptionsButtonLine(IElementSetupRead proto, params (string, string)[] buttons) : this
-            (proto, buttons.Select(x => new Button(x.Item1, x.Item2)).ToArray())
+            (proto, buttons.Select(x => new ButtonSetup(x.Item1, x.Item2)).ToArray())
         {
         }
 
-        public OptionsButtonLine(IElementSetupRead proto, params Button[] buttons)
+        public OptionsButtonLine(IElementSetupRead proto, params ButtonSetup[] buttons)
         {
             _proto = proto;
-            _buttons = new Button[buttons.Length];
+            _buttons = new ButtonSetup[buttons.Length];
             buttons.CopyTo(_buttons, 0);
 
             SetStyle("button-line");
@@ -209,5 +247,50 @@ namespace RuntimeEditTools.UI
         }
 
         protected override BaseElement GetEmptyClone() => new OptionsButtonLine(_proto, _buttons);
+    }
+
+    public class QuestionWindow : BaseElement
+    {
+        private readonly string _text;
+        private readonly string[] _buttons;
+        private readonly string _outSignal;
+
+        public QuestionWindow(string outSignal, string text, params string[] buttons)
+        {
+            _outSignal = outSignal;
+            _text = text;
+            _buttons = buttons;
+
+            var buttonPanel = new PanelElement().Write()
+                .GroupHorizontal();
+
+            // ButtonSetup[] buttonSetups = new ButtonSetup[_buttons.Length];
+            for (int i = 0; i < _buttons.Length; i++) {
+                var i1 = i + 1;
+                buttonPanel.Sub(
+                    new ButtonElement(null, _buttons[i]).Write()
+                        .Handle(Facade.Click, (_, ctx) => {
+                            ctx.DrillUpSignal("CHOOSE", i1);
+                        })
+                );
+            }
+
+            Write()
+                .Sub(
+                    new LabelElement(_text).Write()
+                        .Apply(Snaps.HorizontalSnap(0, 0),
+                            Snaps.VerticalSnap(100, 0)),
+                    buttonPanel
+                        .Apply(Snaps.HorizontalSnap(0, 0),
+                            Snaps.VerticalSnap(bottom: 0, fixedSize: 100))
+                )
+                .SignalBlock()
+                .Handle("CHOOSE", (sig, ctx) => {
+                    ctx.Element.Hide();
+                    ctx.DrillUpSignal(_outSignal, sig.Data);
+                });
+        }
+
+        protected override BaseElement GetEmptyClone() => new QuestionWindow(_outSignal, _text, _buttons);
     }
 }

@@ -51,6 +51,8 @@ namespace UI2
     public interface IElementSetupWrite
     {
         IElementSetupRead Read();
+        
+        IElementSetupWrite Clone();
 
         IElementSetupWrite Id(string id);
 
@@ -68,7 +70,8 @@ namespace UI2
 
         IElementSetupWrite SetAnchor(Vector2 min, Vector2 max);
 
-        IElementSetupWrite SetAnchor((float, float) min, (float, float) max) => SetAnchor(new Vector2(min.Item1, min.Item2), new Vector2(max.Item1, max.Item2));
+        IElementSetupWrite SetAnchor((float, float) min, (float, float) max) =>
+            SetAnchor(new Vector2(min.Item1, min.Item2), new Vector2(max.Item1, max.Item2));
 
         IElementSetupWrite SetSizeDelta(Vector2 delta);
 
@@ -101,8 +104,6 @@ namespace UI2
         IElementSetupWrite Lazy(bool lazy = true);
 
         IElementSetupWrite State(string name, object value = null, StateInitDelegate initFunc = null);
-
-        IElementSetupWrite Clone();
 
         IElementSetupWrite Init(SimpleHandleDelegate handler);
 

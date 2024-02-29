@@ -3,37 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 
 using UnityEngine;
-using UnityEngine.Assertions;
 
 namespace UI2
 {
-    public interface IFeatureCall
-    {
-        void Call(IElementInstance instance);
-    }
-
-    public class FeatureCall<T> : IFeatureCall
-        where T : class, IFacadeFeature
-    {
-        public delegate void FuncDelegate(T val);
-
-        private Type _type;
-        public FuncDelegate Func { get; private set; }
-
-        public FeatureCall(Type type, FuncDelegate func)
-        {
-            Assert.IsNotNull(type);
-            Assert.IsNotNull(func);
-            _type = type;
-            Func = func;
-        }
-
-        public void Call(IElementInstance instance)
-        {
-            Func.Invoke(instance.Feature<T>());
-        }
-    }
-
     public abstract class BaseElement : IElementSetupRead
     {
         private string _id;
@@ -293,7 +265,7 @@ namespace UI2
             }
         }
 
-        public void SearchProxy(string elemId) 
+        public void SearchProxy(string elemId)
             => _searchProxies.Add(elemId);
 
         public void Grid(Vector2 cellSize, RectOffset padding = default)
@@ -304,9 +276,20 @@ namespace UI2
                 padding = padding
             };
         }
+    }
 
-        
+    /// <summary>
+    /// Empty element, but required style name
+    /// </summary>
+    public class Element : BaseElement
+    {
+        public static IElementSetupWrite Create(string style) => new Element(style).Write();
 
-        
+        public Element(string style)
+        {
+            SetStyle(style);
+        }
+
+        protected override BaseElement GetEmptyClone() => new Element(Style);
     }
 }

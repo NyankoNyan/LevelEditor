@@ -23,6 +23,11 @@ namespace UI2
             }
         }
 
+        private ElementTemplate(IEnumerable<Command> commands)
+        {
+            _commands.AddRange(commands);
+        }
+
         private IElementSetupWrite _Add(params object[] args)
         {
             StackTrace stackTrace = new StackTrace();
@@ -41,7 +46,10 @@ namespace UI2
             }
         };
 
-        public IElementSetupRead Read() => throw new ElementWorkflowException($"template can't be converted into readable object");
+        public IElementSetupWrite Clone() => new ElementTemplate(_commands);
+
+        public IElementSetupRead Read() =>
+            throw new ElementWorkflowException($"template can't be converted into readable object");
 
         public IElementSetupWrite Id(string id) => _Add(id);
 
@@ -83,7 +91,6 @@ namespace UI2
         public IElementSetupWrite State(string name, object value = null, StateInitDelegate initFunc = null)
             => _Add(name, value, initFunc);
 
-        public IElementSetupWrite Clone() => _Add();
 
         public IElementSetupWrite Init(SimpleHandleDelegate handler) => _Add(handler);
 

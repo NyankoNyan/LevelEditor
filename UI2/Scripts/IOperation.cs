@@ -5,6 +5,7 @@ using UnityEngine;
 
 namespace UI2
 {
+    public delegate bool ConditionDelegate();
     public interface IOperation
     {
         IOperation Do(Action callback);
@@ -14,6 +15,8 @@ namespace UI2
         IOperation Call(IOperation operation);
         
         IOperation CallSelf();
+
+        IOperation Break(ConditionDelegate cond);
 
         IEnumerator Exec();
     }

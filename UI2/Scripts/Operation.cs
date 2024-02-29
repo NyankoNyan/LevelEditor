@@ -48,6 +48,15 @@ namespace UI2
             return this;
         }
 
+        public IOperation Break(ConditionDelegate cond)
+        {
+            _instructions.Add(new() {
+                iType = InstructionType.Break,
+                cond = cond
+            });
+            return this;
+        }
+
         public IEnumerator Exec()
         {
             bool tailRecursion = _instructions.Count > 0
@@ -60,7 +69,7 @@ namespace UI2
                     if (last && tailRecursion) {
                         break;
                     }
-                    
+
                     var instruction = _instructions[i];
 
                     switch (instruction.iType) {
@@ -71,14 +80,17 @@ namespace UI2
                         case InstructionType.Wait:
                             yield return instruction.wait;
                             break;
-                        
+
                         case InstructionType.Call:
                             yield return instruction.operation.Exec();
                             break;
-                        
+
                         case InstructionType.Break:
-                            tailRecursion = false;
-                            breakFor = true;
+                            if (instruction.cond()) {
+                                tailRecursion = false;
+                                breakFor = true;
+                            }
+
                             break;
 
                         default:
@@ -103,6 +115,7 @@ namespace UI2
             public Action callback;
             public YieldInstruction wait;
             public IOperation operation;
+            public ConditionDelegate cond;
         }
     }
 }

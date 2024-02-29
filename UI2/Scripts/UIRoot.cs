@@ -19,6 +19,9 @@ namespace UI2
     /// </summary>
     public class UIRoot
     {
+        public const string INIT_SIGNAL = "__INIT__";
+        public const string ALL_SIGNALS = "__ALL__";
+        
         private readonly Dictionary<string, Style> _styles = new();
         private readonly HashSet<IElementInstance> _instances = new();
         private readonly HashSet<IElementInstance> _listeners = new();
