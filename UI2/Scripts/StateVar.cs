@@ -4,6 +4,22 @@ using UnityEngine.Assertions;
 
 namespace UI2
 {
+    public delegate object StateInitDelegate();
+
+    public class StateDef
+    {
+        public string name;
+        public object defaultValue;
+        public StateInitDelegate stateInitCall;
+    }
+
+    public class StateProxyDef
+    {
+        public string name;
+        public string refVarName;
+        public string refId;
+    }
+    
     public interface IStateVar
     {
         void Set<T>(T v);

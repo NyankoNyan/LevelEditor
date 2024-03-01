@@ -29,10 +29,10 @@ namespace UI2.Test
                 for (int i = 0; i < n; i++) {
                     setup.Sub(
                         new PanelElement().Write()
-                            .SetPivot(0, 0)
-                            .SetAnchor(min: (0, 0), max: (0, 0))
-                            .SetSizeDelta(20, 20)
-                            .SetAnchoredPosition(10 * i, 10 * i)
+                            .Pivot(0, 0)
+                            .Anchor(min: (0, 0), max: (0, 0))
+                            .SizeDelta(20, 20)
+                            .AnchoredPos(10 * i, 10 * i)
                     );
                 }
             };

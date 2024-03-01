@@ -30,6 +30,7 @@ namespace UI2
         private Dictionary<string, StateProxyDef> _stateProxies = new();
         private HashSet<string> _searchProxies = new();
         private GridSetup _gridSetup;
+        private SimpleHandleDelegate _usedStateUpdateCall;
 
         public string Style => _style;
 
@@ -161,6 +162,7 @@ namespace UI2
             newElem._usedState = _usedState;
             _ = _searchProxies.Select(x => newElem._searchProxies.Add(x));
             _ = _stateProxies.Select(x => newElem._stateProxies.TryAdd(x.Key, x.Value));
+            newElem._usedStateUpdateCall = _usedStateUpdateCall;
 
             AfterClone(newElem);
             return newElem;
@@ -251,9 +253,10 @@ namespace UI2
             _newAnchorPos = true;
         }
 
-        public void SetUsedState(string name)
+        public void SetUsedState(string name, SimpleHandleDelegate updateCall)
         {
             _usedState = name;
+            _usedStateUpdateCall = updateCall;
         }
 
         public IElementSetupWrite Write() => new BaseElementChain(this);

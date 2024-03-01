@@ -43,25 +43,25 @@ namespace UI2
             return this;
         }
 
-        public IElementSetupWrite SetPivot(Vector2 pivot)
+        public IElementSetupWrite Pivot(Vector2 pivot)
         {
             _element.SetPivot(pivot);
             return this;
         }
 
-        public IElementSetupWrite SetAnchor(Vector2 min, Vector2 max)
+        public IElementSetupWrite Anchor(Vector2 min, Vector2 max)
         {
             _element.SetAnchor(min, max);
             return this;
         }
 
-        public IElementSetupWrite SetSizeDelta(Vector2 delta)
+        public IElementSetupWrite SizeDelta(Vector2 delta)
         {
             _element.SetSizeDelta(delta);
             return this;
         }
 
-        public IElementSetupWrite SetAnchoredPosition(Vector2 pos)
+        public IElementSetupWrite AnchoredPos(Vector2 pos)
         {
             _element.SetAnchoredPosition(pos);
             return this;
@@ -137,15 +137,9 @@ namespace UI2
             return _element.Clone().Write();
         }
 
-        public IElementSetupWrite Init(SimpleHandleDelegate handler)
-            => Handle("__INIT__", (_, ctx) => {
-                // Simple wrapper
-                handler(ctx);
-            });
-
-        public IElementSetupWrite UseState(string varName)
+        public IElementSetupWrite UseState(string varName, SimpleHandleDelegate updateCall = null)
         {
-            _element.SetUsedState(varName);
+            _element.SetUsedState(varName, updateCall);
             return this;
         }
 
@@ -169,17 +163,6 @@ namespace UI2
         {
             _element.Grid(cellSize, padding);
             return this;
-        }
-
-        public IElementSetupWrite Timer(float timer, SimpleHandleDelegate handler)
-        {
-            return Init(ctx =>
-                ctx.Start(new Operation()
-                    .Do(() => handler.Invoke(ctx))
-                    .Wait((timer == 0) ? null : new WaitForSeconds(timer))
-                    .CallSelf()
-                )
-            );
         }
     }
 }

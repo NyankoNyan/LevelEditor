@@ -38,40 +38,63 @@ namespace RuntimeEditTools.UI
         public static IElementSetupWrite Create(LevelAPI level)
         {
             Assert.IsNotNull(level);
-            /* ******************************
-             * *    LEVEL_NAME              *
-             * * STORAGE_MODE(LOCAL/REMOTE) *
-             * *    storage_settings_frame  *
-             * *  NEW  OPEN  SAVE  SAVE_AS  *
-             * ****************************** */
+
+            /* ****************************************************
+             * *               LEVEL_NAME                         *
+             * * STATE(new/changed/saved)  LOCATION(local/remote) *
+             * * STORAGE_MODE_INFO(LOCAL/REMOTE)                  *
+             * *             storage_mode_info                    *
+             * *     CREATE      OPEN      SAVE       SAVE_AS     *
+             * **************************************************** */
             return new LevelStorageMenu().Write()
-                .Id(nameof(LevelStorageMenu))
+                .Id("LevelMenu")
                 .Style("window")
-                .State("StorageMode", initFunc: () => {
+                .Init(ctx => {
+                    // TODO Check current level status and save path
                     string uri = level.LevelSettings.levelStoreURI;
                     Regex httpRe = new(@"^https?://");
-                    return httpRe.IsMatch(uri) ? 1 : 0;
+                    var storageMode = httpRe.IsMatch(uri) ? 1 : 0;
+
+                    ctx.Element.State("StorageMode").Set(storageMode);
+                    ctx.Element.State("SaveStatus").Set(0);
                 })
                 .State("LevelAPI", level)
                 .State("Path", initFunc: () => level.LevelSettings.levelStoreURI)
                 .State("Name", initFunc: () => level.LevelSettings.name)
                 .Sub(
                     new InputElement().Write()
-                        .Id("LevelName")
-                        .Feature<MainText>(f =>
-                            f.SetText(level.LevelSettings.name)),
-                    new PanelElement().Write()
+                        .UseState("LevelName"),
+                    new Element("empty").Write()
+                        .GroupHorizontal()
+                        .Apply(Snaps.Center(height: 100),
+                            Snaps.HorizontalSnap(0, 0))
                         .Sub(
-                            new LabelElement("Current location: ").Write(),
                             new LabelElement().Write()
-                                .Id("CurrentLocation")
-                        )
-                        .GroupHorizontal(),
-                    new OptionsButtonLine(
-                        new ButtonElement(),
-                        ("LOCAL", "Local Storage"),
-                        ("REMOTE", "Remote storage")
-                    ).Write(),
+                                .StateFrom("LevelMenu", "SaveStatus")
+                                .UseState("SaveStatus", ctx => {
+                                    int saveStatus = ctx.Element.State("SaveStatus").Get<int>();
+                                    string txt = saveStatus switch {
+                                        0 => "new",
+                                        1 => "changed",
+                                        2 => "saved",
+                                        _ => "unknown"
+                                    };
+
+                                    ctx.Element.Feature<MainText>().SetText($"STATUS: {txt}");
+                                }),
+                            new LabelElement().Write()
+                                .StateFrom("LevelMenu", "StorageMode")
+                                .UseState("StorageMenu", ctx => {
+                                    int storageMode = ctx.Element.State("LevelMenu").Get<int>();
+                                    string txt = storageMode switch {
+                                        0 => "local",
+                                        1 => "remote",
+                                        _ => "unknown"
+                                    };
+
+                                    ctx.Element.Feature<MainText>().SetText($"STORAGE: {txt}");
+                                })
+                        ),
                     new LocalStorageSettings().Write()
                         .Id("LocalFrame")
                         .DefaultHide()
@@ -82,18 +105,17 @@ namespace RuntimeEditTools.UI
                         .Lazy(),
                     new OptionsButtonLine(
                         new ButtonElement(),
-                        ("NEW", "New"),
+                        ("CREATE", "Create"),
                         ("OPEN", "Open..."),
                         ("SAVE", "Save"),
                         ("SAVE_AS", "Save As...")
                     ).Write(),
+                    // Must be another window
                     new QuestionWindow("CHOOSE_OPEN", "Save current changes?", "Yes", "No", "Cancel").Write()
                         .Id("ChooseOpenWindow")
                         .DefaultHide()
                 )
                 .GroupVertical()
-                .StatesFrom("LocalFrame")
-                .StatesFrom("RemoteFrame")
                 .Handle("NEW", (sig, ctx) => {
                     // TODO lock self, open save yes/not/cancel window
                     // TODO open new default scene
@@ -106,14 +128,6 @@ namespace RuntimeEditTools.UI
                     // TODO save current level
                 })
                 .Handle("SAVE_AS", (sig, ctx) => { })
-                .Handle("LOCAL", (sig, ctx) => {
-                    ctx.Element.State("StorageMode").Set<int>(0);
-                    UpdateButtonsActivity(ctx);
-                })
-                .Handle("REMOTE", (sig, ctx) => {
-                    ctx.Element.State("StorageMode").Set<int>(1);
-                    UpdateButtonsActivity(ctx);
-                })
                 .Handle("CHOOSE_OPEN", (sig, ctx) => {
                     if (sig.Data is not int i) {
                         return;
@@ -133,31 +147,71 @@ namespace RuntimeEditTools.UI
 
                     ctx.Element.Show();
                 })
-                .Init(UpdateButtonsActivity)
                 .SignalBlock();
         }
 
-        private static void UpdateButtonsActivity(
-            IElementRuntimeContext ctx)
-        {
-            int state = ctx.Element.State("StorageMode").Get<int>();
-
-            var locActive = ctx.Find("LOCAL").Feature<Active>();
-            var remActive = ctx.Find("REMOTE").Feature<Active>();
-            if (state == 0) {
-                locActive.Deactivate();
-                remActive.Activate();
-                ctx.Find("LocalFrame").Show();
-                ctx.Find("RemoteFrame").Hide();
-            } else {
-                locActive.Activate();
-                remActive.Deactivate();
-                ctx.Find("LocalFrame").Hide();
-                ctx.Find("RemoteFrame").Show();
-            }
-        }
 
         protected override BaseElement GetEmptyClone() => new LevelStorageMenu();
+    }
+
+    public class FileBrowser : BaseElement
+    {
+        private readonly BrowserType _browserType;
+
+        public enum BrowserType { Open, Save }
+
+        public IElementSetupWrite Create(BrowserType browserType)
+        {
+            return new FileBrowser(browserType).Write()
+                .Id("FileBrowser")
+                .State("MainPath", initFunc: () => {
+                    // TODO Init from level
+                    return "";
+                })
+                .Sub(
+                    // URL или файловый путь до хранилища уровней
+                    new Element("named-input").Write()
+                        .StateFrom("FileBrowser", "MainPath")
+                        .UseState("MainPath")
+                        .Apply(Snaps.HorizontalSnap(0, 0),
+                            Snaps.VerticalSnap(top: 0, fixedSize: 100)),
+                    // Кнопки
+                    new Element("empty").Write()
+                        .GroupHorizontal()
+                        .Apply(Snaps.HorizontalSnap(0, 0),
+                            Snaps.VerticalSnap(bottom: 0, fixedSize: 100))
+                        .Sub(
+                            new ButtonElement("CANCEL", "Cancel").Write(),
+                            new ButtonElement("CONFIRM").Write()
+                                .Init(ctx => {
+                                    string txt = browserType switch {
+                                        BrowserType.Open => "Open",
+                                        BrowserType.Save => "Save",
+                                        _ => throw new ArgumentOutOfRangeException(nameof(browserType), browserType,
+                                            null)
+                                    };
+                                    ctx.Element.Feature<MainText>().SetText(txt);
+                                })
+                        ),
+                    // Список уровней
+                    new Element("vertical-scroll").Write()
+                        .Apply(Snaps.HorizontalSnap(0, 0),
+                            Snaps.VerticalSnap(100, 100))
+                        .DefaultHide(),
+                    // Иконка загрузки
+                    new Element("loading").Write()
+                        .Apply(Snaps.HorizontalSnap(0, 0),
+                            Snaps.VerticalSnap(100, 100))
+                        .DefaultHide()
+                );
+        }
+
+        private FileBrowser(BrowserType browserType)
+        {
+            _browserType = browserType;
+        }
+
+        protected override BaseElement GetEmptyClone() => new FileBrowser(_browserType);
     }
 
     public class LocalStorageSettings : BaseElement
@@ -247,50 +301,5 @@ namespace RuntimeEditTools.UI
         }
 
         protected override BaseElement GetEmptyClone() => new OptionsButtonLine(_proto, _buttons);
-    }
-
-    public class QuestionWindow : BaseElement
-    {
-        private readonly string _text;
-        private readonly string[] _buttons;
-        private readonly string _outSignal;
-
-        public QuestionWindow(string outSignal, string text, params string[] buttons)
-        {
-            _outSignal = outSignal;
-            _text = text;
-            _buttons = buttons;
-
-            var buttonPanel = new PanelElement().Write()
-                .GroupHorizontal();
-
-            // ButtonSetup[] buttonSetups = new ButtonSetup[_buttons.Length];
-            for (int i = 0; i < _buttons.Length; i++) {
-                var i1 = i + 1;
-                buttonPanel.Sub(
-                    new ButtonElement(null, _buttons[i]).Write()
-                        .Handle(Facade.Click, (_, ctx) => {
-                            ctx.DrillUpSignal("CHOOSE", i1);
-                        })
-                );
-            }
-
-            Write()
-                .Sub(
-                    new LabelElement(_text).Write()
-                        .Apply(Snaps.HorizontalSnap(0, 0),
-                            Snaps.VerticalSnap(100, 0)),
-                    buttonPanel
-                        .Apply(Snaps.HorizontalSnap(0, 0),
-                            Snaps.VerticalSnap(bottom: 0, fixedSize: 100))
-                )
-                .SignalBlock()
-                .Handle("CHOOSE", (sig, ctx) => {
-                    ctx.Element.Hide();
-                    ctx.DrillUpSignal(_outSignal, sig.Data);
-                });
-        }
-
-        protected override BaseElement GetEmptyClone() => new QuestionWindow(_outSignal, _text, _buttons);
     }
 }

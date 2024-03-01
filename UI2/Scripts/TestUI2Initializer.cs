@@ -1,4 +1,3 @@
-using System;
 using System.Collections;
 
 using UI2.Feature;
@@ -44,46 +43,8 @@ namespace UI2
         }
     }
 
-    public delegate void SetupDelegate(IElementSetupWrite setup);
 
-    public delegate void SetupHandleDelegate(ISignalContext signal, IElementRuntimeContext context);
-
-    public delegate void SimpleHandleDelegate(IElementRuntimeContext context);
-
-    public delegate IEnumerator OperationDelegate();
-
-    public class ElementWorkflowException : Exception
-    {
-        public ElementWorkflowException(string msg) : base(msg) { }
-    }
-
-    [Serializable]
-    public struct Style
-    {
-        public string name;
-        public GameObject prefab;
-    }
-
-    public static class Facade
-    {
-        public const string Click = "F_CLICK";
-    }
-
-    public delegate object StateInitDelegate();
-
-    public class StateDef
-    {
-        public string name;
-        public object defaultValue;
-        public StateInitDelegate stateInitCall;
-    }
-
-    public class StateProxyDef
-    {
-        public string name;
-        public string refVarName;
-        public string refId;
-    }
+    // public delegate IEnumerator OperationDelegate();
 
 
     #region Test Zone

@@ -62,13 +62,13 @@ namespace UI2
 
         public IElementSetupWrite Apply(params SetupDelegate[] fns) => _Add(fns.Select(x => (object)x).ToArray());
 
-        public IElementSetupWrite SetPivot(Vector2 pivot) => _Add(pivot);
+        public IElementSetupWrite Pivot(Vector2 pivot) => _Add(pivot);
 
-        public IElementSetupWrite SetAnchor(Vector2 min, Vector2 max) => _Add(min, max);
+        public IElementSetupWrite Anchor(Vector2 min, Vector2 max) => _Add(min, max);
 
-        public IElementSetupWrite SetSizeDelta(Vector2 delta) => _Add(delta);
+        public IElementSetupWrite SizeDelta(Vector2 delta) => _Add(delta);
 
-        public IElementSetupWrite SetAnchoredPosition(Vector2 pos) => _Add(pos);
+        public IElementSetupWrite AnchoredPos(Vector2 pos) => _Add(pos);
 
         public IElementSetupWrite MoveRelative(Vector2 move) => _Add(move);
 
@@ -91,10 +91,8 @@ namespace UI2
         public IElementSetupWrite State(string name, object value = null, StateInitDelegate initFunc = null)
             => _Add(name, value, initFunc);
 
-
-        public IElementSetupWrite Init(SimpleHandleDelegate handler) => _Add(handler);
-
-        public IElementSetupWrite UseState(string varName) => _Add(varName);
+        public IElementSetupWrite UseState(string varName, SimpleHandleDelegate updateCall = null) 
+            => _Add(varName, updateCall);
 
         public IElementSetupWrite StatesFrom(string elemId) => _Add(elemId);
 
@@ -102,9 +100,6 @@ namespace UI2
             => _Add(elemId, elemState, newId);
 
         public IElementSetupWrite Grid(Vector2 cellSize, RectOffset padding) => _Add(cellSize, padding);
-
-        public IElementSetupWrite Timer(float timer, SimpleHandleDelegate handler)
-            => _Add(timer, handler);
 
         private struct Command
         {

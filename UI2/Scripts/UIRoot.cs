@@ -13,6 +13,11 @@ namespace UI2
         DrillUp,
         DrillDown
     }
+    
+    public class ElementWorkflowException : Exception
+    {
+        public ElementWorkflowException(string msg) : base(msg) { }
+    }
 
     /// <summary>
     /// Отвечает за инициализацию и хранение состояния всего UI
