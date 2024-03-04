@@ -1,6 +1,6 @@
 namespace UI2.Test
 {
-    //[UITest]
+    [UITest]
     public static class SnapTests
     {
         [UITest]
@@ -45,7 +45,7 @@ namespace UI2.Test
                 .Sub(
                     new PanelElement().Write()
                         .Apply(Snaps.HorizontalSnap(left: 10, right: 10),
-                            Snaps.VerticalSnap(top: 10, fixedSize: 100f))
+                            Snaps.VerticalSnap(top: 10, fixedSize: 50f))
                 );
 
         [UITest]
@@ -54,7 +54,7 @@ namespace UI2.Test
                 .Sub(
                     new PanelElement().Write()
                         .Apply(Snaps.HorizontalSnap(left: 10, right: 10),
-                            Snaps.VerticalSnap(bottom: 10, fixedSize: 100f))
+                            Snaps.VerticalSnap(bottom: 10, fixedSize: 50f))
                 );
 
         [UITest]
@@ -62,7 +62,7 @@ namespace UI2.Test
             new PanelElement().Write()
                 .Sub(
                     new PanelElement().Write()
-                        .Apply(Snaps.HorizontalSnap(left: 10, fixedSize: 100f),
+                        .Apply(Snaps.HorizontalSnap(left: 10, fixedSize: 50f),
                             Snaps.VerticalSnap(top: 10, bottom: 10))
                 );
 
@@ -71,7 +71,7 @@ namespace UI2.Test
             new PanelElement().Write()
                 .Sub(
                     new PanelElement().Write()
-                        .Apply(Snaps.HorizontalSnap(right: 10, fixedSize: 100f),
+                        .Apply(Snaps.HorizontalSnap(right: 10, fixedSize: 50f),
                             Snaps.VerticalSnap(top: 10, bottom: 10))
                 );
 
@@ -89,8 +89,8 @@ namespace UI2.Test
             new PanelElement().Write()
                 .Sub(
                     new PanelElement().Write()
-                        .Apply(Snaps.HorizontalSnap(right: 10, fixedSize: 100f),
-                            Snaps.VerticalSnap(top: 10, fixedSize: 100f))
+                        .Apply(Snaps.HorizontalSnap(right: 10, fixedSize: 50f),
+                            Snaps.VerticalSnap(top: 10, fixedSize: 50f))
                 );
     }
 }
