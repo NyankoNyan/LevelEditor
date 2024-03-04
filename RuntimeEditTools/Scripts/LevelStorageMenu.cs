@@ -1,4 +1,5 @@
 using System;
+using System.Diagnostics;
 using System.Drawing;
 using System.Linq;
 using System.Text.RegularExpressions;
@@ -50,46 +51,59 @@ namespace RuntimeEditTools.UI
                 .Id("LevelMenu")
                 .Style("window")
                 .Init(ctx => {
-                    // TODO Check current level status and save path
-                    string uri = level.LevelSettings.levelStoreURI;
-                    Regex httpRe = new(@"^https?://");
-                    var storageMode = httpRe.IsMatch(uri) ? 1 : 0;
-
-                    ctx.Element.State("StorageMode").Set(storageMode);
                     ctx.Element.State("SaveStatus").Set(0);
                 })
                 .State("LevelAPI", level)
-                .State("Path", initFunc: () => level.LevelSettings.levelStoreURI)
-                .State("Name", initFunc: () => level.LevelSettings.name)
+                .StateSync("Path", new VarProxy<string>(
+                    () => level.LevelPathURL,
+                    ref level.settingsChanged,
+                    v => level.LevelPathURL = v
+                ))
+                .StateSync("Name", new VarProxy<string>(
+                    () => level.Name,
+                    ref level.settingsChanged,
+                    v => level.Name = v
+                ))
+                .StateSync("StorageMode", new VarProxy<int>(
+                    () => (int)level.LevelSettings.storageMode,
+                    ref level.settingsChanged
+                ))
+                .StateSync("LevelDirty", new VarProxy<bool>(
+                    () => level.Changed,
+                    ref level.settingsChanged
+                ))
                 .Sub(
+                    // Имя уровня
                     new InputElement().Write()
-                        .UseState("LevelName"),
+                        .StateFrom("LevelMenu", "Name").UseState("Name"),
+                    // Основные состояния уровня
                     new Element("empty").Write()
                         .GroupHorizontal()
                         .Apply(Snaps.Center(height: 100),
                             Snaps.HorizontalSnap(0, 0))
                         .Sub(
                             new LabelElement().Write()
-                                .StateFrom("LevelMenu", "SaveStatus")
-                                .UseState("SaveStatus", ctx => {
-                                    int saveStatus = ctx.Element.State("SaveStatus").Get<int>();
-                                    string txt = saveStatus switch {
-                                        0 => "new",
-                                        1 => "changed",
-                                        2 => "saved",
-                                        _ => "unknown"
-                                    };
+                                .StateFrom("LevelMenu", "LevelDirty")
+                                .StateFrom("LevelMenu", "StorageMode")
+                                // OnState вызывает обработчик при изменении и инициализации переменных 
+                                .OnState(ctx => {
+                                    string txt;
+                                    if (ctx.Element.State("StorageMode").Get<int>() == (int)StorageMode.None) {
+                                        txt = "New";
+                                    } else {
+                                        txt = ctx.Element.State("LevelDirty").Get<bool>() ? "Changed" : "Saved";
+                                    }
 
                                     ctx.Element.Feature<MainText>().SetText($"STATUS: {txt}");
-                                }),
+                                }, "LevelDirty", "StorageMode"),
                             new LabelElement().Write()
                                 .StateFrom("LevelMenu", "StorageMode")
                                 .UseState("StorageMenu", ctx => {
-                                    int storageMode = ctx.Element.State("LevelMenu").Get<int>();
+                                    StorageMode storageMode = (StorageMode)ctx.Element.State("LevelMenu").Get<int>();
                                     string txt = storageMode switch {
-                                        0 => "local",
-                                        1 => "remote",
-                                        _ => "unknown"
+                                        StorageMode.Local => "Local",
+                                        StorageMode.RemoteFS => "Remote",
+                                        _ => "Unknown"
                                     };
 
                                     ctx.Element.Feature<MainText>().SetText($"STORAGE: {txt}");
@@ -125,9 +139,11 @@ namespace RuntimeEditTools.UI
                     // TODO load and open existed level
                 })
                 .Handle("SAVE", (sig, ctx) => {
-                    // TODO save current level
+                    Save(level);
                 })
-                .Handle("SAVE_AS", (sig, ctx) => { })
+                .Handle("SAVE_AS", (sig, ctx) => {
+                    SaveAs();
+                })
                 .Handle("CHOOSE_OPEN", (sig, ctx) => {
                     if (sig.Data is not int i) {
                         return;
@@ -150,6 +166,24 @@ namespace RuntimeEditTools.UI
                 .SignalBlock();
         }
 
+        private static void SaveAs()
+        {
+            //TODO something
+        }
+
+        private static void Save(LevelAPI level)
+        {
+            if (string.IsNullOrEmpty(level.LevelPathURL)) {
+                SaveAs();
+            } else {
+                level.SaveLevel();
+            }
+        }
+
+        private static void CheckChangesAskSave()
+        {
+            //TODO something
+        }
 
         protected override BaseElement GetEmptyClone() => new LevelStorageMenu();
     }

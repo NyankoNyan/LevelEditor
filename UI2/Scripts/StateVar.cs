@@ -1,5 +1,7 @@
 using global::System;
 
+using Level;
+
 using UnityEngine.Assertions;
 
 namespace UI2
@@ -19,7 +21,7 @@ namespace UI2
         public string refVarName;
         public string refId;
     }
-    
+
     public interface IStateVar
     {
         void Set<T>(T v);
@@ -130,5 +132,75 @@ namespace UI2
                 }
             }
         }
+    }
+
+    public interface IVarProxy
+    {
+        object Value { get; set; }
+        bool IsReadOnly { get; }
+        Action<object, object> Changed { get; set; }
+    }
+
+    public interface IVarProxy<T>
+    {
+        T Value { get; set; }
+        bool IsReadOnly { get; }
+        Action<T, T> Changed { get; set; }
+    }
+
+    public class VarProxy<T> : IVarProxy, IVarProxy<T>
+        where T : IEquatable<T>
+    {
+        public delegate T GetValueDelegate();
+
+        private GetValueDelegate _valueGetter;
+        private Action<T> _valueSetter;
+
+        private T _value;
+
+        public VarProxy(GetValueDelegate valueGetter,
+            ref Action valueChangeEvent,
+            Action<T> valueSetter = null)
+        {
+            _valueGetter = valueGetter;
+            _valueSetter = valueSetter;
+            valueChangeEvent += OnValueChanged;
+        }
+
+        public void Destroy(ref Action valueChangeEvent)
+        {
+            valueChangeEvent -= OnValueChanged;
+        }
+
+        private void OnValueChanged()
+        {
+            T newValue = _valueGetter();
+            if (!newValue.Equals(_value)) {
+                T oldValue = _value;
+                _value = newValue;
+                ((IVarProxy<T>)this).Changed?.Invoke(oldValue, _value);
+                ((IVarProxy)this).Changed?.Invoke(oldValue, _value);
+            }
+        }
+
+        object IVarProxy.Value {
+            get => Value;
+            set => Value = (T)value;
+        }
+
+        public T Value {
+            get => _value;
+            set {
+                if (!IsReadOnly) {
+                    _valueSetter(value);
+                }
+            }
+        }
+
+        Action<T, T> IVarProxy<T>.Changed { get; set; }
+
+        public bool IsReadOnly => _valueSetter == null;
+
+        Action<object, object> IVarProxy.Changed { get; set; }
     }
 }

@@ -87,5 +87,8 @@ namespace UI2
         IElementSetupWrite Grid((float, float) cellSize, (int, int, int, int) padding = default)
             => Grid(new Vector2(cellSize.Item1, cellSize.Item2),
                 new RectOffset(padding.Item1, padding.Item2, padding.Item3, padding.Item4));
+
+        IElementSetupWrite StateSync(string name, IVarProxy varProxy);
+        IElementSetupWrite OnState(SimpleHandleDelegate callback, params string[] varNames);
     }
 }

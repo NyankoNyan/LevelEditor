@@ -1,5 +1,10 @@
 namespace UI2
 {
+    /// <summary>
+    /// Window with message and named buttons.
+    /// Drilling up signal CHOOSE with button index (started with 1) in data field.
+    /// TODO options for ESC button and other keyboard shortcuts
+    /// </summary>
     public class QuestionWindow : BaseElement
     {
         private readonly string _text;
@@ -15,7 +20,6 @@ namespace UI2
             var buttonPanel = new PanelElement().Write()
                 .GroupHorizontal();
 
-            // ButtonSetup[] buttonSetups = new ButtonSetup[_buttons.Length];
             for (int i = 0; i < _buttons.Length; i++) {
                 var i1 = i + 1;
                 buttonPanel.Sub(
