@@ -151,7 +151,7 @@ namespace UI2
 
         public IElementSetupWrite StateFrom(string elemId, string elemState, string newId = null)
         {
-            _element.StateProxy(new StateProxyDef {
+            _element.StateProxy(new StateRefDef {
                 name = newId ?? elemId,
                 refId = elemId,
                 refVarName = elemState

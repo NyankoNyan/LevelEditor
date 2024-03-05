@@ -15,7 +15,7 @@ namespace UI2
         public StateInitDelegate stateInitCall;
     }
 
-    public class StateProxyDef
+    public class StateRefDef
     {
         public string name;
         public string refVarName;
@@ -134,6 +134,59 @@ namespace UI2
         }
     }
 
+    interface IStateRefSetter
+    {
+        bool IsInitialized { get; }
+        void SetRef(IStateVar state);
+    }
+
+    public class StateVarRef : IStateVar, IStateRefSetter
+    {
+        private IStateVar _original;
+
+        public void Set<T>(T v)
+        {
+            CheckOriginal();
+            _original.Set(v);
+        }
+
+        public T Get<T>()
+        {
+            CheckOriginal();
+            return _original.Get<T>();
+        }
+
+        public Action onChanged {
+            get {
+                CheckOriginal();
+                return _original.onChanged;
+            }
+
+            set {
+                CheckOriginal();
+                _original.onChanged = value;
+            }
+        }
+
+        public bool IsInitialized => _original != null;
+
+        public void SetRef(IStateVar state)
+        {
+            if (IsInitialized) {
+                throw new ElementWorkflowException("Reference already initialized");
+            }
+
+            _original = state;
+        }
+
+        private void CheckOriginal()
+        {
+            if (_original == null) {
+                throw new ElementWorkflowException("Reference was not initialized");
+            }
+        }
+    }
+
     public interface IVarProxy
     {
         object Value { get; set; }
@@ -202,5 +255,71 @@ namespace UI2
         public bool IsReadOnly => _valueSetter == null;
 
         Action<object, object> IVarProxy.Changed { get; set; }
+    }
+
+    public enum StateOwner
+    {
+        Context,
+        Element
+    }
+
+    internal class StateInfo
+    {
+        public StateVar originalVar;
+        public List<IElementInstance> references = new();
+        public List<IStateRefSetter> stateRefs = new();
+        public StateOwner owner;
+    }
+
+    public class StateContext
+    {
+        public string Name { get; private set; }
+        public StateContext ParentContext { get; private set; }
+        public IEnumerable<StateContext> SubContexts => _subContexts.Values;
+        
+        
+        private readonly UIRoot _root;
+        private Dictionary<string, List<IStateRefSetter>> _stateWaiters = new();
+        private Dictionary<string, StateInfo> _stateInfos = new();
+        private Dictionary<string, StateContext> _subContexts = new();
+
+        public StateContext(UIRoot root, string name)
+        {
+            _root = root;
+            Name = name;
+        }
+
+        public IStateVar CreateContextVar(StateDef stateDef, IElementInstance client)
+        {
+            if (!_stateInfos.TryGetValue(stateDef.name, out StateInfo stateInfo)) {
+                var state = new StateVar(stateDef);
+                stateInfo = new() {
+                    originalVar = state,
+                    owner = StateOwner.Context
+                };
+                _stateInfos.Add(state.name, stateInfo);
+            }
+
+            stateInfo.references.Add(client);
+
+            StateVarRef stateRef = new();
+            stateRef.SetRef(stateInfo.originalVar);
+
+            stateInfo.stateRefs.Add(stateRef);
+
+            Action onDestroy = null;
+            onDestroy = () => {
+                stateInfo.references.Remove(client);
+                stateInfo.stateRefs.Remove(stateRef);
+                if (stateInfo.references.Count == 0) {
+                    _stateInfos.Remove(stateInfo.originalVar.name);
+                }
+
+                client.OnDestroy -= onDestroy;
+            };
+            client.OnDestroy += onDestroy;
+
+            return stateRef;
+        }
     }
 }

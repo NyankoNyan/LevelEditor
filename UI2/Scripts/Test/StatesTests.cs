@@ -90,5 +90,25 @@ namespace UI2.Test
                 )
                 .GroupVertical();
         }
+
+        [UITest]
+        public static IElementSetupWrite ContextLayer()
+        {
+            return PanelElement.Create()
+                .Sub(
+                    new LabelElement("This element contains state and another show state").Write()
+                        .Id("WithState")
+                        .State("Status", "It's okay when you see this"),
+                    new LabelElement().Write()
+                        .Id("WithoutState")
+                        .StateFrom("Context", "Status")
+                        .Init(ctx => {
+                            string status = ctx.Element.State("Status").Get<string>();
+                            ctx.Element.Feature<MainText>().SetText(status);
+                        })
+                )
+                .StateContext("Context")
+                .GroupVertical();
+        }
     }
 }

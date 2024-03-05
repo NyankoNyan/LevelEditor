@@ -49,7 +49,7 @@ namespace UI2
         IEnumerable<StateDef> DefaultStates { get; }
         string UsedState { get; }
         IEnumerable<string> ProxyTargets { get; }
-        IEnumerable<StateProxyDef> Proxies { get; }
+        IEnumerable<StateRefDef> Proxies { get; }
         GroupType Group { get; }
         GridSetup GridSetup { get; }
     }

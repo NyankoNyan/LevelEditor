@@ -27,7 +27,7 @@ namespace UI2
         private bool _lazy;
         private Dictionary<string, StateDef> _stateDefinitions = new();
         private string _usedState;
-        private Dictionary<string, StateProxyDef> _stateProxies = new();
+        private Dictionary<string, StateRefDef> _stateProxies = new();
         private HashSet<string> _searchProxies = new();
         private GridSetup _gridSetup;
         private SimpleHandleDelegate _usedStateUpdateCall;
@@ -201,7 +201,7 @@ namespace UI2
 
         public string UsedState => _usedState;
         public IEnumerable<string> ProxyTargets => _searchProxies;
-        public IEnumerable<StateProxyDef> Proxies => _stateProxies.Values;
+        public IEnumerable<StateRefDef> Proxies => _stateProxies.Values;
 
         public GroupType Group => _groupType;
 
@@ -261,10 +261,10 @@ namespace UI2
 
         public IElementSetupWrite Write() => new BaseElementChain(this);
 
-        public void StateProxy(StateProxyDef proxy)
+        public void StateProxy(StateRefDef stateRef)
         {
-            if (!_stateProxies.TryAdd(proxy.name, proxy)) {
-                _stateProxies[proxy.name] = proxy;
+            if (!_stateProxies.TryAdd(stateRef.name, stateRef)) {
+                _stateProxies[stateRef.name] = stateRef;
             }
         }
 

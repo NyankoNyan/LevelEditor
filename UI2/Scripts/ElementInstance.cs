@@ -38,7 +38,13 @@ namespace UI2
             UpdateGroupLayout();
 
             // Init states
-            foreach (var stateDef in proto.DefaultStates) {
+            InitStates();
+        }
+
+        private void InitStates()
+        {
+            foreach (var stateDef in _proto.DefaultStates) {
+                _root.CreateState(stateDef, this);
                 StateVar state = new(stateDef);
                 _states.Add(state);
             }
@@ -58,28 +64,6 @@ namespace UI2
         }
 
         public IEnumerable<IElementInstance> Children => _children;
-
-        public IElementInstance Sub(string id)
-        {
-            // Own children
-            foreach (var child in Children) {
-                if (child.Proto.Id == id) {
-                    return child;
-                }
-            }
-
-            // Ok, just go to a hierarchy
-            foreach (var child in Children) {
-                if (child.Proto.Id == id) {
-                    var result = child.Sub(id);
-                    if (result != null) {
-                        return result;
-                    }
-                }
-            }
-
-            return null;
-        }
 
         public void SendFacadeSignal(string id)
         {
@@ -102,18 +86,18 @@ namespace UI2
 
         public IEnumerable<StateVar> States => _states.AsReadOnly();
 
-        public IElementInstance Hide()
+        public void Hide()
         {
             _instance.SetActive(false);
-            return this;
         }
+
+        public Action OnDestroy { get; set; }
 
         public bool Active => _instance.activeSelf;
 
-        public IElementInstance Show()
+        public void Show()
         {
             _instance.SetActive(true);
-            return this;
         }
 
         public void LateInit()
@@ -125,7 +109,7 @@ namespace UI2
             _initialized = true;
 
             foreach (string target in _proto.ProxyTargets) {
-                var child = Sub(target);
+                var child = ((IElementInstance)this).Sub(target);
                 if (child != null) {
                     foreach (StateVar state in child.States) {
                         CreateProxy(state, state.name);
@@ -135,8 +119,8 @@ namespace UI2
                 }
             }
 
-            foreach (StateProxyDef proxy in _proto.Proxies) {
-                var child = Sub(proxy.refId);
+            foreach (StateRefDef proxy in _proto.Proxies) {
+                var child = ((IElementInstance)this).Sub(proxy.refId);
                 if (child != null) {
                     StateVar state = child.State(proxy.refVarName);
                     CreateProxy(state, proxy.name);

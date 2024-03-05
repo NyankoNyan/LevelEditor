@@ -90,5 +90,6 @@ namespace UI2
 
         IElementSetupWrite StateSync(string name, IVarProxy varProxy);
         IElementSetupWrite OnState(SimpleHandleDelegate callback, params string[] varNames);
+        IElementSetupWrite StateContext(string context);
     }
 }

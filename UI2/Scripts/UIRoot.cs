@@ -1,8 +1,10 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
 
 using UnityEngine;
+using UnityEngine.Assertions;
 
 namespace UI2
 {
@@ -13,11 +15,17 @@ namespace UI2
         DrillUp,
         DrillDown
     }
-    
+
     public class ElementWorkflowException : Exception
     {
         public ElementWorkflowException(string msg) : base(msg) { }
     }
+
+    
+    
+    
+    
+
 
     /// <summary>
     /// Отвечает за инициализацию и хранение состояния всего UI
@@ -26,7 +34,9 @@ namespace UI2
     {
         public const string INIT_SIGNAL = "__INIT__";
         public const string ALL_SIGNALS = "__ALL__";
-        
+
+        public const string GLOBAL_CONTEXT = "__GLOBAL__";
+
         private readonly Dictionary<string, Style> _styles = new();
         private readonly HashSet<IElementInstance> _instances = new();
         private readonly HashSet<IElementInstance> _listeners = new();
@@ -164,6 +174,7 @@ namespace UI2
                         child.LateInit();
                     }
                 }
+
                 instance.LateInit();
 
                 if (facade) {
@@ -205,94 +216,147 @@ namespace UI2
             switch (direction) {
                 // Сигнал должен попасть во все подписанные на него элементы сцены
                 case SignalDirection.Broadcast: {
-                        foreach (var listener in _listeners) {
-                            var handlers = listener.Proto.GetHandlers(name);
-                            if (handlers == null) {
-                                continue;
-                            }
+                    foreach (var listener in _listeners) {
+                        var handlers = listener.Proto.GetHandlers(name);
+                        if (handlers == null) {
+                            continue;
+                        }
 
-                            if (handlers.Any(h => {
+                        if (handlers.Any(h => {
                                 h(signal, new ElementRuntimeContext(listener, this));
                                 return consumable && signal.Consumed;
                             })) {
-                                break;
-                            }
+                            break;
                         }
-
-                        break;
                     }
+
+                    break;
+                }
 
                 // Это типа loopback. Сигнал уходит на этот же элемент.
                 case SignalDirection.Self: {
-                        _ = sender.Proto.GetHandlers(name)?.All(h => {
-                            h(signal, new ElementRuntimeContext(sender, this));
-                            return true;
-                        });
-                        break;
-                    }
+                    _ = sender.Proto.GetHandlers(name)?.All(h => {
+                        h(signal, new ElementRuntimeContext(sender, this));
+                        return true;
+                    });
+                    break;
+                }
 
                 // Сигнал уходит вверх по родительской иерархии
                 case SignalDirection.DrillUp: {
-                        HashSet<IElementInstance> antiRecursion = new() { sender };
-                        var current = sender.Parent;
-                        while (current != null) {
-                            if (!antiRecursion.Add(current)) {
-                                Debug.LogWarning($"found recursion in element {current.Proto.Id}");
-                                break;
+                    HashSet<IElementInstance> antiRecursion = new() { sender };
+                    var current = sender.Parent;
+                    while (current != null) {
+                        if (!antiRecursion.Add(current)) {
+                            Debug.LogWarning($"found recursion in element {current.Proto.Id}");
+                            break;
+                        }
+
+                        var result = current.Proto.GetHandlers(name)?.Any(h => {
+                            h(signal, new ElementRuntimeContext(current, this));
+                            return consumable && signal.Consumed;
+                        });
+                        if (result.HasValue && result.Value) {
+                            break;
+                        }
+
+                        current = current.Proto.SignalBlocked ? null : current.Parent;
+                    }
+
+                    break;
+                }
+
+                // Сигнал уходит по потомкам путём поиска в глубину
+                case SignalDirection.DrillDown: {
+                    HashSet<IElementInstance> antiRecursion = new() { sender };
+
+                    DeepSearch(sender);
+
+                    break;
+
+                    void DeepSearch(IElementInstance elem)
+                    {
+                        if (elem.Children == null || elem.Proto.SignalBlocked) {
+                            return;
+                        }
+
+                        foreach (var sub in elem.Children) {
+                            if (!antiRecursion.Add(sub)) {
+                                Debug.LogWarning($"found recursion in element {elem.Proto.Id}");
+                                continue;
                             }
 
-                            var result = current.Proto.GetHandlers(name)?.Any(h => {
-                                h(signal, new ElementRuntimeContext(current, this));
+                            var result = sub.Proto.GetHandlers(name)?.Any(h => {
+                                h(signal, new ElementRuntimeContext(sub, this));
                                 return consumable && signal.Consumed;
                             });
                             if (result.HasValue && result.Value) {
                                 break;
                             }
 
-                            current = current.Proto.SignalBlocked ? null : current.Parent;
-                        }
-
-                        break;
-                    }
-
-                // Сигнал уходит по потомкам путём поиска в глубину
-                case SignalDirection.DrillDown: {
-                        HashSet<IElementInstance> antiRecursion = new() { sender };
-
-                        DeepSearch(sender);
-
-                        break;
-
-                        void DeepSearch(IElementInstance elem)
-                        {
-                            if (elem.Children == null || elem.Proto.SignalBlocked) {
-                                return;
-                            }
-
-                            foreach (var sub in elem.Children) {
-                                if (!antiRecursion.Add(sub)) {
-                                    Debug.LogWarning($"found recursion in element {elem.Proto.Id}");
-                                    continue;
-                                }
-
-                                var result = sub.Proto.GetHandlers(name)?.Any(h => {
-                                    h(signal, new ElementRuntimeContext(sub, this));
-                                    return consumable && signal.Consumed;
-                                });
-                                if (result.HasValue && result.Value) {
-                                    break;
-                                }
-
-                                DeepSearch(sub);
-                                if (consumable && signal.Consumed) {
-                                    break;
-                                }
+                            DeepSearch(sub);
+                            if (consumable && signal.Consumed) {
+                                break;
                             }
                         }
                     }
+                }
                 default:
                     throw new NotImplementedException();
             }
+        }
+
+        private readonly Dictionary<IElementInstance, StateContext> _stateContexts = new();
+
+        private IElementInstance SearchElementWithContext(IElementInstance elem)
+        {
+
+            var current = elem;
+            while (true) {
+                if (current.Proto.SignalBlocked) {
+                    break;
+                }
+
+                if (current.Parent == null) {
+                    break;
+                }
+
+                current = current.Parent;
+            }
+
+            return current;
+        }
+
+        internal enum ContextLayer { Self, Current, Global }
+        
+        internal IStateVar CreateState(StateDef def, IElementInstance elem, ContextLayer contextLayer = ContextLayer.Self)
+        {
+            Assert.IsNotNull(elem);
+            Assert.IsNotNull(def);
+
+            IElementInstance contextElem = contextLayer switch {
+                ContextLayer.Self => elem,
+                ContextLayer.Current => SearchElementWithContext(elem),
+                _ => null
+            };
+            
+            if (!_stateContexts.TryGetValue(contextElem, out StateContext context)) {
+                context = new StateContext(this, (contextElem == null) ? GLOBAL_CONTEXT : contextElem.Proto.Id);
+                _stateContexts.Add(contextElem, context);
+            } 
+            //TODO parent context linking
+
+            var state = context.CreateContextVar(def, elem);
+            return state;
+        }
+
+        internal IStateVar CreateState(StateRefDef def, IElementInstance elem)
+        {
+            Assert.IsNotNull(elem);
+            Assert.IsNotNull(def);
+            
+            // Почему комната ожидания переменной должна быть здесь?
+            // Потому что контекст должен быть связан с конкретным элементом. Иначе хрень какая-то получется.
         }
 
         internal OperationDescriptor StartOperation(IOperation operation)
