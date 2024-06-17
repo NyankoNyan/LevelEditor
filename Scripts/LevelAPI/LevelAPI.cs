@@ -50,7 +50,7 @@ namespace Level.API
         /// Место хранения уровня.
         /// 1) Если пусто, значит уровень никуда не записывается и просто лежит в памяти.
         /// Память рано или поздно закончится, но если есть задача генерировать уровень, а потом
-        /// его стирать, вполне нормальная стратегия. 
+        /// его стирать, вполне нормальная стратегия.
         /// 2) Если начинается с file://, то уровень находится на локальном диске.
         /// Это может быть путь в любом поддерживаемом системой виде:
         /// file://D:\Temp\Levels, file:///home/user, file://%APPDATA%/Levels
@@ -199,7 +199,7 @@ namespace Level.API
                 if (ValidateLevelPathURL(url)) {
                     var match = Regex.Match(url, @"^file://(.*)$|^http(s?)://(.*)$");
                     if (match.Success) {
-                        var groups = match.Groups.Values.ToList();
+                        var groups = match.Groups;
                         if (!string.IsNullOrWhiteSpace(groups[1].Value)) {
                             //TODO create file interface
                             _settings.storageMode = StorageMode.Local;

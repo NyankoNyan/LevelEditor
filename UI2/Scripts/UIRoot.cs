@@ -350,14 +350,14 @@ namespace UI2
             return state;
         }
 
-        internal IStateVar CreateState(StateRefDef def, IElementInstance elem)
-        {
-            Assert.IsNotNull(elem);
-            Assert.IsNotNull(def);
+        //internal IStateVar CreateState(StateRefDef def, IElementInstance elem)
+        //{
+        //    Assert.IsNotNull(elem);
+        //    Assert.IsNotNull(def);
             
-            // Почему комната ожидания переменной должна быть здесь?
-            // Потому что контекст должен быть связан с конкретным элементом. Иначе хрень какая-то получется.
-        }
+        //    // Почему комната ожидания переменной должна быть здесь?
+        //    // Потому что контекст должен быть связан с конкретным элементом. Иначе хрень какая-то получется.
+        //}
 
         internal OperationDescriptor StartOperation(IOperation operation)
             => new(_provider.StartCoroutine(operation.Exec()));

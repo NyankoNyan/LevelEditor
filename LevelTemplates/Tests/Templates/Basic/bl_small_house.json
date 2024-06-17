@@ -1,0 +1,68 @@
+{
+  "version": "0.1",
+  "type": "BLOCK_COMPOSITION",
+  "name": "Small house",
+  "size": {
+    "x": 5,
+    "y": 8,
+    "z": 5
+  },
+  "content": [
+    [
+      "f f f f f",
+      "f f f f f",
+      "f f f f f",
+      "f f f f f",
+      "f f f f f"
+    ],
+    [
+      "w w w w w",
+      "w . . . w",
+      ". . . . w",
+      "w . . . w",
+      "w w w w w"
+    ],
+    [
+      "w w w w w",
+      "w . . . w",
+      ". . . . w",
+      "w . . . w",
+      "w w w w w"
+    ],
+    [
+      "w w w w w",
+      "w . . . w",
+      "w . . . w",
+      "w . . . w",
+      "w w w w w"
+    ],
+    [
+      "c c c c c",
+      "c c c c c",
+      "c c c c c",
+      "c c c c c",
+      "c c c c c"
+    ],
+    [
+      "r/n r/n r/n r/n r/n",
+      "R   R   R   R   R",
+      "R   R   R   R   R",
+      "R   R   R   R   R",
+      "r/s r/s r/s r/s r/s"
+    ],
+    [
+      ".   .   .   .   .",
+      "r/n r/n r/n r/n r/n",
+      "R   R   R   R   R",
+      "r/s r/s r/s r/s r/s",
+      ".   .   .   .   ."
+    ],
+    [
+      ". . . . .",
+      ". . . . .",
+      "^ ^ ^ ^ ^",
+      ". . . . .",
+      ". . . . ."
+    ]
+  ]
+}

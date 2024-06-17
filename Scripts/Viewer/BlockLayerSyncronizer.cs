@@ -142,7 +142,7 @@ namespace LevelView
             BlockProto blockProto = _level.BlockProtoCollection[blockData.blockId];
             var objectView = _objViewFabric.Create(blockProto.Name);
             objectView.transform.parent = chunkRoot;
-            objectView.transform.localRotation = BlockData.DecodeRotation(blockData.rotation);
+            objectView.transform.localRotation = blockData.rotation.ToDiscreteAngle().ToQuaternion();
             objectView.transform.localPosition = pos;
 
             _viewsGlobalIndex.Add(globalBlockCoord, objectView);

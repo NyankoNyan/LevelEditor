@@ -164,5 +164,20 @@ namespace UI2
             _element.Grid(cellSize, padding);
             return this;
         }
+
+        public IElementSetupWrite StateSync(string name, IVarProxy varProxy)
+        {
+            throw new System.NotImplementedException();
+        }
+
+        public IElementSetupWrite OnState(SimpleHandleDelegate callback, params string[] varNames)
+        {
+            throw new System.NotImplementedException();
+        }
+
+        public IElementSetupWrite StateContext(string context)
+        {
+            throw new System.NotImplementedException();
+        }
     }
 }

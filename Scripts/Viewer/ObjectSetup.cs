@@ -1,4 +1,5 @@
 ﻿using System;
+
 using UnityEngine;
 
 namespace LevelView
@@ -107,14 +108,5 @@ namespace LevelView
                 && prefab == other.prefab && mesh == other.mesh && mainTexture == other.mainTexture
                 && offset == other.offset && rotation == other.rotation && scale == other.scale;
         }
-    }
-
-    /// <summary>
-    /// Список отображаемых объектов сцены
-    /// </summary>
-    [CreateAssetMenu( fileName = "ObjectSetupListManifest", menuName = "LevelEditor/ObjectSetupListManifest" )]
-    public class ObjectSetupListManifest : ScriptableObject
-    {
-        [SerializeField] public ObjectSetup[] Objects;
     }
 }

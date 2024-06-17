@@ -1,0 +1,16 @@
+{
+    "name": "LevelTemplates",
+    "rootNamespace": "",
+    "references": [
+        "GUID:8650f9dca51f59c4695ff23619ce15cd"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

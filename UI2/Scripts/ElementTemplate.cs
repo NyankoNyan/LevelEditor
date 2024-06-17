@@ -101,6 +101,21 @@ namespace UI2
 
         public IElementSetupWrite Grid(Vector2 cellSize, RectOffset padding) => _Add(cellSize, padding);
 
+        public IElementSetupWrite StateSync(string name, IVarProxy varProxy)
+        {
+            throw new System.NotImplementedException();
+        }
+
+        public IElementSetupWrite OnState(SimpleHandleDelegate callback, params string[] varNames)
+        {
+            throw new System.NotImplementedException();
+        }
+
+        public IElementSetupWrite StateContext(string context)
+        {
+            throw new System.NotImplementedException();
+        }
+
         private struct Command
         {
             public MethodBase func;

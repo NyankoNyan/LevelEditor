@@ -1,4 +1,4 @@
-﻿using Level.API;
+using Level.API;
 
 using System;
 
@@ -25,79 +25,6 @@ namespace Level
         {
             this.blockId = blockId;
             this.rotation = rotation;
-        }
-
-        public static Quaternion DecodeRotation(byte rotation)
-        {
-            Quaternion firstRot;
-            Quaternion secondRot;
-
-            switch ((Angle)( rotation & 24 )) {
-                case Angle.Deg90:
-                    firstRot = Quaternion.AngleAxis( 90, Vector3.up );
-                    break;
-
-                case Angle.Deg180:
-                    firstRot = Quaternion.AngleAxis( 180, Vector3.up );
-                    break;
-
-                case Angle.Deg270:
-                    firstRot = Quaternion.AngleAxis( 270, Vector3.up );
-                    break;
-
-                default:
-                    firstRot = Quaternion.identity;
-                    break;
-            }
-
-            switch ((Axis)( rotation & 7 )) {
-                case Axis.PlusX:
-                    secondRot = Quaternion.AngleAxis( -90, Vector3.forward );
-                    break;
-
-                case Axis.MinusX:
-                    secondRot = Quaternion.AngleAxis( 90, Vector3.forward );
-                    break;
-
-                case Axis.PlusY:
-                    secondRot = Quaternion.identity;
-                    break;
-
-                case Axis.MinusY:
-                    secondRot = Quaternion.AngleAxis( 180, Vector3.forward );
-                    break;
-
-                case Axis.PlusZ:
-                    secondRot = Quaternion.AngleAxis( 90, Vector3.right );
-                    break;
-
-                case Axis.MinusZ:
-                    secondRot = Quaternion.AngleAxis( -90, Vector3.right );
-                    break;
-
-                default:
-                    throw new LevelAPIException( $"Unknown rotation {rotation}" );
-            }
-
-            return secondRot * firstRot;
-        }
-
-        public enum Axis
-        {
-            PlusX = 0,
-            PlusY = 1,
-            PlusZ = 2,
-            MinusX = 4,
-            MinusY = 5,
-            MinusZ = 6
-        }
-
-        public enum Angle
-        {
-            Deg0 = 0,
-            Deg90 = 8,
-            Deg180 = 16,
-            Deg270 = 24
         }
     }
 
