@@ -48,7 +48,7 @@ namespace Level.API
             int mainComp = (int)angle / 10;
             int secComp = (int)angle % 10;
 
-            return (byte)(secComp << 3 + mainComp);
+            return (byte)((secComp << 3) + mainComp);
         }
 
         public static DiscreteAngle ToDiscreteAngle(this byte v)
@@ -81,5 +81,8 @@ namespace Level.API
 
             return mainRot * secRot;
         }
+
+        public static DiscreteAngle Mult(this DiscreteAngle v1, DiscreteAngle v2) => 
+            (Matrix3x3Int.FromDiscreteAngle(v1) * Matrix3x3Int.FromDiscreteAngle(v2)).Angle;
     }
 }

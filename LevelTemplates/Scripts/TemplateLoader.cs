@@ -202,10 +202,10 @@ namespace LevelTemplates
                             continue;
                         }
 
-                        DiscreteAngle blockAngle = GetBlockAngle(buildName, setup);
+                        DiscreteAngle blockAngle = angle.Mult(GetBlockAngle(buildName, setup));
 
                         var blockData = new BlockData((ushort)blockProto.Key, blockAngle.Compress());
-                        targetGrid.SetBlock(targetLayer, DiscreteGrid.RotateOffset(offset, new Vector3Int(ix, iy, iz), angle), blockData);
+                        targetGrid.SetBlock(targetLayer, DiscreteGrid.RotateOffset(offset, new Vector3Int(ix, iy, (int)blComp.size.z - iz), angle), blockData);
                     }
                 }
             }
@@ -220,18 +220,18 @@ namespace LevelTemplates
             DiscreteAngle blockAngle = DiscreteAngle.U0;
             if (setup.Length > 1) {
                 switch (setup[1]) {
-                    case "s":
+                    case "n":
                         break;
 
-                    case "n":
+                    case "s":
                         blockAngle = DiscreteAngle.U180;
                         break;
 
-                    case "w":
+                    case "e":
                         blockAngle = DiscreteAngle.U90;
                         break;
 
-                    case "e":
+                    case "w":
                         blockAngle = DiscreteAngle.U270;
                         break;
 
