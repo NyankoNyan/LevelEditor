@@ -1,0 +1,14 @@
+{
+  "version": "0.1",
+  "type": "PALETTE",
+  "name": "Basic",
+  "empty_block": ".",
+  "blocks": {
+    "f": "test.floor",
+    "w": "test.wall",
+    "c": "test.ceil" ,
+    "R": "test.roof.flat",
+    "r": "test.roof.side",
+    "^": "test.roof.corner"
+  }
+}

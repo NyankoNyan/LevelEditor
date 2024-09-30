@@ -1,0 +1,99 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f04ad3cb0e593b5438e6469d59697ae9, type: 3}
+  m_Name: TemplateLoadObjects
+  m_EditorClassIdentifier: 
+  Objects:
+  - id: test.floor.v1
+    refId: test.floor
+    version: 0
+    prefab: {fileID: 1472521313052899534, guid: 4de16a38e730f68418d73e10cc83c598, type: 3}
+    mesh: {fileID: 0}
+    material: {fileID: 0}
+    mainTexture: {fileID: 0}
+    offset: {x: 0, y: 0, z: 0}
+    rotation: {x: 0, y: 0, z: 0}
+    scale: {x: 0, y: 0, z: 0}
+    useTransformWrapper: 0
+    previewOffset: {x: 0, y: 0, z: 0}
+    previewRotation: {x: 0, y: 0, z: 0}
+    previewScale: {x: 0, y: 0, z: 0}
+  - id: test.wall.v1
+    refId: test.wall
+    version: 0
+    prefab: {fileID: 8747670475087809000, guid: 4a4325c3429a6294ab59d6433838769d, type: 3}
+    mesh: {fileID: 0}
+    material: {fileID: 0}
+    mainTexture: {fileID: 0}
+    offset: {x: 0, y: 0, z: 0}
+    rotation: {x: 0, y: 0, z: 0}
+    scale: {x: 0, y: 0, z: 0}
+    useTransformWrapper: 0
+    previewOffset: {x: 0, y: 0, z: 0}
+    previewRotation: {x: 0, y: 0, z: 0}
+    previewScale: {x: 0, y: 0, z: 0}
+  - id: test.ceil.v1
+    refId: test.ceil
+    version: 0
+    prefab: {fileID: 1871215003791918710, guid: 18c1f4294030bfe419b0787163409fb6, type: 3}
+    mesh: {fileID: 0}
+    material: {fileID: 0}
+    mainTexture: {fileID: 0}
+    offset: {x: 0, y: 0, z: 0}
+    rotation: {x: 0, y: 0, z: 0}
+    scale: {x: 0, y: 0, z: 0}
+    useTransformWrapper: 0
+    previewOffset: {x: 0, y: 0, z: 0}
+    previewRotation: {x: 0, y: 0, z: 0}
+    previewScale: {x: 0, y: 0, z: 0}
+  - id: test.roof.flat.v1
+    refId: test.roof.flat
+    version: 0
+    prefab: {fileID: 4615353103948596238, guid: 30f7c9aed502e154a958630f01486584, type: 3}
+    mesh: {fileID: 0}
+    material: {fileID: 0}
+    mainTexture: {fileID: 0}
+    offset: {x: 0, y: 0, z: 0}
+    rotation: {x: 0, y: 0, z: 0}
+    scale: {x: 0, y: 0, z: 0}
+    useTransformWrapper: 0
+    previewOffset: {x: 0, y: 0, z: 0}
+    previewRotation: {x: 0, y: 0, z: 0}
+    previewScale: {x: 0, y: 0, z: 0}
+  - id: test.roof.side.v1
+    refId: test.roof.side
+    version: 0
+    prefab: {fileID: 619356795319842840, guid: 670bffbcbf53e20408f675c77ea787e6, type: 3}
+    mesh: {fileID: 0}
+    material: {fileID: 0}
+    mainTexture: {fileID: 0}
+    offset: {x: 0, y: 0, z: 0}
+    rotation: {x: 0, y: 0, z: 0}
+    scale: {x: 0, y: 0, z: 0}
+    useTransformWrapper: 0
+    previewOffset: {x: 0, y: 0, z: 0}
+    previewRotation: {x: 0, y: 0, z: 0}
+    previewScale: {x: 0, y: 0, z: 0}
+  - id: test.roof.corner.v1
+    refId: test.roof.corner
+    version: 0
+    prefab: {fileID: 1378689291475744215, guid: 72e5226efe4e1354dac730a2215dc5a1, type: 3}
+    mesh: {fileID: 0}
+    material: {fileID: 0}
+    mainTexture: {fileID: 0}
+    offset: {x: 0, y: 0, z: 0}
+    rotation: {x: 0, y: 0, z: 0}
+    scale: {x: 0, y: 0, z: 0}
+    useTransformWrapper: 0
+    previewOffset: {x: 0, y: 0, z: 0}
+    previewRotation: {x: 0, y: 0, z: 0}
+    previewScale: {x: 0, y: 0, z: 0}

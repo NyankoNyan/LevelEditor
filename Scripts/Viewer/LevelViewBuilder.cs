@@ -35,7 +35,7 @@ namespace LevelView
                 _objViewFabric = new ObjectViewFabric(_constructFabric);
             }
 
-            // Setup grid settings
+            // Read grid settings
             _levelAPI.BlockProtoCollection.added = ReactiveTools.SubscribeCollection(
                 _levelAPI.BlockProtoCollection,
                 _levelAPI.BlockProtoCollection.added,
@@ -43,7 +43,7 @@ namespace LevelView
             );
             _levelAPI.BlockProtoCollection.removed += RemoveBlockProto;
 
-            // Setup grid states
+            // Read grid states
             _levelAPI.GridStatesCollection.added = ReactiveTools.SubscribeCollection(
                 _levelAPI.GridStatesCollection,
                 _levelAPI.GridStatesCollection.added,

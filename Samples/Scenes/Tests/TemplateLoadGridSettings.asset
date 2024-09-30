@@ -1,0 +1,28 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a9c018d50ca1a234b8d3843476ec1117, type: 3}
+  m_Name: TemplateLoadGridSettings
+  m_EditorClassIdentifier: 
+  GridSettingsList:
+  - name: default
+    chunkSize: {x: 10, y: 10, z: 10}
+    cellSize: {x: 1, y: 1, z: 1}
+    formFactor: 1x1x1
+    hasBounds: 0
+    bounds:
+      chunkFrom: {x: 0, y: 0, z: 0}
+      chunkTo: {x: 0, y: 0, z: 0}
+    layers:
+    - layerType: 0
+      chunkSize: {x: 10, y: 10, z: 10}
+      tag: default
+      hasViewLayer: 1

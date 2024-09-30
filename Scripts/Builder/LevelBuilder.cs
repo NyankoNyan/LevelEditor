@@ -21,7 +21,7 @@ namespace Level.Builder
         //[SerializeField] private GridInstanceBuilderCollector builderGridInstanceCollector;
         [SerializeField] private bool jsonPrettyPrint;
 
-        [SerializeField] private LevelSettings levelSettings = new() { levelStoreFolder = "Levels", chunkStorageStrategy = ChunkStorageStrategy.AllTogether };
+        [SerializeField] private LevelSettings levelSettings = new() { levelStoreURI = "Levels", chunkStorageStrategy = ChunkStorageStrategy.AllTogether };
 
         public void ExportLevel()
         {
